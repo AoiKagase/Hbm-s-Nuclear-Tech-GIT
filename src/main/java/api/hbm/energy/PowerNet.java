@@ -132,16 +132,10 @@ public class PowerNet implements IPowerNet {
 	
 	@Override
 	public long transferPower(long power) {
-		
-		List<PowerNet> cache = new ArrayList();
-		if(trackingInstances != null && !trackingInstances.isEmpty()) {
-			cache.addAll(trackingInstances);
+		long result = fairTransfer(this.subscribers, power, this);
+		if(trackingInstances != null && !trackingInstances.contains(this)) {
+			trackingInstances.add(0, this);
 		}
-
-		trackingInstances = new ArrayList();
-		trackingInstances.add(this);
-		long result = fairTransfer(this.subscribers, power);
-		trackingInstances.addAll(cache);
 		return result;
 	}
 	
@@ -227,7 +221,7 @@ public class PowerNet implements IPowerNet {
 		return power;
 	}
 
-	public static long fairTransfer(List<IEnergyConnector> subscribers, long power) {
+	public static long fairTransfer(List<IEnergyConnector> subscribers, long power, PowerNet net) {
 		
 		if(power <= 0) return 0;
 		
@@ -286,13 +280,7 @@ public class PowerNet implements IPowerNet {
 		}
 
 		if(trackingInstances != null) {
-			
-			for(int i = 0; i < trackingInstances.size(); i++) {
-				PowerNet net = trackingInstances.get(i);
-				net.totalTransfer += totalTransfer;
-			}
-			
-			trackingInstances.clear();
+			net.totalTransfer += totalTransfer;
 		}
 		
 		return power;
