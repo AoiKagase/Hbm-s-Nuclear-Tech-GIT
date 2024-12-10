@@ -90,10 +90,6 @@ repositories {
         name = "galacticraft"
         url = "https://maven.galacticraft.net/repository/legacy/"
     }
-    maven { //  baubles
-        name = "mcmoddev"
-        url = "https://maven.mcmoddev.com"
-    }
     maven {
         name = 'CoFH Maven'
         url = 'https://maven.covers1624.net'
@@ -104,7 +100,7 @@ dependencies {
     // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
     // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-    minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2860'
+    minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2859'
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
@@ -132,11 +128,13 @@ dependencies {
 
     compileOnly "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-${version_crafttweaker}"
 
-    compileOnly fg.deobf("dev.galacticraft:galacticraft-legacy:${version_gc}")
+    compile files("libs/Galacticraft-1.12.2-${version_gc}.jar")
 
-    compileOnly fg.deobf("com.azanor:Baubles:${version_baubles}")
+    compile files("libs/Baubles-${version_baubles}.jar")
 
     compileOnly fg.deobf("cofh:RedstoneFlux:1.12-${version_redstoneflux}:universal")
+
+    compileOnly fg.deobf("cofh:CoFHCore:1.12.2-${version_cofhcore}:universal")
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
