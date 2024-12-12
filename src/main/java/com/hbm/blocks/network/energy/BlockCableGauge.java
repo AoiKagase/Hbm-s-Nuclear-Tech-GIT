@@ -148,7 +148,7 @@ public class BlockCableGauge extends BlockContainer implements ILookOverlay, ITo
 							this.deltaLastSecond = this.deltaSecond;
 							this.deltaSecond = 0;
 							NBTTagCompound data = new NBTTagCompound();
-							data.setLong("deltaS", deltaLastSecond);
+							data.setLong("deltaS", this.deltaLastSecond);
 							INBTPacketReceiver.networkPack(this, data, 25);
 						}
 						this.deltaSecond += deltaTick;

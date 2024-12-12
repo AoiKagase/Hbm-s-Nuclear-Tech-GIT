@@ -132,11 +132,7 @@ public class PowerNet implements IPowerNet {
 	
 	@Override
 	public long transferPower(long power) {
-		long result = this.fairTransfer(power);
-		if(trackingInstances != null && !trackingInstances.contains(this)) {
-			trackingInstances.add(0, this);
-		}
-		return result;
+		return this.fairTransfer(power);
 	}
 	
 	public static void cleanup(List<IEnergyConnector> subscribers) {
@@ -223,10 +219,15 @@ public class PowerNet implements IPowerNet {
 
 	private long fairTransfer(long power) {
 		
-		if(power <= 0) return 0;
+		if(power <= 0) {
+			this.totalTransfer = 0;
+			return 0;
+		}
 		
-		if(this.subscribers.isEmpty())
+		if(this.subscribers.isEmpty()) {
+			this.totalTransfer = power;
 			return power;
+		}
 		
 		this.subscribers.removeIf(x -> 
 			x == null || !(x instanceof TileEntity) || ((TileEntity)x).isInvalid() || !x.isLoaded()
@@ -280,10 +281,7 @@ public class PowerNet implements IPowerNet {
 			power -= totalGiven;
 			totalTransfer += totalGiven;
 		}
-
-		if(trackingInstances != null) {
-			this.totalTransfer += totalTransfer;
-		}
+		this.totalTransfer += totalTransfer;
 		
 		return power;
 	}
