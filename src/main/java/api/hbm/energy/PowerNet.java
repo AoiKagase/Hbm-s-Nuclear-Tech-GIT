@@ -132,9 +132,28 @@ public class PowerNet implements IPowerNet {
 	
 	@Override
 	public long transferPower(long power) {
-		return this.fairTransfer(power);
+		long result = 0;
+
+		if (trackingInstances != null && !trackingInstances.isEmpty()) {
+			List<PowerNet> cache = new ArrayList(trackingInstances.size());
+			cache.addAll(trackingInstances);
+			trackingInstances.clear();
+
+			trackingInstances.add(this);
+			result = fairTransfer(this.subscribers, power);
+			trackingInstances.addAll(cache);
+
+			cache.clear();
+			cache = null;
+		} else {
+			trackingInstances.clear();
+			trackingInstances.add(this);
+			result = fairTransfer(this.subscribers, power);
+		}
+
+		return result;
 	}
-	
+
 	public static void cleanup(List<IEnergyConnector> subscribers) {
 
 		subscribers.removeIf(x -> 
@@ -217,72 +236,75 @@ public class PowerNet implements IPowerNet {
 		return power;
 	}
 
-	private long fairTransfer(long power) {
-		
-		if(power <= 0) {
-			this.totalTransfer = 0;
-			return 0;
-		}
-		
-		if(this.subscribers.isEmpty()) {
-			this.totalTransfer = power;
-			return power;
-		}
-		
-		this.subscribers.removeIf(x -> 
-			x == null || !(x instanceof TileEntity) || ((TileEntity)x).isInvalid() || !x.isLoaded()
-		);
+	public static long fairTransfer(List<IEnergyConnector> subscribers, long power) {
 
-		ConnectionPriority[] priorities = new ConnectionPriority[] {ConnectionPriority.HIGH, ConnectionPriority.NORMAL, ConnectionPriority.LOW};
-		
+		if (power <= 0)
+			return 0;
+
+		if (subscribers.isEmpty())
+			return power;
+
+		cleanup(subscribers);
+
+		ConnectionPriority[] priorities = new ConnectionPriority[] { ConnectionPriority.HIGH, ConnectionPriority.NORMAL,
+				ConnectionPriority.LOW };
+
 		long totalTransfer = 0;
-		
-		for(ConnectionPriority p : priorities) {
-			
+
+		for (ConnectionPriority p : priorities) {
+
 			List<IEnergyConnector> subList = new ArrayList();
-			this.subscribers.forEach(x -> {
-				if(x.getPriority() == p) {
+			subscribers.forEach(x -> {
+				if (x.getPriority() == p) {
 					subList.add(x);
 				}
 			});
-			
-			if(subList.isEmpty())
+
+			if (subList.isEmpty())
 				continue;
-			
+
 			List<Long> weight = new ArrayList();
 			long totalReq = 0;
-			
-			for(IEnergyConnector con : subList) {
+
+			for (IEnergyConnector con : subList) {
 				long req = con.getTransferWeight();
 				weight.add(req);
 				totalReq += req;
 			}
-			
-			if(totalReq == 0)
+
+			if (totalReq == 0)
 				continue;
-			
+
 			long totalGiven = 0;
-			
-			for(int i = 0; i < subList.size(); i++) {
+
+			for (int i = 0; i < subList.size(); i++) {
 				IEnergyConnector con = subList.get(i);
 				long req = weight.get(i);
-				double fraction = (double)req / (double)totalReq;
-				
+				double fraction = (double) req / (double) totalReq;
+
 				long given = (long) Math.floor(fraction * power);
-				
+
 				totalGiven += (given - con.transferPower(given));
 
-				if(con instanceof TileEntity) {
+				if (con instanceof TileEntity) {
 					TileEntity tile = (TileEntity) con;
 					tile.getWorld().markChunkDirty(tile.getPos(), tile);
 				}
 			}
-			
+
 			power -= totalGiven;
 			totalTransfer += totalGiven;
 		}
-		this.totalTransfer += totalTransfer;
-		
+
+		if (trackingInstances != null) {
+
+			for (int i = 0; i < trackingInstances.size(); i++) {
+				PowerNet net = trackingInstances.get(i);
+				net.totalTransfer += totalTransfer;
+			}
+
+			trackingInstances.clear();
+		}
 		return power;
 	}
 
