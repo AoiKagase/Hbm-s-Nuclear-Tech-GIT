@@ -37,11 +37,12 @@ public class RenderCrystallizer extends TileEntitySpecialRenderer<TileEntityMach
         bindTexture(ResourceManager.crystallizer_tex);
         ResourceManager.crystallizer.renderPart("Body");
 
-        GL11.glPushMatrix();
-        GL11.glRotatef(crys.prevAngle + (crys.angle - crys.prevAngle) * partialTicks, 0, 1, 0);
-        bindTexture(ResourceManager.crystallizer_spinner_tex);
-        ResourceManager.crystallizer.renderPart("Spinner");
-        GL11.glPopMatrix();
+		// 負荷軽減のため、スピナーの回転を無効化
+        // GL11.glPushMatrix();
+        // GL11.glRotatef(crys.prevAngle + (crys.angle - crys.prevAngle) * partialTicks, 0, 1, 0);
+        // bindTexture(ResourceManager.crystallizer_spinner_tex);
+        // ResourceManager.crystallizer.renderPart("Spinner");
+        // GL11.glPopMatrix();
 
         renderFill(crys);
         bindTexture(ResourceManager.crystallizer_window_tex);

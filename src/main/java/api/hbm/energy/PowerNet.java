@@ -17,9 +17,9 @@ import net.minecraft.tileentity.TileEntity;
 public class PowerNet implements IPowerNet {
 	
 	private boolean valid = true;
-	private HashMap<Integer, IEnergyConductor> links = new HashMap();
-	private HashMap<Integer, Integer> proxies = new HashMap();
-	private List<IEnergyConnector> subscribers = new ArrayList();
+	private HashMap<Integer, IEnergyConductor> links = new HashMap<Integer, IEnergyConductor>();
+	private HashMap<Integer, Integer> proxies = new HashMap<Integer, Integer>();
+	private List<IEnergyConnector> subscribers = new ArrayList<IEnergyConnector>();
 
 	public static List<PowerNet> trackingInstances = null;
 	protected long totalTransfer = 0;
@@ -134,23 +134,24 @@ public class PowerNet implements IPowerNet {
 	public long transferPower(long power) {
 		long result = 0;
 
-		if (trackingInstances != null && !trackingInstances.isEmpty()) {
-			List<PowerNet> cache = new ArrayList(trackingInstances.size());
-			cache.addAll(trackingInstances);
-			trackingInstances.clear();
+		if (trackingInstances != null) {
+			if (!trackingInstances.isEmpty()) {
+				List<PowerNet> cache = new ArrayList<PowerNet>(trackingInstances.size());
+				cache.addAll(trackingInstances);
+				trackingInstances.clear();
 
-			trackingInstances.add(this);
-			result = fairTransfer(this.subscribers, power);
-			trackingInstances.addAll(cache);
+				trackingInstances.add(this);
+				result = fairTransfer(this.subscribers, power);
+				trackingInstances.addAll(cache);
 
-			cache.clear();
-			cache = null;
-		} else {
-			trackingInstances.clear();
-			trackingInstances.add(this);
-			result = fairTransfer(this.subscribers, power);
+				cache.clear();
+				cache = null;
+			} else {
+				trackingInstances.clear();
+				trackingInstances.add(this);
+				result = fairTransfer(this.subscribers, power);
+			}
 		}
-
 		return result;
 	}
 
