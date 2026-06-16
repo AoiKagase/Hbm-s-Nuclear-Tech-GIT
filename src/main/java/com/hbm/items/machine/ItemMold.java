@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.List;
 
-import com.hbm.items.ModItems;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.inventory.material.Mats;
 import com.hbm.inventory.material.MaterialShapes;
@@ -17,7 +16,6 @@ import com.hbm.lib.RefStrings;
 import com.hbm.util.I18nUtil;
 
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.util.NonNullList;
 import net.minecraft.init.Blocks;
@@ -26,6 +24,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
+import org.lwjgl.input.Keyboard;
 
 public class ItemMold extends Item implements IHasCustomMetaModels {
 	
@@ -35,7 +34,7 @@ public class ItemMold extends Item implements IHasCustomMetaModels {
 	public HashMap<NTMMaterial, ItemStack> blockOverrides = new HashMap();
 	
 	public ItemMold(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		this.setHasSubtypes(true);
@@ -50,7 +49,7 @@ public class ItemMold extends Item implements IHasCustomMetaModels {
 		registerMold(new MoldShape(		1, S, "billet", MaterialShapes.BILLET));
 		registerMold(new MoldShape(		2, S, "ingot", MaterialShapes.INGOT));
 		registerMold(new MoldShape(		3, S, "plate", MaterialShapes.PLATE));
-		registerMold(new MoldWire(		4, S, "wire"));
+		registerMold(new MoldShape(		4, S, "wire", MaterialShapes.WIRE));
 
 		registerMold(new MoldShape(		5, S, "plate_cast", MaterialShapes.CASTPLATE));
 		registerMold(new MoldShape(		6, S, "wire_dense", MaterialShapes.DENSEWIRE));
@@ -59,52 +58,54 @@ public class ItemMold extends Item implements IHasCustomMetaModels {
 				Mats.MAT_TITANIUM, new ItemStack(ModItems.blade_titanium),
 				Mats.MAT_TUNGSTEN, new ItemStack(ModItems.blade_tungsten)));
 		
-		registerMold(new MoldMulti(		8, S, "blades", MaterialShapes.INGOT.q(4),
+		registerMold(new MoldMulti(		8, S, "blades", MaterialShapes.INGOT.q(5),
 				Mats.MAT_ALUMINIUM,		new ItemStack(ModItems.blades_aluminum),
 				Mats.MAT_GOLD,			new ItemStack(ModItems.blades_gold),
 				Mats.MAT_IRON,			new ItemStack(ModItems.blades_iron),
 				Mats.MAT_STEEL,			new ItemStack(ModItems.blades_steel),
 				Mats.MAT_TITANIUM,		new ItemStack(ModItems.blades_titanium),
 				Mats.MAT_ALLOY,			new ItemStack(ModItems.blades_advanced_alloy),
+                Mats.MAT_CMB,			new ItemStack(ModItems.blades_combine_steel),
 				Mats.MAT_SCHRABIDIUM,	new ItemStack(ModItems.blades_schrabidium)));
 		
-		registerMold(new MoldMulti(		9, S, "stamp", MaterialShapes.INGOT.q(4),
+		registerMold(new MoldMulti(		9, S, "stamp", MaterialShapes.INGOT.q(3),
 				Mats.MAT_STONE,			new ItemStack(ModItems.stamp_stone_flat),
 				Mats.MAT_IRON,			new ItemStack(ModItems.stamp_iron_flat),
 				Mats.MAT_STEEL,			new ItemStack(ModItems.stamp_steel_flat),
 				Mats.MAT_TITANIUM,		new ItemStack(ModItems.stamp_titanium_flat),
 				Mats.MAT_OBSIDIAN,		new ItemStack(ModItems.stamp_obsidian_flat),
 				Mats.MAT_SCHRABIDIUM,	new ItemStack(ModItems.stamp_schrabidium_flat)));
-		
+
 		registerMold(new MoldShape(		10, S, "shell", MaterialShapes.SHELL));
 		registerMold(new MoldShape(		11, S, "pipe", MaterialShapes.PIPE));
-		
-		registerMold(new MoldShape(		12, L, "ingots", MaterialShapes.INGOT, 9));
-		registerMold(new MoldShape(		13, L, "plates", MaterialShapes.PLATE, 9));
-		registerMold(new MoldShape(		14, L, "wires_dense", MaterialShapes.DENSEWIRE, 9));
-		registerMold(new MoldBlock(		15, L, "block", MaterialShapes.BLOCK));
-		registerMold(new MoldSingle(	16, L, "pipes", new ItemStack(ModItems.pipes_steel), Mats.MAT_STEEL, MaterialShapes.BLOCK.q(3)));
+        registerMold(new MoldShape(		12, S, "bolt", MaterialShapes.BOLT));
 
-		registerMold(new MoldSingle(	17, S, "c357", new ItemStack(ModItems.casing_357), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
-		registerMold(new MoldSingle(	18, S, "c44", new ItemStack(ModItems.casing_44), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
-		registerMold(new MoldSingle(	19, S, "c9", new ItemStack(ModItems.casing_9), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
-		registerMold(new MoldSingle(	20, S, "c50", new ItemStack(ModItems.casing_50), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
-		registerMold(new MoldSingle(	21, S, "cbuckshot", new ItemStack(ModItems.casing_buckshot), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
+        registerMold(new MoldShape(		13, L, "ingots", MaterialShapes.INGOT, 9));
+		registerMold(new MoldShape(		14, L, "plates", MaterialShapes.PLATE, 9));
+        registerMold(new MoldShape(		15, L, "wires", MaterialShapes.WIRE, 16));
+        registerMold(new MoldShape(		16, L, "wires_dense", MaterialShapes.DENSEWIRE, 9));
+		registerMold(new MoldBlock(		17, L, "block", MaterialShapes.BLOCK));
+		registerMold(new MoldSingle(	18, L, "pipes", new ItemStack(ModItems.pipes_steel), Mats.MAT_STEEL, MaterialShapes.BLOCK.q(3)));
+
+		registerMold(new MoldSingle(	19, S, "c357", new ItemStack(ModItems.casing_357), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
+		registerMold(new MoldSingle(	20, S, "c44", new ItemStack(ModItems.casing_44), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
+		registerMold(new MoldSingle(	21, S, "c9", new ItemStack(ModItems.casing_9), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
+		registerMold(new MoldSingle(	22, S, "c50", new ItemStack(ModItems.casing_50), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
+		registerMold(new MoldSingle(	23, S, "cbuckshot", new ItemStack(ModItems.casing_buckshot), Mats.MAT_COPPER, MaterialShapes.PLATE.q(1)));
 		ModItems.ALL_ITEMS.add(this);
 	}
 	
 	public void registerMold(Mold mold) {
-		this.molds.add(mold);
-		this.moldById.put(mold.id, mold);
+		molds.add(mold);
+		moldById.put(mold.id, mold);
 	}
 
 	@Override
 	public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> list) {
 		if(tab == this.getCreativeTab() || tab == CreativeTabs.SEARCH){
-			for(int i = 0; i < molds.size(); i++) {
-				Mold mold = molds.get(i);
-				list.add(new ItemStack(this, 1, mold.id));
-			}
+            for (Mold mold : molds) {
+                list.add(new ItemStack(this, 1, mold.id));
+            }
 		}
 	}
 
@@ -122,10 +123,10 @@ public class ItemMold extends Item implements IHasCustomMetaModels {
 	@Override
 	public void addInformation(ItemStack stack, World worldIn, List<String> list, ITooltipFlag flagIn) {
 		Mold mold = getMold(stack);
-		list.add("§e" + mold.getTitle());
+		list.add("§e" + mold.getTitle() + " §6(" + Mats.formatAmount(mold.getCost(), Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)) + ")");
 		
-		if(mold.size == 0) list.add("§6" + I18nUtil.resolveKey(ModBlocks.foundry_mold.getUnlocalizedName() + ".name"));
-		else if(mold.size == 1) list.add("§c" + I18nUtil.resolveKey(ModBlocks.foundry_basin.getUnlocalizedName() + ".name"));
+		if(mold.size == 0) list.add("§6" + I18nUtil.resolveKey(ModBlocks.foundry_mold.getTranslationKey() + ".name"));
+		else if(mold.size == 1) list.add("§c" + I18nUtil.resolveKey(ModBlocks.foundry_basin.getTranslationKey() + ".name"));
 	}
 	
 	public Mold getMold(ItemStack stack) {
@@ -210,37 +211,6 @@ public class ItemMold extends Item implements IHasCustomMetaModels {
 				return override.copy();
 			
 			return super.getOutput(mat);
-		}
-	}
-
-	public class MoldWire extends Mold {
-
-		public MoldWire(int id, int size, String name) {
-			super(id, size, name);
-		}
-
-		@Override
-		public ItemStack getOutput(NTMMaterial mat) {
-
-			if(mat == Mats.MAT_ALUMINIUM) return new ItemStack(ModItems.wire_aluminium, 8);
-			if(mat == Mats.MAT_ALLOY) return new ItemStack(ModItems.wire_advanced_alloy, 8);
-			if(mat == Mats.MAT_COPPER) return new ItemStack(ModItems.wire_copper, 8);
-			if(mat == Mats.MAT_GOLD) return new ItemStack(ModItems.wire_gold, 8);
-			if(mat == Mats.MAT_MAGTUNG) return new ItemStack(ModItems.wire_magnetized_tungsten, 8);
-			if(mat == Mats.MAT_MINGRADE) return new ItemStack(ModItems.wire_red_copper, 8);
-			if(mat == Mats.MAT_SCHRABIDIUM) return new ItemStack(ModItems.wire_schrabidium, 8);
-			if(mat == Mats.MAT_TUNGSTEN) return new ItemStack(ModItems.wire_tungsten, 8);
-			return null;
-		}
-
-		@Override
-		public int getCost() {
-			return MaterialShapes.WIRE.q(8);
-		}
-
-		@Override
-		public String getTitle() {
-			return I18nUtil.resolveKey("shape.wire") + " x8";
 		}
 	}
 

@@ -3,7 +3,6 @@ package com.hbm.items.special;
 import java.util.List;
 import java.util.Random;
 
-import com.hbm.capability.HbmCapability;
 import com.hbm.capability.HbmLivingProps;
 import com.hbm.config.VersatileConfig;
 import com.hbm.forgefluid.ModForgeFluids;
@@ -38,7 +37,7 @@ public class ItemSyringe extends Item {
 	Random rand = new Random();
 	
 	public ItemSyringe(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.controlTab);
 		ModItems.ALL_ITEMS.add(this);
@@ -239,7 +238,7 @@ public class ItemSyringe extends Item {
 				ItemStack jetpack = player.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
 				JetpackBase jetItem = (JetpackBase) jetpack.getItem();
 
-            	if(jetItem.fuel != ModForgeFluids.kerosene)
+            	if(jetItem.fuel != ModForgeFluids.KEROSENE)
             		return super.onItemRightClick(world, player, hand);
 
             	int fill = JetpackBase.getFuel(jetpack) + 1000;
@@ -325,11 +324,8 @@ public class ItemSyringe extends Item {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public boolean hasEffect(ItemStack stack) {
-		if (this == ModItems.syringe_awesome) {
-			return true;
-		}
-		return false;
-	}
+        return this == ModItems.syringe_awesome;
+    }
 
 	@Override
 	public EnumRarity getRarity(ItemStack stack) {
@@ -379,8 +375,7 @@ public class ItemSyringe extends Item {
 				entity.addPotionEffect(new PotionEffect(MobEffects.NAUSEA, 5 * 20, 4));
 
 				stack.shrink(1);
-				;
-				world.playSound(null,  entity.posX,  entity.posY,  entity.posZ, HBMSoundHandler.syringeUse, SoundCategory.PLAYERS, 1.0F, 1.0F);
+                world.playSound(null,  entity.posX,  entity.posY,  entity.posZ, HBMSoundHandler.syringeUse, SoundCategory.PLAYERS, 1.0F, 1.0F);
 
 				if (attacker instanceof EntityPlayer) {
 					EntityPlayer player = (EntityPlayer) attacker;

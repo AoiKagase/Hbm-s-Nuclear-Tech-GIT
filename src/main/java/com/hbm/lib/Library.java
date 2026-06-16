@@ -1,5 +1,7 @@
 package com.hbm.lib;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -15,6 +17,16 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import javax.annotation.Nullable;
 
+import baubles.api.BaublesApi;
+import baubles.api.IBauble;
+import baubles.api.cap.BaublesCapabilities;
+import baubles.api.cap.IBaublesItemHandler;
+import com.hbm.util.I18nUtil;
+import net.minecraft.block.material.Material;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.*;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import org.apache.logging.log4j.Level;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -50,12 +62,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EntitySelectors;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.WeightedRandom;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
@@ -64,7 +72,6 @@ import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
@@ -145,6 +152,50 @@ public class Library {
 		superuser.add(Alcater);
 	}
 
+    public static boolean isCreative(Entity e){
+        if(e instanceof EntityPlayer player) return player.capabilities.isCreativeMode;
+        return false;
+    }
+
+    public static void setFinalStatic(Class c, String variable, String variableObf, Object newValue){
+        setFinal(c, variable, variableObf, newValue, false);
+    }
+
+    public static void setPrivateFinalStatic(Class c, String variable, String variableObf, Object newValue){
+        setFinal(c, variable, variableObf, newValue, true);
+    }
+
+    public static void setFinal(Class c, String variable, String variableObf, Object newValue, boolean isHidden) {
+        try{
+            Field f = ReflectionHelper.findField(c, variable, variableObf);
+            if(isHidden) f.setAccessible(true);
+
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+
+            f.set(null, newValue);
+        } catch(Throwable ignored){
+            ignored.printStackTrace();
+        }
+    }
+
+
+    public static void warnEntity(EntityLivingBase entity, SoundEvent s, String color, String text, float vol, float pitch){
+        if (entity instanceof EntityPlayer player)
+            player.sendStatusMessage(new TextComponentString(color+ I18nUtil.resolveKey(text)),true);
+        entity.world.playSound(null, entity.posX, entity.posY, entity.posZ, s, SoundCategory.PLAYERS, vol, pitch);
+    }
+
+    public static int getStatisticalInt(Random rand, float v){
+        return (int)v + (rand.nextFloat() < (v - (int)v) ? 1 : 0);
+    }
+
+    public static String getColor(double val){
+        if(val > 1) return "§a+";
+        return "§c";
+    }
+
 	public static String getColor(long a, long b){
 		float fraction = 100F * a/b;
 		if(fraction > 75)
@@ -165,8 +216,26 @@ public class Library {
 	}
 
 	public static boolean checkForHeld(EntityPlayer player, Item item) {
+        if(player == null || item == null) return false;
 		return player.getHeldItemMainhand().getItem() == item || player.getHeldItemOffhand().getItem() == item;
 	}
+
+    static boolean hasBaubleInstalled = true;
+    public static boolean checkForBauble(EntityPlayer player, Item item) {
+        if(!hasBaubleInstalled || player == null || item == null) return false;
+        try{
+            if(item instanceof IBauble bau) {
+                IBaublesItemHandler baubles = BaublesApi.getBaublesHandler(player);
+                for (int i : bau.getBaubleType(new ItemStack(item)).getValidSlots()) {
+                    ItemStack stack = baubles.getStackInSlot(i);
+                    if(stack.getItem() == item) return true;
+                }
+            }
+        } catch (NoClassDefFoundError e) {
+            hasBaubleInstalled = false;
+        }
+        return false;
+    }
 
 	public static boolean isObstructed(World world, double x, double y, double z, double a, double b, double c) {
 		RayTraceResult pos = world.rayTraceBlocks(new Vec3d(x, y, z), new Vec3d(a, b, c), false, true, true);
@@ -185,6 +254,10 @@ public class Library {
 
 	public static String getShortNumber(long l) {
 		return getShortNumber(new BigDecimal(l));
+	}
+
+	public static long getMagnitude(int mag){
+		return new BigDecimal(10).pow(mag).longValue();
 	}
 
 	public static Map<Integer, String> numbersMap = null;
@@ -232,25 +305,25 @@ public class Library {
 	}
 
 	public static float roundFloat(float number, int decimal){
-		return (float) (Math.round(number * powersOfTen[decimal]) / (float)powersOfTen[decimal]);  
+		return Math.round(number * powersOfTen[decimal]) / (float)powersOfTen[decimal];
 	}
 
 	public static float roundFloat(double number, int decimal){
-		return (float) (Math.round(number * powersOfTen[decimal]) / (float)powersOfTen[decimal]);  
+		return Math.round(number * powersOfTen[decimal]) / (float)powersOfTen[decimal];
 	}
 
 	public static int getColorFromItemStack(ItemStack stack){
 		ResourceLocation path = null;
 		ResourceLocation actualPath = null;
-		TextureAtlasSprite sprite = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getParticleIcon(stack.getItem(), stack.getMetadata());
-		if(sprite != null){
-			path = new ResourceLocation(sprite.getIconName()+".png");
-			actualPath = new ResourceLocation(path.getResourceDomain(), "textures/"+path.getResourcePath());
-		} else {
-			path = new ResourceLocation(stack.getItem().getRegistryName()+".png");
-			actualPath = new ResourceLocation(path.getResourceDomain(), "textures/items/"+path.getResourcePath());
-		}
-		return getColorFromResourceLocation(actualPath);
+        int color = 0;
+        try{
+            TextureAtlasSprite sprite = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getParticleIcon(stack.getItem(), stack.getMetadata());
+            path = new ResourceLocation(sprite.getIconName() + ".png");
+            actualPath = new ResourceLocation(path.getNamespace(), "textures/"+path.getPath());
+            return getColorFromResourceLocation(actualPath);
+        } catch (NullPointerException e) {
+            return 0;
+        }
 	}
 
 	public static int getColorFromResourceLocation(ResourceLocation r){
@@ -269,6 +342,23 @@ public class Library {
 	public static int getRGBfromARGB(int pixel){
 		return pixel & 0x00ffffff;
 	}
+
+    public static int getGroundHeight(World world, int x, int z){
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, 255, z);
+        for(int y = 255; y > 1; y--){
+            pos.setY(y);
+            IBlockState state = world.getBlockState(pos);
+            Block b = state.getBlock();
+            if(!b.isReplaceable(world, pos)){
+                if(b.isOpaqueCube(state)){
+                    if(b.getMaterial(state) != Material.WOOD){
+                        return y;
+                    }
+                }
+            }
+        }
+        return 1;
+    }
 
 	// Drillgon200: Just realized I copied the wrong method. God dang it.
 	// It works though. Not sure why, but it works.
@@ -306,7 +396,7 @@ public class Library {
 			IBatteryItem battery = (IBatteryItem) inventory.getStackInSlot(index).getItem();
 			ItemStack stack = inventory.getStackInSlot(index);
 			
-			long batMax = battery.getMaxCharge();
+			long batMax = battery.getMaxCharge(stack);
 			long batCharge = battery.getCharge(stack);
 			long batRate = battery.getChargeRate();
 			
@@ -329,10 +419,12 @@ public class Library {
 
 		boolean flag = true;
 
-		for(int i = 0; i < array.length; i++) {
-			if(array[i] != null)
-				flag = false;
-		}
+        for (Object o : array) {
+            if (o != null) {
+                flag = false;
+                break;
+            }
+        }
 
 		return flag;
 	}
@@ -374,9 +466,8 @@ public class Library {
 
 				if (entityplayer1.isEntityAlive() && entityplayer1 instanceof EntityHunterChopper) {
 					double d5 = entityplayer1.getDistanceSq(x, y, z);
-					double d6 = radius;
 
-					if ((radius < 0.0D || d5 < d6 * d6) && (d4 == -1.0D || d5 < d4)) {
+                    if ((radius < 0.0D || d5 < radius * radius) && (d4 == -1.0D || d5 < d4)) {
 						d4 = d5;
 						entity = (EntityHunterChopper)entityplayer1;
 					}
@@ -395,9 +486,8 @@ public class Library {
 
 				if (entityplayer1.isEntityAlive() && entityplayer1 instanceof EntityChopperMine) {
 					double d5 = entityplayer1.getDistanceSq(x, y, z);
-					double d6 = radius;
 
-					if ((radius < 0.0D || d5 < d6 * d6) && (d4 == -1.0D || d5 < d4)) {
+                    if ((radius < 0.0D || d5 < radius * radius) && (d4 == -1.0D || d5 < d4)) {
 						d4 = d5;
 						entity = (EntityChopperMine)entityplayer1;
 					}
@@ -409,47 +499,42 @@ public class Library {
 
 	public static RayTraceResult rayTrace(EntityPlayer player, double length, float interpolation) {
 		Vec3d vec3 = getPosition(interpolation, player);
-		vec3 = vec3.addVector(0D, (double) player.eyeHeight, 0D);
+		vec3 = vec3.add(0D, (double) player.eyeHeight, 0D);
 		Vec3d vec31 = player.getLook(interpolation);
-		Vec3d vec32 = vec3.addVector(vec31.x * length, vec31.y * length, vec31.z * length);
+		Vec3d vec32 = vec3.add(vec31.x * length, vec31.y * length, vec31.z * length);
 		return player.world.rayTraceBlocks(vec3, vec32, false, false, true);
 	}
 	
 	public static RayTraceResult rayTrace(EntityPlayer player, double length, float interpolation, boolean b1, boolean b2, boolean b3) {
 		Vec3d vec3 = getPosition(interpolation, player);
-		vec3 = vec3.addVector(0D, (double) player.eyeHeight, 0D);
+		vec3 = vec3.add(0D, (double) player.eyeHeight, 0D);
 		Vec3d vec31 = player.getLook(interpolation);
-		Vec3d vec32 = vec3.addVector(vec31.x * length, vec31.y * length, vec31.z * length);
+		Vec3d vec32 = vec3.add(vec31.x * length, vec31.y * length, vec31.z * length);
 		return player.world.rayTraceBlocks(vec3, vec32, b1, b2, b3);
 	}
 	
 	public static AxisAlignedBB rotateAABB(AxisAlignedBB box, EnumFacing facing){
-		switch(facing){
-		case NORTH:
-			return new AxisAlignedBB(box.minX, box.minY, 1-box.minZ, box.maxX, box.maxY, 1-box.maxZ);
-		case SOUTH:
-			return box;
-		case EAST:
-			return new AxisAlignedBB(box.minZ, box.minY, box.minX, box.maxZ, box.maxY, box.maxX);
-		case WEST:
-			return new AxisAlignedBB(1-box.minZ, box.minY, box.minX, 1-box.maxZ, box.maxY, box.maxX);
-		default:
-			return box;
-		}
+        return switch (facing) {
+            case NORTH -> new AxisAlignedBB(box.minX, box.minY, 1 - box.minZ, box.maxX, box.maxY, 1 - box.maxZ);
+            case SOUTH -> box;
+            case EAST -> new AxisAlignedBB(box.minZ, box.minY, box.minX, box.maxZ, box.maxY, box.maxX);
+            case WEST -> new AxisAlignedBB(1 - box.minZ, box.minY, box.minX, 1 - box.maxZ, box.maxY, box.maxX);
+            default -> box;
+        };
 	}
 	
 	public static RayTraceResult rayTraceIncludeEntities(EntityPlayer player, double d, float f) {
 		Vec3d vec3 = getPosition(f, player);
-		vec3 = vec3.addVector(0D, (double) player.eyeHeight, 0D);
+		vec3 = vec3.add(0D, (double) player.eyeHeight, 0D);
 		Vec3d vec31 = player.getLook(f);
-		Vec3d vec32 = vec3.addVector(vec31.x * d, vec31.y * d, vec31.z * d);
+		Vec3d vec32 = vec3.add(vec31.x * d, vec31.y * d, vec31.z * d);
 		return rayTraceIncludeEntities(player.world, vec3, vec32, player);
 	}
 	
 	public static RayTraceResult rayTraceIncludeEntitiesCustomDirection(EntityPlayer player, Vec3d look, double d, float f) {
 		Vec3d vec3 = getPosition(f, player);
-		vec3 = vec3.addVector(0D, (double) player.eyeHeight, 0D);
-		Vec3d vec32 = vec3.addVector(look.x * d, look.y * d, look.z * d);
+		vec3 = vec3.add(0D, (double) player.eyeHeight, 0D);
+		Vec3d vec32 = vec3.add(look.x * d, look.y * d, look.z * d);
 		return rayTraceIncludeEntities(player.world, vec3, vec32, player);
 	}
 	
@@ -483,9 +568,9 @@ public class Library {
 	
 	public static Pair<RayTraceResult, List<Entity>> rayTraceEntitiesOnLine(EntityPlayer player, double d, float f){
 		Vec3d vec3 = getPosition(f, player);
-		vec3 = vec3.addVector(0D, (double) player.eyeHeight, 0D);
+		vec3 = vec3.add(0D, (double) player.eyeHeight, 0D);
 		Vec3d vec31 = player.getLook(f);
-		Vec3d vec32 = vec3.addVector(vec31.x * d, vec31.y * d, vec31.z * d);
+		Vec3d vec32 = vec3.add(vec31.x * d, vec31.y * d, vec31.z * d);
 		RayTraceResult result = player.world.rayTraceBlocks(vec3, vec32, false, true, true);
 		if(result != null)
 			vec32 = result.hitVec;
@@ -506,9 +591,9 @@ public class Library {
 	public static RayTraceResult rayTraceEntitiesInCone(EntityPlayer player, double d, float f, float degrees) {
 		double cosDegrees = Math.cos(Math.toRadians(degrees));
 		Vec3d vec3 = getPosition(f, player);
-		vec3 = vec3.addVector(0D, (double) player.eyeHeight, 0D);
+		vec3 = vec3.add(0D, (double) player.eyeHeight, 0D);
 		Vec3d vec31 = player.getLook(f);
-		Vec3d vec32 = vec3.addVector(vec31.x * d, vec31.y * d, vec31.z * d);
+		Vec3d vec32 = vec3.add(vec31.x * d, vec31.y * d, vec31.z * d);
 		
 		RayTraceResult result = player.world.rayTraceBlocks(vec3, vec32, false, true, true);
 		double runningDot = Double.MIN_VALUE;
@@ -541,7 +626,7 @@ public class Library {
 		Vec3d V = center.subtract(coneStart);
 		double VlenSq = V.lengthSquared();
 		Vec3d direction = coneEnd.subtract(coneStart);
-		double size = direction.lengthVector();
+		double size = direction.length();
 		double V1len  = V.dotProduct(direction.normalize());
 		double angRad = Math.toRadians(degrees);
 		double distanceClosestPoint = Math.cos(angRad) * Math.sqrt(VlenSq - V1len*V1len) - V1len * Math.sin(angRad);
@@ -780,9 +865,8 @@ public static boolean canConnect(IBlockAccess world, BlockPos pos, ForgeDirectio
 		
 		if(te instanceof IEnergyConnector) {
 			IEnergyConnector con = (IEnergyConnector) te;
-			
-			if(con.canConnect(dir.getOpposite() /* machine's connecting side */))
-				return true;
+
+            return con.canConnect(dir.getOpposite() /* machine's connecting side */);
 		}
 		
 		return false;
@@ -861,6 +945,23 @@ public static boolean canConnect(IBlockAccess world, BlockPos pos, ForgeDirectio
 			}
 		}
 	}
+
+    public static void consumeInventoryOreDict(InventoryPlayer inventory, String name) {
+        int oreId = OreDictionary.getOreID(name);
+        for(int i = 0; i < inventory.getSizeInventory(); i++) {
+            ItemStack stack = inventory.getStackInSlot(i);
+            if(stack.isEmpty())
+                continue;
+            int[] ids = OreDictionary.getOreIDs(stack);
+            for(int id : ids){
+                if(id == oreId) {
+                    stack.shrink(1);
+                    inventory.setInventorySlotContents(i, stack.copy());
+                    return;
+                }
+            }
+        }
+    }
 
 	//////  //////  //////  //////  //////  ////        //////  //////  //////
 	//      //  //  //        //    //      //  //      //      //      //    
@@ -1016,8 +1117,7 @@ public static boolean canConnect(IBlockAccess world, BlockPos pos, ForgeDirectio
 			return true;
 		} else if (tester == null && container != null) {
 			return true;
-		} else if (tester != null && container == null) {
-		} else {
+		} else if (!(tester != null && container == null)) {
 			for(String s : tester.getKeySet()){
 				if(!container.hasKey(s)){
 					return false;

@@ -39,23 +39,22 @@ public class BlockConveyorLift extends BlockConveyorChute {
         EnumFacing dir = this.getTravelDirection(world, pos, itemPos);
         Vec3d snap = this.getClosestSnappingPosition(world, pos, itemPos);
         Vec3d dest = new Vec3d(
-                snap.x - dir.getFrontOffsetX() * speed,
-                snap.y - dir.getFrontOffsetY() * speed,
-                snap.z - dir.getFrontOffsetZ() * speed);
+                snap.x - dir.getXOffset() * speed,
+                snap.y - dir.getYOffset() * speed,
+                snap.z - dir.getZOffset() * speed);
         Vec3d motion = new Vec3d(
                 dest.x - itemPos.x,
                 dest.y - itemPos.y,
                 dest.z - itemPos.z);
-        double len = motion.lengthVector();
-        Vec3d ret = new Vec3d(
+        double len = motion.length();
+        return new Vec3d(
                 itemPos.x + motion.x / len * speed,
                 itemPos.y + motion.y / len * speed,
                 itemPos.z + motion.z / len * speed);
-        return ret;
     }
 
     @Override
-    public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity) {
+    public void onEntityCollision(World world, BlockPos pos, IBlockState state, Entity entity) {
         if(!world.isRemote) {
 
             if(entity instanceof EntityItem && entity.ticksExisted > 10 && !entity.isDead) {

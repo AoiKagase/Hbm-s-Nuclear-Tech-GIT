@@ -21,7 +21,7 @@ public class BlockRadResistant extends Block implements IRadResistantBlock {
 	public BlockRadResistant(Material materialIn, String s) {
 		super(materialIn);
 		this.setRegistryName(s);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
 	}
@@ -37,24 +37,9 @@ public class BlockRadResistant extends Block implements IRadResistantBlock {
 		RadiationSystemNT.markChunkForRebuild(worldIn, pos);
 		super.breakBlock(worldIn, pos, state);
 	}
-	
-	@Override
-	public boolean isRadResistant(World worldIn, BlockPos blockPos){
-		return true;
-	}
 
-	@Override
+    @Override
 	public Block setSoundType(SoundType sound) {
 		return super.setSoundType(sound);
-	}
-
-	@Override
-	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
-		super.addInformation(stack, player, tooltip, advanced);
-		tooltip.add("§2[" + I18nUtil.resolveKey("trait.radshield") + "]");
-		float hardness = this.getExplosionResistance(null);
-		if(hardness > 50){
-			tooltip.add("§6" + I18nUtil.resolveKey("trait.blastres", hardness));
-		}
 	}
 }

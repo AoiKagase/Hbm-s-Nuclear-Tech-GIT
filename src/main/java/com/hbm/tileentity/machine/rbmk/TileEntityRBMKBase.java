@@ -15,7 +15,6 @@ import com.hbm.blocks.machine.rbmk.RBMKBase;
 import com.hbm.entity.effect.EntitySpear;
 import com.hbm.entity.projectile.EntityRBMKDebris;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
-import com.hbm.items.machine.ItemRBMKRod;
 import com.hbm.config.MachineConfig;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.lib.HBMSoundHandler;
@@ -148,7 +147,7 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 			}
 		} else{ // gravity fall
 			if(this.jumpheight > 0){
-				this.downwardSpeed = this.downwardSpeed + this.gravity * 0.05F;
+				this.downwardSpeed = this.downwardSpeed + gravity * 0.05F;
 				this.jumpheight = this.jumpheight - this.downwardSpeed;
 			} else {
 				this.jumpheight = 0;
@@ -324,10 +323,9 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 		RayTraceResult mop = mc.objectMouseOver;
 		ScaledResolution resolution = event.getResolution();
 		
-		if(mop != null && mop.typeOfHit == Type.BLOCK && world.getBlockState(mop.getBlockPos()).getBlock() instanceof RBMKBase) {
-			
-			RBMKBase rbmk = (RBMKBase)world.getBlockState(mop.getBlockPos()).getBlock();
-			int[] pos = rbmk.findCore(world, mop.getBlockPos().getX(), mop.getBlockPos().getY(), mop.getBlockPos().getZ());
+		if(mop != null && mop.typeOfHit == Type.BLOCK && world.getBlockState(mop.getBlockPos()).getBlock() instanceof RBMKBase rbmk) {
+
+            int[] pos = rbmk.findCore(world, mop.getBlockPos().getX(), mop.getBlockPos().getY(), mop.getBlockPos().getZ());
 			
 			if(pos == null)
 				return;
@@ -353,8 +351,8 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 			mc.fontRenderer.drawString(title, pX + 1, pZ - 19, 0x006000);
 			mc.fontRenderer.drawString(title, pX, pZ - 20, 0x00FF00);
 
-			mc.fontRenderer.drawString(I18nUtil.resolveKey(rbmk.getUnlocalizedName() + ".name"), pX + 1, pZ - 9, 0x606000);
-			mc.fontRenderer.drawString(I18nUtil.resolveKey(rbmk.getUnlocalizedName() + ".name"), pX, pZ - 10, 0xffff00);
+			mc.fontRenderer.drawString(I18nUtil.resolveKey(rbmk.getTranslationKey() + ".name"), pX + 1, pZ - 9, 0x606000);
+			mc.fontRenderer.drawString(I18nUtil.resolveKey(rbmk.getTranslationKey() + ".name"), pX, pZ - 10, 0xffff00);
 			
 			String[] ents = new String[keys.size()];
 			keys.toArray(ents);
@@ -533,11 +531,9 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 		
 		TileEntity te = world.getTileEntity(new BlockPos(x, y, z));
 		
-		if(te instanceof TileEntityRBMKBase) {
-			
-			TileEntityRBMKBase rbmk = (TileEntityRBMKBase) te;
-			
-			if(!columns.contains(rbmk)) {
+		if(te instanceof TileEntityRBMKBase rbmk) {
+
+            if(!columns.contains(rbmk)) {
 				columns.add(rbmk);
 				getFF(x + 1, y, z);
 				getFF(x - 1, y, z);
@@ -546,6 +542,10 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 			}
 		}
 	}
+
+    public double getMult(){
+        return 1;
+    }
 	
 	public boolean isModerated() {
 		return false;

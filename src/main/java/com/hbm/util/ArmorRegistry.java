@@ -1,9 +1,6 @@
 package com.hbm.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import com.hbm.handler.ArmorModHandler;
 import com.hbm.handler.ArmorUtil;
@@ -28,7 +25,7 @@ public class ArmorRegistry {
 			return false;
 		
 		List<HazardClass> list = getProtectionFromItem(entity.getItemStackFromSlot(slot));
-		return list.containsAll(Arrays.asList(clazz));
+		return new HashSet<>(list).containsAll(Arrays.asList(clazz));
 	}
 	
 	public static boolean hasAnyProtection(EntityLivingBase entity, EntityEquipmentSlot slot, HazardClass... clazz) {
@@ -71,9 +68,8 @@ public class ArmorRegistry {
 		if(hazardClasses.containsKey(item))
 			prot.addAll(hazardClasses.get(item));
 		
-		if(item instanceof IGasMask) {
-			IGasMask mask = (IGasMask) item;
-			ItemStack filter = mask.getFilter(stack);
+		if(item instanceof IGasMask mask) {
+            ItemStack filter = mask.getFilter(stack);
 
 			if(filter != null && !filter.isEmpty()) {
 				//add the HazardClasses from the filter, then remove the ones blacklisted by the mask
@@ -101,9 +97,9 @@ public class ArmorRegistry {
 		return prot;
 	}
 	
-	public static enum HazardClass {
-		GAS_CHLORINE("hazard.gasChlorine"),				//also attacks eyes -> no half mask (chlorine seal)
-		GAS_MONOXIDE("hazard.gasMonoxide"),				//only affects lungs (nether coal gas)
+	public enum HazardClass {
+		GAS_CHLORINE("hazard.gasChlorine"),			//also attacks eyes -> no half mask (chlorine seal)
+		GAS_MONOXIDE("hazard.gasMonoxide"),			//only affects lungs (nether coal gas)
 		GAS_INERT("hazard.gasInert"),					//SA
 		PARTICLE_COARSE("hazard.particleCoarse"),		//only affects lungs (coal dust)
 		PARTICLE_FINE("hazard.particleFine"),			//only affects lungs (asbestos dust)
@@ -116,7 +112,7 @@ public class ArmorRegistry {
 		
 		public final String lang;
 		
-		private HazardClass(String lang) {
+		HazardClass(String lang) {
 			this.lang = lang;
 		}
 	}

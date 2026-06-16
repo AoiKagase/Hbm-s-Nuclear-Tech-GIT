@@ -1,6 +1,5 @@
 package com.hbm.tileentity.machine;
 
-import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemLens;
 import com.hbm.packet.AuxGaugePacket;
 import com.hbm.packet.PacketDispatcher;
@@ -19,6 +18,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityCoreStabilizer extends TileEntityMachineBase implements ITickable, IEnergyUser {
 
@@ -54,12 +54,12 @@ public class TileEntityCoreStabilizer extends TileEntityMachineBase implements I
 
 			if(lens != null && power >= demand * lens.drainMod) {
 				isOn = true;
-				EnumFacing dir = EnumFacing.getFront(this.getBlockMetadata());
+				EnumFacing dir = EnumFacing.byIndex(this.getBlockMetadata());
 				for(int i = 1; i <= range; i++) {
 	
-					int x = pos.getX() + dir.getFrontOffsetX() * i;
-					int y = pos.getY() + dir.getFrontOffsetY() * i;
-					int z = pos.getZ() + dir.getFrontOffsetZ() * i;
+					int x = pos.getX() + dir.getXOffset() * i;
+					int y = pos.getY() + dir.getYOffset() * i;
+					int z = pos.getZ() + dir.getZOffset() * i;
 					BlockPos pos1 = new BlockPos(x, y, z);
 					
 					TileEntity te = world.getTileEntity(pos1);
@@ -150,7 +150,7 @@ public class TileEntityCoreStabilizer extends TileEntityMachineBase implements I
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setLong("power", power);
 		compound.setInteger("watts", watts);
 		compound.setBoolean("isOn", isOn);

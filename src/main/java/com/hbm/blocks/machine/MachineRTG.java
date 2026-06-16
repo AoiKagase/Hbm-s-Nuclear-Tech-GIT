@@ -21,7 +21,7 @@ public class MachineRTG extends BlockContainer {
 
 	public MachineRTG(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.machineTab);
 
@@ -52,7 +52,7 @@ public class MachineRTG extends BlockContainer {
 		TileEntity tileentity = world.getTileEntity(pos);
 
 		if(tileentity instanceof TileEntityMachineRTG) {
-			InventoryHelper.dropInventoryItems(world, pos, (TileEntityMachineRTG) tileentity);
+			InventoryHelper.dropInventoryItems(world, pos, tileentity);
 
 			world.updateComparatorOutputLevel(pos, this);
 		}

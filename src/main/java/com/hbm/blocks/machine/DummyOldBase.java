@@ -1,7 +1,6 @@
 package com.hbm.blocks.machine;
 
 import com.hbm.blocks.ModBlocks;
-import com.hbm.main.MainRegistry;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.interfaces.IDummy;
 
@@ -18,7 +17,7 @@ public abstract class DummyOldBase extends BlockContainer implements IDummy, IEn
 	public DummyOldBase(Material mat, String s, boolean port) {
 		super(mat);
 		this.port = port;
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(null);
 		ModBlocks.ALL_BLOCKS.add(this);

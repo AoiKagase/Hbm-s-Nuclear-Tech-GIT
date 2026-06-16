@@ -3,6 +3,7 @@ package com.hbm.items.machine;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.hbm.forgefluid.FFUtils;
 import com.hbm.interfaces.IHasCustomModel;
 import com.hbm.items.ModItems;
 import com.hbm.lib.RefStrings;
@@ -36,7 +37,7 @@ public class ItemForgeFluidIdentifier extends Item implements IHasCustomModel {
 	public static final ModelResourceLocation identifierModel = new ModelResourceLocation(RefStrings.MODID + ":forge_fluid_identifier", "inventory");
 
 	public ItemForgeFluidIdentifier(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.partsTab);
 
@@ -80,10 +81,12 @@ public class ItemForgeFluidIdentifier extends Item implements IHasCustomModel {
 		list.add(TextFormatting.YELLOW + I18nUtil.resolveKey("info.templatefolder"));
 		list.add("");
 		list.add(I18nUtil.resolveKey("desc.unfluidid"));
-		if (f != null)
-			list.add("   " + f.getLocalizedName(new FluidStack(f, 1000)));
-		else
-			list.add("   " + "ERROR - bad data");
+		if (f != null) {
+            list.add("   §f" + f.getLocalizedName(new FluidStack(f, 1000)));
+            FFUtils.addFluidInfo(f, list, flagIn.isAdvanced(), "   ");
+        } else {
+            list.add("   " + "ERROR - bad data");
+        }
 	}
 
 	public static Fluid getType(ItemStack stack) {

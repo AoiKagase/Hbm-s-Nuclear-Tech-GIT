@@ -17,20 +17,15 @@ public class BlockAbsorber extends Block {
 	
 	public BlockAbsorber(Material materialIn, float ab, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setTickRandomly(true);
 		absorb = ab;
 		
 		ModBlocks.ALL_BLOCKS.add(this);
 	}
-	
-	@Override
-	public int tickRate(World worldIn) {
-		return 10;
-	}
 
-	@Override
+    @Override
 	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand) {
 		RadiationSavedData.decrementRad(world, pos, absorb);
 

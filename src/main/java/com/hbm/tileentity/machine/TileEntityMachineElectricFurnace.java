@@ -16,6 +16,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineElectricFurnace extends TileEntityMachineBase implements ITickable, IEnergyUser {
 
@@ -24,9 +25,7 @@ public class TileEntityMachineElectricFurnace extends TileEntityMachineBase impl
 	public static final long maxPower = 100000;
 	public static final int processingSpeed = 100;
 	
-	private static final int[] slots_top = new int[] {1};
-	private static final int[] slots_bottom = new int[] {2, 0};
-	private static final int[] slots_side = new int[] {0};
+	private static final int[] slots = new int[] { 0, 1, 2};
 	
 	public TileEntityMachineElectricFurnace() {
 		super(3);
@@ -56,7 +55,7 @@ public class TileEntityMachineElectricFurnace extends TileEntityMachineBase impl
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setLong("powerTime", power);
 		compound.setInteger("cookTime", dualCookTime);
 		compound.setTag("inventory", inventory.serializeNBT());
@@ -65,21 +64,16 @@ public class TileEntityMachineElectricFurnace extends TileEntityMachineBase impl
 	
 	@Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e) {
-		int i = e.ordinal();
-		return i == 0 ? slots_bottom : (i == 1 ? slots_top : slots_side);
+		return slots;
 	}
 	
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack stack) {
-		if(i == 0)
-			if(stack.getItem() instanceof IBatteryItem)
-				return true;
-		
-		if(i == 1)
-			return true;
-		
-		return false;
-	}
+		if(i == 0 && stack.getItem() instanceof IBatteryItem)
+            return true;
+
+        return i == 1;
+    }
 	
 	@Override
 	public boolean canInsertItem(int slot, ItemStack itemStack, int amount) {
@@ -88,14 +82,11 @@ public class TileEntityMachineElectricFurnace extends TileEntityMachineBase impl
 	
 	@Override
 	public boolean canExtractItem(int slot, ItemStack itemStack, int amount) {
-		if(slot == 0)
-			if (itemStack.getItem() instanceof IBatteryItem && ((IBatteryItem)itemStack.getItem()).getCharge(itemStack) == 0)
-				return true;
-		if(slot == 2)
-			return true;
-		
-		return false;
-	}
+        if(itemStack.getItem() instanceof IBatteryItem bat) {
+            return slot == 0 && bat.getCharge(itemStack) == 0;
+        }
+        return slot == 2;
+    }
 	
 	public int getDiFurnaceProgressScaled(int i) {
 		return (dualCookTime * i) / processingSpeed;
@@ -120,7 +111,7 @@ public class TileEntityMachineElectricFurnace extends TileEntityMachineBase impl
 		}
         ItemStack itemStack = FurnaceRecipes.instance().getSmeltingResult(inventory.getStackInSlot(1));
         
-		if(itemStack == null || itemStack.isEmpty())
+		if(itemStack.isEmpty())
 		{
 			return false;
 		}
@@ -192,14 +183,9 @@ public class TileEntityMachineElectricFurnace extends TileEntityMachineBase impl
 				dualCookTime = 0;
 			}
 			
-			boolean trigger = true;
-			
-			if(hasPower() && canProcess() && this.dualCookTime == 0)
-			{
-				trigger = false;
-			}
-			
-			if(trigger)
+			boolean trigger = !hasPower() || !canProcess() || this.dualCookTime != 0;
+
+            if(trigger)
             {
                 flag1 = true;
                 MachineElectricFurnace.updateBlockState(this.dualCookTime > 0, this.world, pos);

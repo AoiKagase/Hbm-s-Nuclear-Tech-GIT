@@ -32,7 +32,7 @@ import java.util.List;
 public class CraneRouter extends BlockContainer implements IEnterableBlock {
     public CraneRouter(Material materialIn, String s) {
         super(materialIn);
-        this.setUnlocalizedName(s);
+        this.setTranslationKey(s);
         this.setRegistryName(s);
         ModBlocks.ALL_BLOCKS.add(this);
     }
@@ -88,7 +88,7 @@ public class CraneRouter extends BlockContainer implements IEnterableBlock {
             int mode = router.modes[i];
 
             //if the side is disabled or wildcard, skip
-            if(mode == router.MODE_NONE || mode == router.MODE_WILDCARD)
+            if(mode == TileEntityCraneRouter.MODE_NONE || mode == TileEntityCraneRouter.MODE_WILDCARD)
                 continue;
 
             boolean matchesFilter = false;
@@ -107,7 +107,7 @@ public class CraneRouter extends BlockContainer implements IEnterableBlock {
             }
 
             //add dir if matches with whitelist on or doesn't match with blacklist on
-            if((mode == router.MODE_WHITELIST && matchesFilter) || (mode == router.MODE_BLACKLIST && !matchesFilter)) {
+            if((mode == TileEntityCraneRouter.MODE_WHITELIST && matchesFilter) || (mode == TileEntityCraneRouter.MODE_BLACKLIST && !matchesFilter)) {
                 validDirs.add(customEnumOrder[i]);
             }
         }
@@ -115,7 +115,7 @@ public class CraneRouter extends BlockContainer implements IEnterableBlock {
         //if no valid dirs have yet been found, use wildcard
         if(validDirs.isEmpty()) {
             for(int i = 0; i<6; i++) {
-                if(router.modes[i] == router.MODE_WILDCARD) {
+                if(router.modes[i] == TileEntityCraneRouter.MODE_WILDCARD) {
                     validDirs.add(customEnumOrder[i]);
                 }
             }
@@ -132,7 +132,7 @@ public class CraneRouter extends BlockContainer implements IEnterableBlock {
 
     protected void sendOnRoute(World world, int x, int y, int z, IConveyorItem item, EnumFacing dir) {
         IConveyorBelt belt = null;
-        BlockPos targetPos = new BlockPos(x + dir.getFrontOffsetX(), y + dir.getFrontOffsetY(), z + dir.getFrontOffsetZ());
+        BlockPos targetPos = new BlockPos(x + dir.getXOffset(), y + dir.getYOffset(), z + dir.getZOffset());
         Block block = world.getBlockState(targetPos).getBlock();
 
         if (block instanceof IConveyorBelt) {
@@ -141,17 +141,16 @@ public class CraneRouter extends BlockContainer implements IEnterableBlock {
 
         if (belt != null) {
             EntityMovingItem moving = new EntityMovingItem(world);
-            Vec3d pos = new Vec3d(x + 0.5 + dir.getFrontOffsetX() * 0.55, y + 0.5 + dir.getFrontOffsetY() * 0.55, z + 0.5 + dir.getFrontOffsetZ() * 0.55);
+            Vec3d pos = new Vec3d(x + 0.5 + dir.getXOffset() * 0.55, y + 0.5 + dir.getYOffset() * 0.55, z + 0.5 + dir.getZOffset() * 0.55);
             Vec3d snap = belt.getClosestSnappingPosition(world, targetPos, pos);
             moving.setPosition(snap.x, snap.y, snap.z);
             moving.setItemStack(item.getItemStack());
             world.spawnEntity(moving);
         } else {
-            world.spawnEntity(new EntityItem(world, x + 0.5 + dir.getFrontOffsetX() * 0.55, y + 0.5 + dir.getFrontOffsetY() * 0.55, z + 0.5 + dir.getFrontOffsetZ() * 0.55, item.getItemStack()));
+            world.spawnEntity(new EntityItem(world, x + 0.5 + dir.getXOffset() * 0.55, y + 0.5 + dir.getYOffset() * 0.55, z + 0.5 + dir.getZOffset() * 0.55, item.getItemStack()));
         }
     }
 
     @Override public boolean canPackageEnter(World world, int x, int y, int z, EnumFacing dir, IConveyorPackage entity) { return false; }
     @Override public void onPackageEnter(World world, int x, int y, int z, EnumFacing dir, IConveyorPackage entity) { }
-
 }

@@ -67,10 +67,9 @@ public class MachineSolarBoiler extends BlockDummyable implements ITooltipProvid
 
                 TileEntity te = world.getTileEntity(new BlockPos(pos[0], pos[1], pos[2]));
 
-                if(!(te instanceof TileEntitySolarBoiler))
+                if(!(te instanceof TileEntitySolarBoiler boiler))
                     return false;
 
-                TileEntitySolarBoiler boiler = (TileEntitySolarBoiler) te;
                 Fluid type = ItemForgeFluidIdentifier.getType(player.getHeldItem(hand));
                 if(!HeatRecipes.hasBoilRecipe(type)){
                     player.sendMessage(new TextComponentString("§cNo recipe found for §e"+type.getLocalizedName(new FluidStack(type, 1))));
@@ -126,6 +125,6 @@ public class MachineSolarBoiler extends BlockDummyable implements ITooltipProvid
 			text.add("§a-> §r" + heater.types[0].getLocalizedName(new FluidStack(heater.types[0], 1)) + ": " + heater.tanks[0].getFluidAmount() + "/" + heater.tanks[0].getCapacity() + "mB");
 		if(heater.types[1] != null)
 			text.add("§c<- §r" + heater.types[1].getLocalizedName(new FluidStack(heater.types[1], 1)) + ": " + heater.tanks[1].getFluidAmount() + "/" + heater.tanks[1].getCapacity() + "mB");
-		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);
+		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getTranslationKey() + ".name"), 0xffff00, 0x404000, text);
     }
 }

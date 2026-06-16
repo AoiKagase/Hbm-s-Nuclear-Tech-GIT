@@ -23,15 +23,15 @@ public class BlockDeconDi extends BlockContainer {
 	public static float digammaRemove;
 	public BlockDeconDi(Material materialIn, String s, float digamma) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
-		this.digammaRemove = digamma;
+		digammaRemove = digamma;
 		ModBlocks.ALL_BLOCKS.add(this);
 	}
 
 	@Override
 	public TileEntity createNewTileEntity(World worldIn, int meta) {
-		return new TileEntityDeconDi(this.digammaRemove);
+		return new TileEntityDeconDi(digammaRemove);
 	}
 	
 	@Override

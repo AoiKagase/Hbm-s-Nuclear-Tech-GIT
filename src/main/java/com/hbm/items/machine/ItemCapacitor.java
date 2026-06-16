@@ -21,7 +21,7 @@ public class ItemCapacitor extends Item {
 	private int dura;
 	
 	public ItemCapacitor(int dura, String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.dura = dura;
 		
@@ -44,11 +44,6 @@ public class ItemCapacitor extends Item {
 			tooltip.add("§b[Needed for Schrabidium Synthesis]");
 			int itemDura = getDura(stack);
 			tooltip.add(getColor(itemDura, dura) + itemDura + " §2/ " + dura);
-		}
-		if (this == ModItems.titanium_filter) {
-			tooltip.add("§e[Needed for Watz Reaction]");
-			int itemDura = getDura(stack);
-			tooltip.add(getColor(itemDura, dura) + itemDura/20 + " §2/ " + dura/20);
 		}
 	}
 	

@@ -38,7 +38,7 @@ public class DummyBlockBlast extends BlockContainer implements IDummy, IBomb, IR
 
 	public DummyBlockBlast(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -120,12 +120,7 @@ public class DummyBlockBlast extends BlockContainer implements IDummy, IBomb, IR
 		}
 	}
 
-	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.INVISIBLE;
-	}
-	
-	@Override
+    @Override
 	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
 		return Items.AIR;
 	}

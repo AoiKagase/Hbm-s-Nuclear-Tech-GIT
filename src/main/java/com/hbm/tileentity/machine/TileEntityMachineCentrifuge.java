@@ -12,8 +12,6 @@ import com.hbm.tileentity.TileEntityMachineBase;
 import api.hbm.energy.IEnergyUser;
 import api.hbm.energy.IBatteryItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -22,6 +20,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineCentrifuge extends TileEntityMachineBase implements ITickable, IEnergyUser {
 
@@ -85,7 +84,7 @@ public class TileEntityMachineCentrifuge extends TileEntityMachineBase implement
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setLong("powerTime", power);
 		compound.setShort("progressTime", (short) progress);
 		return super.writeToNBT(compound);
@@ -113,7 +112,7 @@ public class TileEntityMachineCentrifuge extends TileEntityMachineBase implement
 			return true;
 		}
 
-		if ((inventory.getStackInSlot(2).isEmpty() || (itemStack.length > 0 && itemStack[0] != null
+		return (inventory.getStackInSlot(2).isEmpty() || (itemStack.length > 0 && itemStack[0] != null
 				&& inventory.getStackInSlot(2).isItemEqual(itemStack[0])
 				&& inventory.getStackInSlot(2).getCount() + itemStack[0].getCount() <= itemStack[0].getMaxStackSize()))
 				&&
@@ -133,11 +132,7 @@ public class TileEntityMachineCentrifuge extends TileEntityMachineBase implement
 						|| (itemStack.length > 3 && itemStack[3] != null
 								&& inventory.getStackInSlot(5).isItemEqual(itemStack[3])
 								&& inventory.getStackInSlot(5).getCount() + itemStack[3].getCount() <= itemStack[3]
-										.getMaxStackSize()))) {
-			return true;
-		}
-
-		return false;
+										.getMaxStackSize()));
 	}
 
 	private void processItem() {
@@ -274,11 +269,7 @@ public class TileEntityMachineCentrifuge extends TileEntityMachineBase implement
 				}
 			}
 
-			if (hasPower() && canProcess()) {
-				isProgressing = true;
-			} else {
-				isProgressing = false;
-			}
+			isProgressing = hasPower() && canProcess();
 
 			if (isProgressing) {
 				progress += speed;

@@ -1,9 +1,9 @@
 package com.hbm.items.special;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import com.hbm.config.BombConfig;
 import com.hbm.config.GeneralConfig;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.handler.ArmorUtil;
@@ -27,7 +27,7 @@ public class ItemCustomLore extends Item {
 	EnumRarity rarity;
 	
 	public ItemCustomLore(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.controlTab);
 		ModItems.ALL_ITEMS.add(this);
@@ -36,16 +36,14 @@ public class ItemCustomLore extends Item {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void addInformation(ItemStack stack, World world, List<String> list, ITooltipFlag flagIn) {
-		String unloc = this.getUnlocalizedName() + ".desc";
+		String unloc = this.getTranslationKey() + ".desc";
 		String loc = I18nUtil.resolveKey(unloc);
 
 		if(!unloc.equals(loc)) {
 
 			String[] locs = loc.split("\\$");
 
-			for(String s : locs) {
-				list.add(s);
-			}
+            list.addAll(Arrays.asList(locs));
 		}
 		if(this == ModItems.powder_asbestos)
 		{
@@ -100,11 +98,7 @@ public class ItemCustomLore extends Item {
 			list.add("and some shards are missing.");
 			list.add("It stopped ticking at 2:34.");
 		}
-		if(this == ModItems.reacher)
-		{
-			list.add("Holding this in main hand or off hand reduces radiation coming from items to its square-root.");
-			list.add("It also is useful to handle very hot or cold items.");
-		}
+
 		if(this == ModItems.crystal_horn)
 		{
 			if(MainRegistry.polaroidID == 11)
@@ -418,9 +412,7 @@ public class ItemCustomLore extends Item {
 			this == ModItems.powder_tennessine || 
 			this == ModItems.powder_xe135 || 
 			this == ModItems.powder_caesium || 
-			this == ModItems.powder_cs137 || 
-			this == ModItems.powder_cs137 || 
-			this == ModItems.powder_nitan_mix || 
+			this == ModItems.powder_cs137 ||
 			this == ModItems.powder_spark_mix || 
 			this == ModItems.powder_magic || 
 
@@ -439,10 +431,9 @@ public class ItemCustomLore extends Item {
 			this == ModItems.powder_daffergon || 
 			this == ModItems.ingot_daffergon || 
 			
-			this == ModItems.bathwater_mk3 || 
-			this == ModItems.plate_euphemium ||  
-			this == ModItems.rod_euphemium ||  
-			this == ModItems.rod_quad_euphemium || 
+			this == ModItems.bathwater_mk3 ||
+			this == ModItems.rod_euphemium ||
+			this == ModItems.rod_quad_euphemium ||
 			this == ModItems.rod_daffergon || 
 			this == ModItems.watch || 
 			this == ModItems.undefined) {
@@ -463,12 +454,9 @@ public class ItemCustomLore extends Item {
 			this == ModItems.powder_schrabidate || 
 			this == ModItems.powder_schrabidium || 
 
-			this == ModItems.wire_schrabidium || 
-
 			this == ModItems.plate_schrabidium || 
 			this == ModItems.plate_saturnite || 
-			
-			this == ModItems.circuit_schrabidium || 
+
 			this == ModItems.gun_revolver_schrabidium_ammo || 
 			this == ModItems.powder_unobtainium || 
 			this == ModItems.nugget_unobtainium || 
@@ -483,7 +471,7 @@ public class ItemCustomLore extends Item {
 			this == ModItems.crystal_schrabidium ||
     		this == ModItems.crystal_schraranium ||
     		this == ModItems.crystal_trixite ||
-    		ItemCell.hasFluid(stack, ModForgeFluids.sas3) || 
+    		ItemCell.hasFluid(stack, ModForgeFluids.SAS3) ||
     		this == ModItems.rod_unobtainium || 
     		this == ModItems.rod_schrabidium || 
 			this == ModItems.rod_dual_schrabidium || 

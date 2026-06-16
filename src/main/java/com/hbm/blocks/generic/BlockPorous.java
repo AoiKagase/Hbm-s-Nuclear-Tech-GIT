@@ -9,7 +9,6 @@ import com.hbm.saveddata.RadiationSavedData;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -21,7 +20,7 @@ public class BlockPorous extends Block {
 
 	public BlockPorous(String s) {
 		super(Material.ROCK);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setHardness(1.5F); //stone tier
 		this.setResistance(30.0F); //ha

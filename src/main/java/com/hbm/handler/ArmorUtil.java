@@ -3,6 +3,7 @@ package com.hbm.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.hbm.lib.HBMSoundHandler;
 import com.hbm.util.I18nUtil;
 import com.hbm.items.ModItems;
 import com.hbm.lib.Library;
@@ -22,6 +23,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
@@ -36,7 +38,7 @@ public class ArmorUtil {
 		ArmorRegistry.registerHazard(ModItems.gas_mask_filter_rag, HazardClass.PARTICLE_COARSE);
 		ArmorRegistry.registerHazard(ModItems.gas_mask_filter_piss, HazardClass.PARTICLE_COARSE, HazardClass.GAS_CHLORINE);
 
-		ArmorRegistry.registerHazard(ModItems.gas_mask, HazardClass.SAND, HazardClass.LIGHT);
+		ArmorRegistry.registerHazard(ModItems.gas_mask, HazardClass.LIGHT, HazardClass.SAND);
 		ArmorRegistry.registerHazard(ModItems.gas_mask_m65, HazardClass.SAND);
 		ArmorRegistry.registerHazard(ModItems.mask_damp, HazardClass.PARTICLE_COARSE);
 		ArmorRegistry.registerHazard(ModItems.mask_piss, HazardClass.PARTICLE_COARSE, HazardClass.GAS_CHLORINE);
@@ -47,28 +49,31 @@ public class ArmorUtil {
 		ArmorRegistry.registerHazard(ModItems.attachment_mask, HazardClass.SAND);
 		ArmorRegistry.registerHazard(ModItems.spider_milk, HazardClass.LIGHT);
 		
-		ArmorRegistry.registerHazard(ModItems.asbestos_helmet, HazardClass.SAND, HazardClass.LIGHT);
+		ArmorRegistry.registerHazard(ModItems.asbestos_helmet, HazardClass.LIGHT, HazardClass.SAND);
 		ArmorRegistry.registerHazard(ModItems.hazmat_helmet, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.hazmat_helmet_red, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.hazmat_helmet_grey, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.hazmat_helmet_red, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.hazmat_helmet_grey, HazardClass.LIGHT, HazardClass.SAND);
 		ArmorRegistry.registerHazard(ModItems.liquidator_helmet, HazardClass.LIGHT, HazardClass.SAND);
 		ArmorRegistry.registerHazard(ModItems.hazmat_paa_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.LIGHT, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.paa_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.t45_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.ajr_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.ajro_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.rpa_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.hev_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.fau_helmet, HazardClass.RAD_GAS, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.dns_helmet, HazardClass.RAD_GAS, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND, HazardClass.GAS_CORROSIVE);
-		ArmorRegistry.registerHazard(ModItems.schrabidium_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		ArmorRegistry.registerHazard(ModItems.euphemium_helmet, HazardClass.RAD_GAS, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.paa_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.t45_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.ajr_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.ajro_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.rpa_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.hev_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.fau_helmet, HazardClass.RAD_GAS, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.dns_helmet, HazardClass.RAD_GAS, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND, HazardClass.GAS_CORROSIVE);
+		ArmorRegistry.registerHazard(ModItems.schrabidium_helmet, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		ArmorRegistry.registerHazard(ModItems.euphemium_helmet, HazardClass.RAD_GAS, HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
 		
 		//Ob ihr wirklich richtig steht, seht ihr wenn das Licht angeht!
-		registerIfExists("gregtech", "gt.armor.hazmat.universal.head", HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		registerIfExists("gregtech", "gt.armor.hazmat.biochemgas.head", HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-		registerIfExists("gregtech", "gt.armor.hazmat.radiation.head", HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
-	}
+		registerIfExists("gregtech", "gt.armor.hazmat.universal.head", HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		registerIfExists("gregtech", "gt.armor.hazmat.biochemgas.head", HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+		registerIfExists("gregtech", "gt.armor.hazmat.radiation.head", HazardClass.PARTICLE_COARSE, HazardClass.PARTICLE_FINE, HazardClass.GAS_CHLORINE, HazardClass.BACTERIA, HazardClass.NERVE_AGENT, HazardClass.GAS_MONOXIDE, HazardClass.LIGHT, HazardClass.SAND);
+
+        registerIfExists("techguns", "t1_scout_helmet", HazardClass.PARTICLE_COARSE, HazardClass.GAS_CHLORINE, HazardClass.SAND);
+
+    }
 	
 	private static void registerIfExists(String domain, String name, HazardClass... classes) {
 		Item item = Compat.tryLoadItem(domain, name);
@@ -81,19 +86,16 @@ public class ArmorUtil {
 		NonNullList<ItemStack> armor = player.inventory.armorInventory;
 		
 		if(armor.get(0).isEmpty() || armor.get(1).isEmpty() || armor.get(2).isEmpty() || armor.get(3).isEmpty()) return false;
-		
-		if(ArmorUtil.isFaradayArmor(armor.get(0)) &&
-				ArmorUtil.isFaradayArmor(armor.get(1)) &&
-				ArmorUtil.isFaradayArmor(armor.get(2)) &&
-				ArmorUtil.isFaradayArmor(armor.get(3)))
-			return true;
-		
-		return false;
-	}
+
+        return ArmorUtil.isFaradayArmor(armor.get(0)) &&
+                ArmorUtil.isFaradayArmor(armor.get(1)) &&
+                ArmorUtil.isFaradayArmor(armor.get(2)) &&
+                ArmorUtil.isFaradayArmor(armor.get(3));
+    }
 
 	public static boolean isFaradayArmor(ItemStack item) {
 		
-		String name = item.getUnlocalizedName();
+		String name = item.getTranslationKey();
 		
 		if(HazmatRegistry.getCladding(item) > 0)
 			return true;
@@ -155,9 +157,8 @@ public class ArmorUtil {
 	
 	@SuppressWarnings("deprecation")
 	public static void resetFlightTime(EntityPlayer player) {
-		if(player instanceof EntityPlayerMP) {
-			EntityPlayerMP mp = (EntityPlayerMP) player;
-			ReflectionHelper.setPrivateValue(NetHandlerPlayServer.class, mp.connection, 0, "floatingTickCount", "field_147365_f");
+		if(player instanceof EntityPlayerMP mp) {
+            ReflectionHelper.setPrivateValue(NetHandlerPlayServer.class, mp.connection, 0, "floatingTickCount", "field_147365_f");
 		}
 	}
 
@@ -171,42 +172,31 @@ public class ArmorUtil {
 		return ArmorUtil.checkArmorPiece(player, ModItems.jackt, 2) && Library.checkForHeld(player, ModItems.shimmer_sledge);
 	}
 
-	public static boolean checkPAA(EntityLivingBase player){
-		return checkArmor(player, ModItems.paa_helmet, ModItems.paa_plate, ModItems.paa_legs, ModItems.paa_boots);
-	}
-
 	// Drillgon200: Is there a reason for this method? I don't know and I don't
 	// care to find out.
 	// Alcater: Looks like some kind of hazmat tier 2 check
 	public static boolean checkForHaz2(EntityLivingBase player) {
-	
-		if(checkArmor(player, ModItems.hazmat_paa_helmet, ModItems.hazmat_paa_plate, ModItems.hazmat_paa_legs, ModItems.hazmat_paa_boots) ||
-			checkArmor(player, ModItems.paa_helmet, ModItems.paa_plate, ModItems.paa_legs, ModItems.paa_boots) ||
-			checkArmor(player, ModItems.liquidator_helmet, ModItems.liquidator_plate, ModItems.liquidator_legs, ModItems.liquidator_boots) || 
-			checkArmor(player, ModItems.euphemium_helmet, ModItems.euphemium_plate, ModItems.euphemium_legs, ModItems.euphemium_boots) ||
-			checkArmor(player, ModItems.hev_helmet, ModItems.hev_plate, ModItems.hev_legs, ModItems.hev_boots) || 
-			checkArmor(player, ModItems.ajr_helmet, ModItems.ajr_plate, ModItems.ajr_legs, ModItems.ajr_boots) || 
-			checkArmor(player, ModItems.ajro_helmet, ModItems.ajro_plate, ModItems.ajro_legs, ModItems.ajro_boots) || 
-			checkArmor(player, ModItems.rpa_helmet, ModItems.rpa_plate, ModItems.rpa_legs, ModItems.rpa_boots) || 
-			checkArmor(player, ModItems.fau_helmet, ModItems.fau_plate, ModItems.fau_legs, ModItems.fau_boots) || 
-			checkArmor(player, ModItems.dns_helmet, ModItems.dns_plate, ModItems.dns_legs, ModItems.dns_boots)) {
-			return true;
-		}
-	
-		return false;
-	}
+
+        return checkArmor(player, ModItems.hazmat_paa_helmet, ModItems.hazmat_paa_plate, ModItems.hazmat_paa_legs, ModItems.hazmat_paa_boots) ||
+                checkArmor(player, ModItems.paa_helmet, ModItems.paa_plate, ModItems.paa_legs, ModItems.paa_boots) ||
+                checkArmor(player, ModItems.liquidator_helmet, ModItems.liquidator_plate, ModItems.liquidator_legs, ModItems.liquidator_boots) ||
+                checkArmor(player, ModItems.euphemium_helmet, ModItems.euphemium_plate, ModItems.euphemium_legs, ModItems.euphemium_boots) ||
+                checkArmor(player, ModItems.hev_helmet, ModItems.hev_plate, ModItems.hev_legs, ModItems.hev_boots) ||
+                checkArmor(player, ModItems.ajr_helmet, ModItems.ajr_plate, ModItems.ajr_legs, ModItems.ajr_boots) ||
+                checkArmor(player, ModItems.ajro_helmet, ModItems.ajro_plate, ModItems.ajro_legs, ModItems.ajro_boots) ||
+                checkArmor(player, ModItems.rpa_helmet, ModItems.rpa_plate, ModItems.rpa_legs, ModItems.rpa_boots) ||
+                checkArmor(player, ModItems.fau_helmet, ModItems.fau_plate, ModItems.fau_legs, ModItems.fau_boots) ||
+                checkArmor(player, ModItems.dns_helmet, ModItems.dns_plate, ModItems.dns_legs, ModItems.dns_boots);
+    }
 
 	public static boolean checkForHazmatOnly(EntityLivingBase player) {
-		if(checkArmor(player, ModItems.hazmat_helmet, ModItems.hazmat_plate, ModItems.hazmat_legs, ModItems.hazmat_boots) || 
-			checkArmor(player, ModItems.hazmat_helmet_red, ModItems.hazmat_plate_red, ModItems.hazmat_legs_red, ModItems.hazmat_boots_red) || 
-			checkArmor(player, ModItems.hazmat_helmet_grey, ModItems.hazmat_plate_grey, ModItems.hazmat_legs_grey, ModItems.hazmat_boots_grey) || 
-			checkArmor(player, ModItems.hazmat_paa_helmet, ModItems.hazmat_paa_plate, ModItems.hazmat_paa_legs, ModItems.hazmat_paa_boots) ||
-			checkArmor(player, ModItems.paa_helmet, ModItems.paa_plate, ModItems.paa_legs, ModItems.paa_boots) ||
-			checkArmor(player, ModItems.liquidator_helmet, ModItems.liquidator_plate, ModItems.liquidator_legs, ModItems.liquidator_boots)){
-			return true;
-		}
-		return false;
-	}
+        return checkArmor(player, ModItems.hazmat_helmet, ModItems.hazmat_plate, ModItems.hazmat_legs, ModItems.hazmat_boots) ||
+                checkArmor(player, ModItems.hazmat_helmet_red, ModItems.hazmat_plate_red, ModItems.hazmat_legs_red, ModItems.hazmat_boots_red) ||
+                checkArmor(player, ModItems.hazmat_helmet_grey, ModItems.hazmat_plate_grey, ModItems.hazmat_legs_grey, ModItems.hazmat_boots_grey) ||
+                checkArmor(player, ModItems.hazmat_paa_helmet, ModItems.hazmat_paa_plate, ModItems.hazmat_paa_legs, ModItems.hazmat_paa_boots) ||
+                checkArmor(player, ModItems.paa_helmet, ModItems.paa_plate, ModItems.paa_legs, ModItems.paa_boots) ||
+                checkArmor(player, ModItems.liquidator_helmet, ModItems.liquidator_plate, ModItems.liquidator_legs, ModItems.liquidator_boots);
+    }
 
 	public static boolean checkForHazmat(EntityLivingBase player) {
 		if(ArmorUtil.checkArmor(player, ModItems.hazmat_helmet, ModItems.hazmat_plate, ModItems.hazmat_legs, ModItems.hazmat_boots) || 
@@ -218,58 +208,47 @@ public class ArmorUtil {
 	
 			return true;
 		}
-	
-		if(player.isPotionActive(HbmPotion.mutation))
-			return true;
-	
-		return false;
-	}
+
+        return player.isPotionActive(HbmPotion.mutation);
+    }
 
 	public static boolean checkForAsbestos(EntityLivingBase player) {
-	
-		if(ArmorUtil.checkArmor(player, ModItems.asbestos_helmet, ModItems.asbestos_plate, ModItems.asbestos_legs, ModItems.asbestos_boots)) {
-			return true;
-		}
-	
-		return false;
-	}
+
+        return ArmorUtil.checkArmor(player, ModItems.asbestos_helmet, ModItems.asbestos_plate, ModItems.asbestos_legs, ModItems.asbestos_boots);
+    }
 
 	public static boolean checkArmor(EntityLivingBase player, Item helm, Item chest, Item leg, Item shoe) {
-		if(player.getItemStackFromSlot(EntityEquipmentSlot.FEET).getItem() == shoe && 
-			player.getItemStackFromSlot(EntityEquipmentSlot.LEGS).getItem() == leg && 
-			player.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem() == chest && 
-			player.getItemStackFromSlot(EntityEquipmentSlot.HEAD).getItem() == helm) {
-			return true;
-		}
-	
-		return false;
-	}
+        return player.getItemStackFromSlot(EntityEquipmentSlot.FEET).getItem() == shoe &&
+                player.getItemStackFromSlot(EntityEquipmentSlot.LEGS).getItem() == leg &&
+                player.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem() == chest &&
+                player.getItemStackFromSlot(EntityEquipmentSlot.HEAD).getItem() == helm;
+    }
 
 	public static boolean checkArmorPiece(EntityPlayer player, Item armor, int slot) {
-		if(player.inventory.armorInventory.get(slot) != null && player.inventory.armorInventory.get(slot).getItem() == armor) {
-			return true;
-		}
-	
-		return false;
-	}
+        return !player.inventory.armorInventory.get(slot).isEmpty() && player.inventory.armorInventory.get(slot).getItem() == armor;
+    }
 	
 	/*
 	 * Default implementations for IGasMask items
 	 */
 	public static final String FILTERK_KEY = "hfrFilter";
+
+    public static void damageGasMaskFilter(EntityLivingBase entity, float damage) {
+        damageGasMaskFilter(entity, Library.getStatisticalInt(entity.world.rand, damage));
+    }
 	
 	public static void damageGasMaskFilter(EntityLivingBase entity, int damage) {
-		
+		if(damage <= 0) return;
 		ItemStack mask = entity.getItemStackFromSlot(EntityEquipmentSlot.HEAD);
 		
-		if(mask == null)
+		if(mask.isEmpty())
 			return;
 		
 		if(!(mask.getItem() instanceof IGasMask)) {
 			
 			if(ArmorModHandler.hasMods(mask)) {
 				
-				ItemStack mods[] = ArmorModHandler.pryMods(mask);
+				ItemStack[] mods = ArmorModHandler.pryMods(mask);
 				
 				if(mods[ArmorModHandler.helmet_only] != null && mods[ArmorModHandler.helmet_only].getItem() instanceof IGasMask)
 					mask = mods[ArmorModHandler.helmet_only];
@@ -277,15 +256,15 @@ public class ArmorUtil {
 		}
 		
 		if(mask != null)
-			damageGasMaskFilter(mask, damage);
+			damageGasMaskFilter(entity, mask, damage);
 	}
 	
-	public static void damageGasMaskFilter(ItemStack mask, int damage) {
+	public static void damageGasMaskFilter(EntityLivingBase entity, ItemStack mask, int damage) {
 		ItemStack filter = getGasMaskFilter(mask);
 		
 		if(filter == null) {
 			if(ArmorModHandler.hasMods(mask)) {
-				ItemStack mods[] = ArmorModHandler.pryMods(mask);
+				ItemStack[] mods = ArmorModHandler.pryMods(mask);
 				
 				if(mods[ArmorModHandler.helmet_only] != null && mods[ArmorModHandler.helmet_only].getItem() instanceof IGasMask)
 					filter = getGasMaskFilter(mods[ArmorModHandler.helmet_only]);
@@ -299,8 +278,8 @@ public class ArmorUtil {
 		
 		if(filter.getItemDamage() > filter.getMaxDamage()){
 			removeFilter(mask);
-		}
-		else{
+            entity.world.playSound(null, entity.posX, entity.posY, entity.posZ, HBMSoundHandler.gasmaskScrew, SoundCategory.PLAYERS, 0.8F, 0.1F);
+        } else{
 			installGasMaskFilter(mask, filter);
 		}
 	}
@@ -328,7 +307,7 @@ public class ArmorUtil {
 			return;
 		
 		mask.getTagCompound().removeTag(FILTERK_KEY);
-		if(mask.getTagCompound().hasNoTags())
+		if(mask.getTagCompound().isEmpty())
 			mask.setTagCompound(null);
 	}
 	
@@ -354,12 +333,9 @@ public class ArmorUtil {
 
 		if(checkArmor(player, ModItems.dns_helmet, ModItems.dns_plate, ModItems.dns_legs, ModItems.dns_boots))
 			return true;
-		
-		if(player.isPotionActive(HbmPotion.stability))
-			return true; 
-		
-		return false;
-	}
+
+        return player.isPotionActive(HbmPotion.stability);
+    }
 	
 	public static boolean checkForMonoMask(EntityPlayer player) {
 
@@ -380,12 +356,11 @@ public class ArmorUtil {
 			return true;
 		
 		ItemStack helmet = player.inventory.armorInventory.get(3);
-		if(helmet != null && ArmorModHandler.hasMods(helmet)) {
+		if(!helmet.isEmpty() && ArmorModHandler.hasMods(helmet)) {
 			
-			ItemStack mods[] = ArmorModHandler.pryMods(helmet);
-			
-			if(mods[ArmorModHandler.helmet_only] != null && mods[ArmorModHandler.helmet_only].getItem() == ModItems.attachment_mask_mono)
-				return true;
+			ItemStack[] mods = ArmorModHandler.pryMods(helmet);
+
+            return mods[ArmorModHandler.helmet_only] != null && mods[ArmorModHandler.helmet_only].getItem() == ModItems.attachment_mask_mono;
 		}
 		
 		return false;
@@ -425,12 +400,8 @@ public class ArmorUtil {
 		{
 			return true;
 		}
-		if(checkArmorPiece(player, ModItems.paa_helmet, 3))
-		{
-			return true;
-		}
-		return false;
-	}
+        return checkArmorPiece(player, ModItems.paa_helmet, 3);
+    }
 
 	/**
 	 * Grabs the installed filter or the filter of the attachment, used for attachment rendering
@@ -444,7 +415,7 @@ public class ArmorUtil {
 		
 		if((filter == null || filter.isEmpty()) && ArmorModHandler.hasMods(mask)) {
 			
-			ItemStack mods[] = ArmorModHandler.pryMods(mask);
+			ItemStack[] mods = ArmorModHandler.pryMods(mask);
 			
 			if(mods[ArmorModHandler.helmet_only] != null && mods[ArmorModHandler.helmet_only].getItem() instanceof IGasMask)
 				filter = ((IGasMask)mods[ArmorModHandler.helmet_only].getItem()).getFilter(mods[ArmorModHandler.helmet_only]);

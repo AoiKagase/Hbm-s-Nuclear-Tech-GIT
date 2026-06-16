@@ -3,12 +3,11 @@ package com.hbm.tileentity.machine;
 import java.util.List;
 
 import com.hbm.entity.particle.EntitySSmokeFX;
-import com.hbm.entity.particle.EntityTSmokeFX;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.items.ModItems;
 import com.hbm.main.MainRegistry;
-import com.hbm.inventory.EngineRecipes;
+import com.hbm.inventory.FluidCombustionRecipes;
 import com.hbm.lib.Library;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.lib.ModDamageSource;
@@ -17,7 +16,6 @@ import com.hbm.sound.AudioWrapper;
 import com.hbm.packet.AuxElectricityPacket;
 import com.hbm.packet.AuxParticlePacketNT;
 import com.hbm.packet.FluidTankPacket;
-import com.hbm.packet.LoopedSoundPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.TETurbofanPacket;
 import com.hbm.tileentity.TileEntityLoadedBase;
@@ -31,7 +29,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.DamageSource;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.util.SoundCategory;
@@ -87,7 +84,7 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 	}
 
 	public boolean hasCustomInventoryName() {
-		return this.customName != null && this.customName.length() > 0;
+		return this.customName != null && !this.customName.isEmpty();
 	}
 
 	public void setCustomName(String name) {
@@ -149,8 +146,8 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 			long burnValue = 0;
 			int amount = 1 + this.afterburner;
 			
-			if(tank.getFluid() != null && EngineRecipes.isAero(tank.getFluid().getFluid())) {
-				burnValue = EngineRecipes.getEnergy(tank.getFluid().getFluid()) / 1_000;
+			if(tank.getFluid() != null && FluidCombustionRecipes.isAero(tank.getFluid().getFluid())) {
+				burnValue = FluidCombustionRecipes.getCombustionEnergy(tank.getFluid().getFluid()) / 1_000;
 			}
 			
 			int amountToBurn = Math.min(amount, tank.getFluidAmount());
@@ -363,9 +360,7 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 	
 	protected boolean inputValidForTank(int tank, int slot){
 		if(!inventory.getStackInSlot(slot).isEmpty()){
-			if(isValidFluid(FluidUtil.getFluidContained(inventory.getStackInSlot(slot)))){
-				return true;	
-			}
+            return isValidFluid(FluidUtil.getFluidContained(inventory.getStackInSlot(slot)));
 		}
 		return false;
 	}
@@ -373,7 +368,7 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 	private boolean isValidFluid(FluidStack stack) {
 		if(stack == null)
 			return false;
-		return EngineRecipes.isAero(stack.getFluid());
+		return FluidCombustionRecipes.isAero(stack.getFluid());
 	}
 
 	protected void sendTurboPower() {

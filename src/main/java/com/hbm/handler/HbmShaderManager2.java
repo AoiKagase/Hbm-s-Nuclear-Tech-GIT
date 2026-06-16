@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -404,7 +405,7 @@ public class HbmShaderManager2 {
 			int program = GLCompat.createProgram();
 			
 			vertexShader = GLCompat.createShader(GLCompat.GL_VERTEX_SHADER);
-			GLCompat.shaderSource(vertexShader, readFileToBuf(new ResourceLocation(file.getResourceDomain(), file.getResourcePath() + ".vert")));
+			GLCompat.shaderSource(vertexShader, readFileToBuf(new ResourceLocation(file.getNamespace(), file.getPath() + ".vert")));
 			GLCompat.compileShader(vertexShader);
 			if(GLCompat.getShaderi(vertexShader, GLCompat.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
 				MainRegistry.logger.error(GLCompat.getShaderInfoLog(vertexShader, GLCompat.GL_INFO_LOG_LENGTH));
@@ -412,7 +413,7 @@ public class HbmShaderManager2 {
 			}
 			
 			fragmentShader = GLCompat.createShader(GLCompat.GL_FRAGMENT_SHADER);
-			GLCompat.shaderSource(fragmentShader, readFileToBuf(new ResourceLocation(file.getResourceDomain(), file.getResourcePath() + ".frag")));
+			GLCompat.shaderSource(fragmentShader, readFileToBuf(new ResourceLocation(file.getNamespace(), file.getPath() + ".frag")));
 			GLCompat.compileShader(fragmentShader);
 			if(GLCompat.getShaderi(fragmentShader, GLCompat.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
 				MainRegistry.logger.error(GLCompat.getShaderInfoLog(fragmentShader, GLCompat.GL_INFO_LOG_LENGTH));
@@ -465,9 +466,7 @@ public class HbmShaderManager2 {
 		}
 		
 		public Shader withUniforms(Uniform... uniforms){
-			for(Uniform u : uniforms){
-				this.uniforms.add(u);
-			}
+            this.uniforms.addAll(Arrays.asList(uniforms));
 			return this;
 		}
 		
@@ -526,8 +525,8 @@ public class HbmShaderManager2 {
 			GLCompat.uniformMatrix4(GLCompat.getUniformLocation(shader, name), transpose, matrix);
 		}
 		
-		public static interface Uniform {
-			public void apply(Shader shader);
+		public interface Uniform {
+			void apply(Shader shader);
 		}
 	}
 }

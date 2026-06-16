@@ -24,18 +24,17 @@ public class RenderLaserMiner extends TileEntitySpecialRenderer<TileEntityMachin
 		GL11.glPushMatrix();
 		GL11.glTranslated(x + 0.5, y - 1, z + 0.5);
 
-		TileEntityMachineMiningLaser laser = (TileEntityMachineMiningLaser)te;
-		double tx = x;
+        double tx = x;
 		double ty = 0;
 		double tz = z;
-		if(laser.beam) {
-			tx = (laser.targetX - laser.lastTargetX) * partialTicks + laser.lastTargetX;
-			ty = (laser.targetY - laser.lastTargetY) * partialTicks + laser.lastTargetY;
-			tz = (laser.targetZ - laser.lastTargetZ) * partialTicks + laser.lastTargetZ;
+		if(((TileEntityMachineMiningLaser)te).beam) {
+			tx = (((TileEntityMachineMiningLaser)te).targetX - ((TileEntityMachineMiningLaser)te).lastTargetX) * partialTicks + ((TileEntityMachineMiningLaser)te).lastTargetX;
+			ty = (((TileEntityMachineMiningLaser)te).targetY - ((TileEntityMachineMiningLaser)te).lastTargetY) * partialTicks + ((TileEntityMachineMiningLaser)te).lastTargetY;
+			tz = (((TileEntityMachineMiningLaser)te).targetZ - ((TileEntityMachineMiningLaser)te).lastTargetZ) * partialTicks + ((TileEntityMachineMiningLaser)te).lastTargetZ;
 		}
-		double vx = tx - laser.getPos().getX();
-		double vy = ty - laser.getPos().getY() + 3;
-		double vz = tz - laser.getPos().getZ();
+		double vx = tx - ((TileEntityMachineMiningLaser)te).getPos().getX();
+		double vy = ty - ((TileEntityMachineMiningLaser)te).getPos().getY() + 3;
+		double vz = tz - ((TileEntityMachineMiningLaser)te).getPos().getZ();
 
 		Vec3 nVec = Vec3.createVectorHelper(vx, vy, vz);
 		nVec = nVec.normalize();
@@ -47,7 +46,7 @@ public class RenderLaserMiner extends TileEntitySpecialRenderer<TileEntityMachin
 
 		Vec3 vec = Vec3.createVectorHelper(vx - nVec.xCoord, vy - nVec.yCoord, vz - nVec.zCoord);
 
-		double length = vec.lengthVector();
+		double length = vec.length();
 		double yaw = Math.toDegrees(Math.atan2(vec.xCoord, vec.zCoord));
 		double sqrt = MathHelper.sqrt(vec.xCoord * vec.xCoord + vec.zCoord * vec.zCoord);
 		double pitch = Math.toDegrees(Math.atan2(vec.yCoord, sqrt));
@@ -74,8 +73,8 @@ public class RenderLaserMiner extends TileEntitySpecialRenderer<TileEntityMachin
 		GL11.glPopMatrix();
 		//GlStateManager.shadeModel(GL11.GL_FLAT);
 
-		if(laser.beam) {
-			length = vec.lengthVector();
+		if(((TileEntityMachineMiningLaser)te).beam) {
+			length = vec.length();
 			GL11.glTranslated(nVec.xCoord, nVec.yCoord - 1, nVec.zCoord);
 			int range = (int)Math.ceil(length * 0.5);
 			BeamPronter.prontBeam(vec, EnumWaveType.STRAIGHT, EnumBeamType.SOLID, 0xa00000, 0xFFFFFF, 0, 1, 0, 3, 0.09F);

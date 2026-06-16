@@ -68,7 +68,7 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
     private boolean rockBreaker = false;
     
 	
-	public static enum EnumToolType {
+	public enum EnumToolType {
 		
 		PICKAXE(
 				Sets.newHashSet(new Material[] { Material.IRON, Material.ANVIL, Material.ROCK }),
@@ -86,11 +86,11 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
 				Sets.newHashSet(new Material[] { Material.GRASS, Material.IRON, Material.ANVIL, Material.ROCK, Material.CLAY, Material.SAND, Material.GROUND, Material.SNOW, Material.CRAFTED_SNOW })
 		);
 		
-		private EnumToolType(Set<Material> materials) {
+		EnumToolType(Set<Material> materials) {
 			this.materials = materials;
 		}
 		
-		private EnumToolType(Set<Material> materials, Set<Block> blocks) {
+		EnumToolType(Set<Material> materials, Set<Block> blocks) {
 			this.materials = materials;
 			this.blocks = blocks;
 		}
@@ -101,7 +101,7 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
 	
 	public ItemToolAbility(float damage, float attackSpeedIn, double movement, ToolMaterial material, EnumToolType type, String s) {
 		super(0, attackSpeedIn, material, type.blocks);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.damage = damage;
 		this.movement = movement;
@@ -237,7 +237,7 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
         if (player.capabilities.isCreativeMode) {
             block.getBlock().onBlockHarvested(world, pos, block, player);
             if (block.getBlock().removedByPlayer(block, world, pos, player, false))
-                block.getBlock().onBlockDestroyedByPlayer(world, pos, block);
+                block.getBlock().onPlayerDestroy(world, pos, block);
 
             if (!world.isRemote) {
                 player.connection.sendPacket(new SPacketBlockChange(world, pos));
@@ -253,7 +253,7 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
 
             if(block.getBlock().removedByPlayer(block, world, pos, player, true))
             {
-                block.getBlock().onBlockDestroyedByPlayer(world, pos, block);
+                block.getBlock().onPlayerDestroy(world, pos, block);
                 block.getBlock().harvestBlock(world, player, pos, block, world.getTileEntity(pos), stack);
                 block.getBlock().dropXpOnBlockBreak(world, pos, event);
             }
@@ -264,7 +264,7 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
             world.playEvent(2001, pos, Block.getStateId(block));
             if(block.getBlock().removedByPlayer(block, world, pos, player, true))
             {
-                block.getBlock().onBlockDestroyedByPlayer(world, pos, block);
+                block.getBlock().onPlayerDestroy(world, pos, block);
             }
             ItemStack itemstack = player.getHeldItem(hand);
             if (itemstack != null)
@@ -284,7 +284,7 @@ public class ItemToolAbility extends ItemTool implements IItemAbility, IDepthRoc
     @Override
     @SideOnly(Side.CLIENT)
     public boolean hasEffect(ItemStack stack) {
-    	return getCurrentAbility(stack) != null ? true : super.hasEffect(stack);
+    	return getCurrentAbility(stack) != null || super.hasEffect(stack);
     }
     
     @Override

@@ -42,7 +42,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class ItemWandD extends Item {
 
 	public ItemWandD(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModItems.ALL_ITEMS.add(this);
@@ -101,14 +101,12 @@ public class ItemWandD extends Item {
 		int y = pos.getY();
 		int z = pos.getZ();
 		Random rand = world.rand;
-		world.setBlockState(new BlockPos(x, y, z), ModBlocks.safe.getDefaultState().withProperty(BlockStorageCrate.FACING, EnumFacing.getFront(rand.nextInt(4) + 2)), 2);
+		world.setBlockState(new BlockPos(x, y, z), ModBlocks.safe.getDefaultState().withProperty(BlockStorageCrate.FACING, EnumFacing.byIndex(rand.nextInt(4) + 2)), 2);
 		WeightedRandomChestContentFrom1710.generateChestContents(rand, HbmChestContents.getLoot(10),
 				(TileEntitySafe) world.getTileEntity(new BlockPos(x, y, z)), rand.nextInt(4) + 3);
 		((TileEntitySafe) world.getTileEntity(new BlockPos(x, y, z))).setPins(rand.nextInt(999) + 1);
 		((TileEntitySafe) world.getTileEntity(new BlockPos(x, y, z))).setMod(1);
 		((TileEntitySafe) world.getTileEntity(new BlockPos(x, y, z))).lock();*/
-		
-		MainRegistry.time = System.currentTimeMillis();
 		
 		return EnumActionResult.SUCCESS;
 	}
@@ -145,11 +143,8 @@ public class ItemWandD extends Item {
 	
 	@Override
 	public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer playerIn, EntityLivingBase target, EnumHand hand) {
-		if(target.world.isRemote){
-			//DisintegrationParticleHandler.spawnGluonDisintegrateParticles(target);
-		} else {
-		}
-		return super.itemInteractionForEntity(stack, playerIn, target, hand);
+        //DisintegrationParticleHandler.spawnGluonDisintegrateParticles(target);
+        return super.itemInteractionForEntity(stack, playerIn, target, hand);
 	}
 	
 	@Override

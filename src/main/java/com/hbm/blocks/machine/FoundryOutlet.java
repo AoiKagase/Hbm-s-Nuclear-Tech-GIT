@@ -7,8 +7,8 @@ import com.hbm.blocks.ILookOverlay;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.inventory.material.Mats.MaterialStack;
 import com.hbm.items.ModItems;
+import com.hbm.items.tool.ItemTooling;
 import com.hbm.items.machine.ItemScraps;
-import com.hbm.lib.RefStrings;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.machine.TileEntityFoundryOutlet;
 import com.hbm.util.I18nUtil;
@@ -23,7 +23,6 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.SoundType;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -37,8 +36,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.Pre;
 
 public class FoundryOutlet extends BlockContainer implements ICrucibleAcceptor, ILookOverlay, IToolable {
@@ -56,7 +53,7 @@ public class FoundryOutlet extends BlockContainer implements ICrucibleAcceptor, 
 
 	public FoundryOutlet(String s) {
 		super(Material.ROCK);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setSoundType(SoundType.METAL);
 
@@ -85,7 +82,7 @@ public class FoundryOutlet extends BlockContainer implements ICrucibleAcceptor, 
 	
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing enumfacing = EnumFacing.getFront(meta);
+		EnumFacing enumfacing = EnumFacing.byIndex(meta);
 
         if (enumfacing.getAxis() == EnumFacing.Axis.Y)
         {
@@ -116,48 +113,61 @@ public class FoundryOutlet extends BlockContainer implements ICrucibleAcceptor, 
 		return new TileEntityFoundryOutlet();
 	}
 	
-	// @Override
-	// public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
-	// 	if(world.isRemote) {
-	// 		return true;
-	// 	}
+	@Override
+	public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		if(world.isRemote) {
+	 		return true;
+	 	}
+
+	 	if(!player.isSneaking()) {
+	 		if(player.getHeldItem(hand).getItem() instanceof ItemTooling){
+	            ItemTooling tool = (ItemTooling)player.getHeldItem(hand).getItem();
+	            if(tool.getType() == ToolType.SCREWDRIVER || tool.getType() == ToolType.HAND_DRILL)
+	                return false;
+	        }
+
+	 		TileEntityFoundryOutlet tile = (TileEntityFoundryOutlet) world.getTileEntity(pos);
+			boolean didSomething = false;
+
+	 		if (player.getHeldItem(hand).isEmpty()) {
+	 			tile.invertRedstone = !tile.invertRedstone;
+	 			didSomething = true;
+	 			
+	 		} else if (player.getHeldItem(hand).getItem() == ModItems.scraps){
+	 			MaterialStack mat = ItemScraps.getMats(player.getHeldItem(hand));
+	 			if(mat != null) {
+	 				tile.filter = mat.material;
+	 				didSomething = true;
+	 			}
+	 		}
+
+	 		if (didSomething){
+		 		tile.markDirty();
+		 		world.markAndNotifyBlock(pos, world.getChunk(pos), state, state, 2);
+		 	}
+	 	}
 		
-	// 	if(!player.isSneaking()) {
-	// 		TileEntityFoundryOutlet tile = (TileEntityFoundryOutlet) world.getTileEntity(x, y, z);
-			
-	// 		if(player.getHeldItem() != null && player.getHeldItem().getItem() == ModItems.scraps) {
-	// 			MaterialStack mat = ItemScraps.getMats(player.getHeldItem());
-	// 			if(mat != null) {
-	// 				tile.filter = mat.material;
-	// 			}
-	// 		} else {
-	// 			tile.invertRedstone = !tile.invertRedstone;
-	// 		}
-	// 		tile.markDirty();
-	// 		world.markBlockForUpdate(x, y, z);
-	// 	}
-		
-	// 	return true;
-	// }
+	 	return true;
+	}
 
 	@Override
     public boolean onScrew(World world, EntityPlayer player, int x, int y, int z, EnumFacing side, float fX, float fY, float fZ, EnumHand hand, ToolType tool) {
-    	
-		if(tool == ToolType.SCREWDRIVER) {
+		if(tool == ToolType.SCREWDRIVER || tool == ToolType.HAND_DRILL) {
 			if(world.isRemote) return true;
+			BlockPos pos = new BlockPos(x, y, z);
+			TileEntityFoundryOutlet tile = (TileEntityFoundryOutlet) world.getTileEntity(pos);
 
-			TileEntityFoundryOutlet tile = (TileEntityFoundryOutlet) world.getTileEntity(new BlockPos(x, y, z));
-			tile.filter = null;
-			tile.invertFilter = false;
+			if(tool == ToolType.SCREWDRIVER) {
+				tile.filter = null;
+				tile.invertFilter = false;
+			} else if(tool == ToolType.HAND_DRILL) {
+				tile.invertFilter = !tile.invertFilter;
+			}
 			tile.markDirty();
-		}
-		
-		if(tool == ToolType.HAND_DRILL) {
-			if(world.isRemote) return true;
-
-			TileEntityFoundryOutlet tile = (TileEntityFoundryOutlet) world.getTileEntity(new BlockPos(x, y, z));
-			tile.invertFilter = !tile.invertFilter;
-			tile.markDirty();
+			IBlockState state = world.getBlockState(pos);
+			world.markAndNotifyBlock(pos, world.getChunk(pos), state, state, 2);
+			player.swingArm(hand);
+			return true;
 		}
 		
 		return false;
@@ -221,6 +231,6 @@ public class FoundryOutlet extends BlockContainer implements ICrucibleAcceptor, 
 			text.add("§2" + I18nUtil.resolveKey("foundry.inverted"));
 		}
 		
-		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(this.getUnlocalizedName() + ".name"), 0xFF4000, 0x401000, text);
+		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(this.getTranslationKey() + ".name"), 0xFF4000, 0x401000, text);
 	}
 }

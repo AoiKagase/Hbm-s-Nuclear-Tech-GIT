@@ -1,6 +1,5 @@
 package com.hbm.tileentity.machine.rbmk;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.hbm.blocks.ModBlocks;
@@ -8,7 +7,6 @@ import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.ITankPacketAcceptor;
-import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RBMKOutgasserRecipes;
 import com.hbm.util.ContaminationUtil;
 import com.hbm.items.ModItems;
@@ -19,8 +17,6 @@ import com.hbm.inventory.control_panel.DataValue;
 import com.hbm.inventory.control_panel.DataValueFloat;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKConsole.ColumnType;
 
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
@@ -46,7 +42,7 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 	public TileEntityRBMKOutgasser() {
 		super(2);
 		gas = new FluidTank(64000);
-		gasType = ModForgeFluids.tritium;
+		gasType = ModForgeFluids.TRITIUM;
 	}
 
 	@Override
@@ -151,7 +147,7 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 	public void fillFluidInit(FluidTank tank) {
 		fillFluid(this.pos.getX(), this.pos.getY() + RBMKDials.getColumnHeight(world) + 1, this.pos.getZ(), tank);
 		
-		if(world.getBlockState(pos.down()) == ModBlocks.rbmk_loader) {
+		if(world.getBlockState(pos.down()).getBlock() == ModBlocks.rbmk_loader) {
 
 			fillFluid(this.pos.getX() + 1, this.pos.getY() - 1, this.pos.getZ(), tank);
 			fillFluid(this.pos.getX() - 1, this.pos.getY() - 1, this.pos.getZ(), tank);
@@ -160,7 +156,7 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 			fillFluid(this.pos.getX(), this.pos.getY() - 2, this.pos.getZ(), tank);
 		}
 		
-		if(world.getBlockState(pos.down(2)) == ModBlocks.rbmk_loader) {
+		if(world.getBlockState(pos.down(2)).getBlock() == ModBlocks.rbmk_loader) {
 
 			fillFluid(this.pos.getX() + 1, this.pos.getY() - 2, this.pos.getZ(), tank);
 			fillFluid(this.pos.getX() - 1, this.pos.getY() - 2, this.pos.getZ(), tank);
@@ -226,7 +222,7 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack itemStack) {
-		return RBMKOutgasserRecipes.getOutput(itemStack) != null && i == 0;
+		return i == 0 && RBMKOutgasserRecipes.getOutput(itemStack) != null;
 	}
 
 	@Override

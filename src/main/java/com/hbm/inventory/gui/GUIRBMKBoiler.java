@@ -2,6 +2,7 @@ package com.hbm.inventory.gui;
 
 import java.io.IOException;
 
+import net.minecraftforge.fluids.FluidRegistry;
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.forgefluid.FFUtils;
@@ -37,8 +38,8 @@ public class GUIRBMKBoiler extends GuiInfoContainer {
 	public void drawScreen(int mouseX, int mouseY, float f) {
 		super.drawScreen(mouseX, mouseY, f);
 
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 126, guiTop + 24, 16, 56, boiler.feed);
-		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 89, guiTop + 39, 8, 28, boiler.steam);
+		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 126, guiTop + 24, 16, 56, boiler.feed, FluidRegistry.WATER);
+		FFUtils.renderTankInfo(this, mouseX, mouseY, guiLeft + 89, guiTop + 39, 8, 28, boiler.steam, boiler.steamType);
 		
 		super.renderHoveredToolTip(mouseX, mouseY);
 	}
@@ -81,13 +82,13 @@ public class GUIRBMKBoiler extends GuiInfoContainer {
 		
 		drawTexturedModalRect(guiLeft + 91, guiTop + 65 - j, 190, 24 - j, 4, j);
 		
-		if(boiler.steamType == ModForgeFluids.steam){
+		if(boiler.steamType == ModForgeFluids.STEAM){
 			drawTexturedModalRect(guiLeft + 36, guiTop + 24, 194, 0, 14, 58);
-		} else if(boiler.steamType == ModForgeFluids.hotsteam){
+		} else if(boiler.steamType == ModForgeFluids.HOTSTEAM){
 			drawTexturedModalRect(guiLeft + 36, guiTop + 24, 208, 0, 14, 58);
-		} else if(boiler.steamType == ModForgeFluids.superhotsteam){
+		} else if(boiler.steamType == ModForgeFluids.SUPERHOTSTEAM){
 			drawTexturedModalRect(guiLeft + 36, guiTop + 24, 222, 0, 14, 58);
-		} else if(boiler.steamType == ModForgeFluids.ultrahotsteam){
+		} else if(boiler.steamType == ModForgeFluids.ULTRAHOTSTEAM){
 			drawTexturedModalRect(guiLeft + 36, guiTop + 24, 236, 0, 14, 58);
 		}
 	}

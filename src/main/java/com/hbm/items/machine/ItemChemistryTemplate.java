@@ -29,7 +29,7 @@ public class ItemChemistryTemplate extends Item {
 	public static final ModelResourceLocation chemModel = new ModelResourceLocation(RefStrings.MODID + ":chemistry_template", "inventory");
 	
 	public ItemChemistryTemplate(String s){
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setHasSubtypes(true);
 		this.setMaxDamage(0);
@@ -41,7 +41,7 @@ public class ItemChemistryTemplate extends Item {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public String getItemStackDisplayName(ItemStack stack) {
-		String s = ("" + I18n.format(this.getUnlocalizedName() + ".name")).trim();
+		String s = ("" + I18n.format(this.getTranslationKey() + ".name")).trim();
         String s1 = ("" + I18n.format("chem." + ChemplantRecipes.getName(stack))).trim();
 
         if (s1 != null) {
@@ -99,11 +99,11 @@ public class ItemChemistryTemplate extends Item {
 							OreDictStack input = (OreDictStack) o;
 							NonNullList<ItemStack> ores = OreDictionary.getOres(input.name);
 
-							if(ores.size() > 0) {
+							if(!ores.isEmpty()) {
 								ItemStack inStack = ores.get((int) (Math.abs(System.currentTimeMillis() / 1000) % ores.size()));
 					    		list.add(" §c"+ input.count() + "x " + inStack.getDisplayName());
 							} else {
-					    		list.add("I AM ERROR - No OrdDict match found for "+o.toString());
+					    		list.add("I AM ERROR - No OrdDict match found for "+ o);
 							}
 						}
 					}

@@ -12,6 +12,8 @@ import com.hbm.main.MainRegistry;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
+import static com.hbm.inventory.material.Mats.MAT_ALUMINIUM;
+
 public class EntityMissileMicro extends EntityMissileBaseAdvanced {
 
 	public EntityMissileMicro(World p_i1582_1_) {
@@ -43,11 +45,10 @@ public class EntityMissileMicro extends EntityMissileBaseAdvanced {
 	public List<ItemStack> getDebris() {
 		List<ItemStack> list = new ArrayList<ItemStack>();
 
-		list.add(new ItemStack(ModItems.wire_aluminium, 4));
+		list.add(new ItemStack(ModItems.wire, 4, MAT_ALUMINIUM.id));
 		list.add(new ItemStack(ModItems.plate_titanium, 4));
 		list.add(new ItemStack(ModItems.hull_small_aluminium, 2));
 		list.add(new ItemStack(ModItems.ducttape, 1));
-		list.add(new ItemStack(ModItems.circuit_targeting_tier1, 1));
 		
 		return list;
 	}

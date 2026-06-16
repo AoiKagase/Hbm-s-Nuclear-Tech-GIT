@@ -14,7 +14,7 @@ import net.minecraft.world.World;
 public class ItemKeyPin extends Item {
 
 	public ItemKeyPin(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModItems.ALL_ITEMS.add(this);
@@ -36,7 +36,6 @@ public class ItemKeyPin extends Item {
 	
 	public static int getPins(ItemStack stack) {
 		if(stack.getTagCompound() == null) {
-			stack.setTagCompound(new NBTTagCompound());
 			return 0;
 		}
 		return stack.getTagCompound().getInteger("pins");

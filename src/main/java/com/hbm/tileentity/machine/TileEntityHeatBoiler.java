@@ -5,8 +5,6 @@ import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.inventory.HeatRecipes;
 import com.hbm.lib.ForgeDirection;
-import com.hbm.lib.Library;
-import com.hbm.packet.FluidTankPacket;
 import com.hbm.tileentity.INBTPacketReceiver;
 
 import api.hbm.tile.IHeatSource;
@@ -42,8 +40,8 @@ public class TileEntityHeatBoiler extends TileEntity implements INBTPacketReceiv
         tanks[0] = new FluidTank(FluidRegistry.WATER, 0, 640000);
         types[0] = FluidRegistry.WATER;
 
-        tanks[1] = new FluidTank(ModForgeFluids.steam, 0, 64000000);
-        types[1] = ModForgeFluids.steam;
+        tanks[1] = new FluidTank(ModForgeFluids.STEAM, 0, 64000000);
+        types[1] = ModForgeFluids.STEAM;
 
     }
 
@@ -119,8 +117,7 @@ public class TileEntityHeatBoiler extends TileEntity implements INBTPacketReceiv
 
     @Override
     public FluidStack drain(int maxDrain, boolean doDrain){
-        FluidStack drain = tanks[1].drain(maxDrain, doDrain);
-        return drain;
+        return tanks[1].drain(maxDrain, doDrain);
     }
 
     @Override
@@ -225,8 +222,8 @@ public class TileEntityHeatBoiler extends TileEntity implements INBTPacketReceiv
                 diff = (int) Math.ceil(diff * diffusion);
                 source.useUpHeat(diff);
                 this.heat += diff;
-                if(this.heat > this.maxHeat)
-                    this.heat = this.maxHeat;
+                if(this.heat > maxHeat)
+                    this.heat = maxHeat;
                 return;
             }
         }

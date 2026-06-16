@@ -21,7 +21,7 @@ import net.minecraft.world.World;
 public class FurnaceSteel extends BlockDummyable implements ITooltipProvider {
 
 	public FurnaceSteel(Material mat, String s) {
-		super(Material.IRON, s);
+		super(mat, s);
 	}
 
 	@Override

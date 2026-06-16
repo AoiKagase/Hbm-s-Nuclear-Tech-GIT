@@ -32,7 +32,7 @@ public class EntityAIMaskmanLasergun extends EntityAIBase {
 
         } else {
             this.target = entity;
-            double dist = Vec3.createVectorHelper(target.posX - owner.posX, target.posY - owner.posY, target.posZ - owner.posZ).lengthVector();
+            double dist = Vec3.createVectorHelper(target.posX - owner.posX, target.posY - owner.posY, target.posZ - owner.posZ).length();
             return dist > 10;
         }
 	}
@@ -95,16 +95,16 @@ public class EntityAIMaskmanLasergun extends EntityAIBase {
 		this.owner.rotationYaw = this.owner.rotationYawHead;
 	}
 	
-	private static enum EnumLaserAttack {
+	private enum EnumLaserAttack {
 
 		ORB(60, 5),
 		MISSILE(10, 10),
 		SPLASH(40, 3);
 
-		public int delay;
-		public int amount;
+		public final int delay;
+		public final int amount;
 
-		private EnumLaserAttack(int delay, int amount) {
+		EnumLaserAttack(int delay, int amount) {
 			this.delay = delay;
 			this.amount = amount;
 		}

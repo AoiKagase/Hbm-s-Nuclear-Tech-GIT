@@ -42,10 +42,10 @@ public class ParticleLightningStrip extends Particle {
 	public void setNewPoint(Vec3d point){
 		float scale = 0.01F;
 		float scale2 = 0.002F;
-		Vec3d pos = point.addVector((world.rand.nextFloat()*2-1)*scale, (world.rand.nextFloat()*2-1)*scale, (world.rand.nextFloat()*2-1)*scale);
+		Vec3d pos = point.add((world.rand.nextFloat()*2-1)*scale, (world.rand.nextFloat()*2-1)*scale, (world.rand.nextFloat()*2-1)*scale);
 		Vec3d motion = new Vec3d((world.rand.nextFloat()*2-1)*scale2, (world.rand.nextFloat()*2-1)*scale2, (world.rand.nextFloat()*2-1)*scale2);
 		LightningNode fork = null;
-		if(points.size() >= 1){
+		if(!points.isEmpty()){
 			Vec3d direction = point.subtract(points.get(points.size()-1).ogPos);
 			double dot = direction.dotProduct(pos.subtract(points.get(points.size()-1).ogPos));
 			Vec3d project = direction.scale(dot/direction.lengthSquared());

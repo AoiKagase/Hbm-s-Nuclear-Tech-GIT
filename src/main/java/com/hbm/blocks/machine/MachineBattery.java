@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import com.hbm.util.I18nUtil;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.ILookOverlay;
 import com.hbm.lib.Library;
@@ -42,7 +41,7 @@ public class MachineBattery extends BlockContainer implements ILookOverlay {
 
 	public MachineBattery(Material materialIn, long power, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.machineTab);
 		this.maxPower = power;
@@ -104,7 +103,7 @@ public class MachineBattery extends BlockContainer implements ILookOverlay {
 
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing enumfacing = EnumFacing.getFront(meta);
+		EnumFacing enumfacing = EnumFacing.byIndex(meta);
 
 		if (enumfacing.getAxis() == EnumFacing.Axis.Y) {
 			enumfacing = EnumFacing.NORTH;
@@ -134,13 +133,12 @@ public class MachineBattery extends BlockContainer implements ILookOverlay {
 			
 			ItemStack drop = new ItemStack(this);
 			TileEntity te = world.getTileEntity(pos);
-			if (te instanceof TileEntityMachineBattery) {
-				TileEntityMachineBattery battery = (TileEntityMachineBattery) te;
-			
-				NBTTagCompound nbt = new NBTTagCompound();
+			if (te instanceof TileEntityMachineBattery battery) {
+
+                NBTTagCompound nbt = new NBTTagCompound();
 				battery.writeNBT(nbt);
 
-				if(!nbt.hasNoTags()) {
+				if(!nbt.isEmpty()) {
 					drop.setTagCompound(nbt);
 				}
 			}
@@ -156,9 +154,8 @@ public class MachineBattery extends BlockContainer implements ILookOverlay {
 
 		TileEntity te = worldIn.getTileEntity(pos);
 		if(stack.hasTagCompound()){
-			if (te instanceof TileEntityMachineBattery) {
-				TileEntityMachineBattery battery = (TileEntityMachineBattery) te;
-				if(stack.hasDisplayName()) {
+			if (te instanceof TileEntityMachineBattery battery) {
+                if(stack.hasDisplayName()) {
 					battery.setCustomName(stack.getDisplayName());
 				}
 				try {
@@ -217,11 +214,10 @@ public class MachineBattery extends BlockContainer implements ILookOverlay {
 		
 		TileEntity te = worldIn.getTileEntity(pos);
 		
-		if(!(te instanceof TileEntityMachineBattery))
+		if(!(te instanceof TileEntityMachineBattery battery))
 			return 0;
-		
-		TileEntityMachineBattery battery = (TileEntityMachineBattery) te;
-		return (int)battery.getPowerRemainingScaled(15L);
+
+        return (int)battery.getPowerRemainingScaled(15L);
 	}
 
 	@Override
@@ -238,7 +234,7 @@ public class MachineBattery extends BlockContainer implements ILookOverlay {
 		if(charge == 0L){
 			list.add("§c0§4/" + Library.getShortNumber(this.maxPower) + "HE §c(0.0%)§r");
 		}else {
-			double percent = Math.round(charge*1000L/this.maxPower)*0.1D;
+			double percent = Math.round((float) (charge * 1000L) /this.maxPower)*0.1D;
 			String color = "§e";
 			String color2 = "§6"; 
 			if(percent < 25){
@@ -257,11 +253,10 @@ public class MachineBattery extends BlockContainer implements ILookOverlay {
 			
 		TileEntity te = world.getTileEntity(new BlockPos(x, y, z));
 		
-		if(!(te instanceof TileEntityMachineBattery))
+		if(!(te instanceof TileEntityMachineBattery battery))
 			return;
 
-		TileEntityMachineBattery battery = (TileEntityMachineBattery) te;
-		List<String> text = new ArrayList();
+        List<String> text = new ArrayList();
 		text.add(Library.getShortNumber(battery.power) + "/" + Library.getShortNumber(getMaxPower()) + " HE");
 		if(battery.powerDelta == 0){
 			text.add("§e-- §r0HE/s");

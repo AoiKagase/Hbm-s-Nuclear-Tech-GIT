@@ -26,7 +26,7 @@ public class ItemMissile extends Item {
 	private String witty;
 	
 	public ItemMissile(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setMaxStackSize(1);
 		this.setCreativeTab(MainRegistry.missileTab);
@@ -114,7 +114,7 @@ public class ItemMissile extends Item {
 		LEGENDARY("rarity.legendary"),
 		SEWS_CLOTHES_AND_SUCKS_HORSE_COCK("rarity.strange");
 		
-		String name;
+		final String name;
 		
 		Rarity(String name) {
 			this.name = name;
@@ -284,21 +284,15 @@ public class ItemMissile extends Item {
 	}
 	
 	public String getFuel(FuelType type) {
-		
-		switch(type) {
-		case KEROSENE:
-			return TextFormatting.LIGHT_PURPLE + I18nUtil.resolveKey("fuel.kerosene");
-		case SOLID:
-			return TextFormatting.GOLD + I18nUtil.resolveKey("fuel.solid");
-		case HYDROGEN:
-			return TextFormatting.DARK_AQUA + I18nUtil.resolveKey("fuel.hydrogen");
-		case XENON:
-			return TextFormatting.DARK_PURPLE + I18nUtil.resolveKey("fuel.xenon");
-		case BALEFIRE:
-			return TextFormatting.GREEN + I18nUtil.resolveKey("fuel.balefire");
-		default:
-			return TextFormatting.BOLD + I18nUtil.resolveKey("desc.na");
-		}
+
+        return switch (type) {
+            case KEROSENE -> TextFormatting.LIGHT_PURPLE + I18nUtil.resolveKey("fuel.kerosene");
+            case SOLID -> TextFormatting.GOLD + I18nUtil.resolveKey("fuel.solid");
+            case HYDROGEN -> TextFormatting.DARK_AQUA + I18nUtil.resolveKey("fuel.hydrogen");
+            case XENON -> TextFormatting.DARK_PURPLE + I18nUtil.resolveKey("fuel.xenon");
+            case BALEFIRE -> TextFormatting.GREEN + I18nUtil.resolveKey("fuel.balefire");
+            default -> TextFormatting.BOLD + I18nUtil.resolveKey("desc.na");
+        };
 	}
 	
 	//am i retarded?

@@ -7,6 +7,7 @@ import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.handler.WeightedRandomChestContentFrom1710;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemBattery;
+import com.hbm.items.machine.ItemCircuit.EnumCircuitType;
 import com.hbm.items.special.ItemCell;
 import com.hbm.items.tool.ItemBombCaller;
 import com.hbm.items.tool.ItemBombCaller.EnumCallerType;
@@ -14,6 +15,9 @@ import com.hbm.items.tool.ItemFluidCanister;
 
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+
+import static com.hbm.inventory.material.Mats.MAT_ALLOY;
+import static com.hbm.inventory.material.Mats.MAT_MINGRADE;
 
 public class HbmChestContents {
 
@@ -26,7 +30,7 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_steel, 0, 2, 5, 7),
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_beryllium, 0, 1, 2, 4),
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_titanium, 0, 1, 1, 3),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_targeting_tier1, 0, 1, 1, 5),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.PCB.ordinal(), 1, 1, 5),
 			new WeightedRandomChestContentFrom1710(ModItems.gun_revolver, 0, 1, 1, 3),
 			new WeightedRandomChestContentFrom1710(ModItems.gun_revolver_ammo, 0, 2, 6, 4),
 			new WeightedRandomChestContentFrom1710(ModItems.gun_kit_1, 0, 1, 3, 4),
@@ -46,8 +50,8 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.bottle_cherry, 0, 1, 1, 2),
 			new WeightedRandomChestContentFrom1710(ModItems.stealth_boy, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.cap_nuka, 0, 1, 15, 7),
-			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.diesel), 1, 2, 2),
-			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.biofuel), 1, 2, 3),
+			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.DIESEL), 1, 2, 2),
+			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.BIOFUEL), 1, 2, 3),
 			new WeightedRandomChestContentFrom1710(ModItems.gas_mask_m65, 60, 1, 1, 2),
 			new WeightedRandomChestContentFrom1710(ModItems.gas_mask_filter, 0, 1, 1, 3)  };
 
@@ -56,9 +60,9 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_steel, 0, 1, 2, 7),
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_red_copper, 0, 1, 1, 4),
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_titanium, 0, 1, 3, 5),
-			new WeightedRandomChestContentFrom1710(ModItems.wire_red_copper, 0, 2, 3, 7),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_targeting_tier1, 0, 1, 1, 4),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_copper, 0, 1, 1, 4),
+			new WeightedRandomChestContentFrom1710(ModItems.wire, MAT_MINGRADE.id, 2, 3, 7),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.PCB.ordinal(), 1, 1, 4),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.CHIP.ordinal(), 1, 1, 4),
 			new WeightedRandomChestContentFrom1710(ModItems.battery_generic, 0, 1, 1, 4),
 			new WeightedRandomChestContentFrom1710(ModItems.battery_advanced, 0, 1, 1, 3),
 			new WeightedRandomChestContentFrom1710(ModItems.powder_iodine, 0, 1, 1, 1),
@@ -80,9 +84,9 @@ public class HbmChestContents {
 	private static WeightedRandomChestContentFrom1710[] expensive = new WeightedRandomChestContentFrom1710[] {
 			new WeightedRandomChestContentFrom1710(ModItems.nugget_schrabidium, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.chlorine_pinwheel, 0, 1, 1, 1),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_targeting_tier3, 0, 1, 1, 4),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_gold, 0, 1, 2, 3),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_targeting_tier4, 0, 1, 1, 2),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.BASIC.ordinal(), 1, 1, 4),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.PCB.ordinal(), 1, 2, 3),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.ADVANCED.ordinal(), 1, 1, 2),
 			new WeightedRandomChestContentFrom1710(ModItems.gun_lever_action, 0, 1, 1, 5),
 			new WeightedRandomChestContentFrom1710(ModItems.ammo_20gauge, 0, 2, 6, 6),
 			new WeightedRandomChestContentFrom1710(ModItems.gun_revolver_gold, 0, 1, 1, 4),
@@ -111,8 +115,8 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.bottle_nuka, 0, 1, 3, 6),
 			new WeightedRandomChestContentFrom1710(ModItems.bottle_quantum, 0, 1, 1, 3),
 			new WeightedRandomChestContentFrom1710(Item.getItemFromBlock(ModBlocks.red_barrel), 0, 1, 1, 6),
-			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.diesel), 1, 2, 2),
-			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.biofuel), 1, 2, 3),
+			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.DIESEL), 1, 2, 2),
+			new WeightedRandomChestContentFrom1710(ItemFluidCanister.getFullCanister(ModForgeFluids.BIOFUEL), 1, 2, 3),
 			new WeightedRandomChestContentFrom1710(ModItems.gas_mask_m65, 60, 1, 1, 5),
 			new WeightedRandomChestContentFrom1710(ItemBombCaller.getStack(EnumCallerType.CARPET), 1, 1, 2),
 			new WeightedRandomChestContentFrom1710(ItemBombCaller.getStack(EnumCallerType.NAPALM), 1, 1, 1),
@@ -221,11 +225,11 @@ public class HbmChestContents {
 	private static WeightedRandomChestContentFrom1710[] spaceship = new WeightedRandomChestContentFrom1710[] {
 			new WeightedRandomChestContentFrom1710(ModItems.battery_advanced, 0, 1, 1, 5),
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_advanced_alloy, 0, 2, 16, 5),
-			new WeightedRandomChestContentFrom1710(ModItems.wire_advanced_alloy, 0, 8, 32, 5),
+			new WeightedRandomChestContentFrom1710(ModItems.wire, MAT_ALLOY.id, 8, 32, 5),
 			new WeightedRandomChestContentFrom1710(ModItems.coil_advanced_alloy, 0, 2, 16, 5),
-			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(ModForgeFluids.deuterium), 1, 8, 5),
-			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(ModForgeFluids.tritium), 1, 8, 5),
-			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(ModForgeFluids.amat), 1, 1, 1),
+			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(ModForgeFluids.DEUTERIUM), 1, 8, 5),
+			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(ModForgeFluids.TRITIUM), 1, 8, 5),
+			new WeightedRandomChestContentFrom1710(ItemCell.getFullCell(ModForgeFluids.AMAT), 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.powder_neodymium, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.powder_niobium, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(Item.getItemFromBlock(ModBlocks.fusion_conductor), 0, 2, 4, 5),
@@ -256,7 +260,7 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.bottle_quantum, 0, 1, 3, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_advanced_alloy, 0, 4, 12, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.ammo_50bmg, 0, 24, 48, 1),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_red_copper, 0, 6, 12, 1),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.CAPACITOR.ordinal(), 6, 12, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.gas_mask_m65, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.grenade_if_he, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.grenade_if_incendiary, 0, 1, 1, 1),
@@ -275,8 +279,8 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.gun_uzi, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.gun_uzi_silencer, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.clip_uzi, 0, 1, 3, 1),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_red_copper, 0, 12, 16, 1),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_gold, 0, 2, 6, 1) };
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.CONTROLLER_CHASSIS.ordinal(), 12, 16, 1),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.VACUUM_TUBE.ordinal(), 2, 6, 1) };
 
 	private static WeightedRandomChestContentFrom1710[] vault3 = new WeightedRandomChestContentFrom1710[] {
 			new WeightedRandomChestContentFrom1710(ModItems.ingot_desh, 0, 6, 16, 1),
@@ -294,8 +298,8 @@ public class HbmChestContents {
 			new WeightedRandomChestContentFrom1710(ModItems.gun_fatman, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.gun_revolver_pip, 0, 1, 1, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.clip_revolver_pip, 0, 2, 4, 1),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_red_copper, 0, 18, 32, 1),
-			new WeightedRandomChestContentFrom1710(ModItems.circuit_gold, 0, 6, 12, 1),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.CONTROLLER_CHASSIS.ordinal(), 18, 32, 1),
+			new WeightedRandomChestContentFrom1710(ModItems.circuit, EnumCircuitType.CONTROLLER.ordinal(), 6, 12, 1),
 			new WeightedRandomChestContentFrom1710(ModItems.nugget_schrabidium, 0, 6, 12, 1) };
 
 	private static WeightedRandomChestContentFrom1710[] vault4 = new WeightedRandomChestContentFrom1710[] {
@@ -335,35 +339,22 @@ public class HbmChestContents {
 	 **/
 
 	public static WeightedRandomChestContentFrom1710[] getLoot(int i) {
-		switch (i) {
-		case 1:
-			return modGeneric;
-		case 2:
-			return antenna;
-		case 3:
-			return expensive;
-		case 4:
-			return nukeTrash;
-		case 5:
-			return nuclear;
-		case 6:
-			return vertibird;
-		case 7:
-			return missile;
-		case 8:
-			return spaceship;
-		case 9:
-			return powder;
-		case 10:
-			return vault1;
-		case 11:
-			return vault2;
-		case 12:
-			return vault3;
-		case 13:
-			return vault4;
-		}
+        return switch (i) {
+            case 1 -> modGeneric;
+            case 2 -> antenna;
+            case 3 -> expensive;
+            case 4 -> nukeTrash;
+            case 5 -> nuclear;
+            case 6 -> vertibird;
+            case 7 -> missile;
+            case 8 -> spaceship;
+            case 9 -> powder;
+            case 10 -> vault1;
+            case 11 -> vault2;
+            case 12 -> vault3;
+            case 13 -> vault4;
+            default -> null;
+        };
 
-		return null;
-	}
+    }
 }

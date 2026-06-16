@@ -103,7 +103,7 @@ public class ArmorLiquidator extends ArmorFSB implements IGasMask {
 
 	@Override
 	public ArrayList<HazardClass> getBlacklist(ItemStack stack) {
-		return new ArrayList(); // full hood has no restrictions
+		return new ArrayList<>(); // full hood has no restrictions
 	}
 
 	@Override
@@ -117,8 +117,8 @@ public class ArmorLiquidator extends ArmorFSB implements IGasMask {
 	}
 
 	@Override
-	public void damageFilter(ItemStack stack, int damage) {
-		ArmorUtil.damageGasMaskFilter(stack, damage);
+	public void damageFilter(EntityLivingBase entity, ItemStack stack, int damage) {
+		ArmorUtil.damageGasMaskFilter(entity, stack, damage);
 	}
 
 	@Override

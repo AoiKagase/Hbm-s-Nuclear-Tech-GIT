@@ -7,7 +7,6 @@ import com.hbm.entity.effect.EntityNukeTorex;
 import com.hbm.entity.logic.EntityNukeExplosionMK5;
 import com.hbm.entity.mob.ai.EntityAINuclearCreeperSwell;
 import com.hbm.items.ModItems;
-import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.ModDamageSource;
 import com.hbm.main.AdvancementManager;
 import com.hbm.util.ContaminationUtil;
@@ -38,10 +37,8 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -238,6 +235,7 @@ public class EntityNuclearCreeper extends EntityMob implements IRadiationImmune 
 
 		for(EntityPlayer player : players) {
 			AdvancementManager.grantAchievement(player, AdvancementManager.bossCreeper);
+            player.inventory.addItemStackToInventory(new ItemStack(ModItems.coin_creeper));
 		}
 
 		if(p_70645_1_.getTrueSource() instanceof EntitySkeleton || (p_70645_1_.isProjectile() && p_70645_1_.getImmediateSource() instanceof EntityArrow && ((EntityArrow)(p_70645_1_.getImmediateSource())).shootingEntity == null)) {
@@ -342,7 +340,7 @@ public class EntityNuclearCreeper extends EntityMob implements IRadiationImmune 
 	protected boolean processInteract(EntityPlayer player, EnumHand hand){
 		ItemStack itemstack = player.inventory.getCurrentItem();
 
-		if(itemstack!= null && itemstack.getItem() == Items.FLINT_AND_STEEL) {
+		if(!itemstack.isEmpty() && itemstack.getItem() == Items.FLINT_AND_STEEL) {
 			this.world.playSound(null, this.posX + 0.5D, this.posY + 0.5D, this.posZ + 0.5D, SoundEvents.ITEM_FLINTANDSTEEL_USE, this.getSoundCategory(), 1.0F, this.rand.nextFloat() * 0.4F + 0.8F);
 			player.swingArm(hand);
 
@@ -366,12 +364,12 @@ public class EntityNuclearCreeper extends EntityMob implements IRadiationImmune 
 				if(flag) {
 					world.spawnEntity(EntityNukeExplosionMK5.statFac(world, 70, posX, posY, posZ));
 				} else {
-					ContaminationUtil.radiate(world, posX, posY + 0.5, posZ, 70, 1000, 0, 100, 500);
+					ContaminationUtil.radiate(world, posX, posY + 0.5, posZ, 70, 2000, 0, 200, 800);
 				}
 			} else {
 				EntityNukeTorex.statFac(world, posX, posY, posZ, 20);
 				if(flag) {
-					world.spawnEntity(EntityNukeExplosionMK5.statFacNoRad(world, 20, posX, posY, posZ));
+					world.spawnEntity(EntityNukeExplosionMK5.statFac(world, 20, posX, posY, posZ));
 				} else {
 					ContaminationUtil.radiate(world, posX, posY + 0.5, posZ, 20, 1000, 0, 100, 500);
 				}

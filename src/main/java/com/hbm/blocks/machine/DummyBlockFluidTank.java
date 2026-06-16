@@ -31,7 +31,7 @@ public class DummyBlockFluidTank extends BlockContainer implements IDummy {
 	
 	public DummyBlockFluidTank(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -63,12 +63,7 @@ public class DummyBlockFluidTank extends BlockContainer implements IDummy {
 		return false;
 	}
 
-	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.INVISIBLE;
-	}
-	
-	@Override
+    @Override
 	public boolean isBlockNormalCube(IBlockState state) {
 		return false;
 	}

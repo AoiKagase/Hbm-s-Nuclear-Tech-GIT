@@ -20,7 +20,6 @@ import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.items.tool.ItemFluidCanister;
 import com.hbm.items.ModItems;
 
-import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -56,7 +55,7 @@ public class DiFurnaceRecipes {
 		addRecipe(new OreDictStack(CU.ingot()), new OreDictStack(REDSTONE.dust()), new ItemStack(ModItems.ingot_red_copper, 2));
 		addRecipe(new OreDictStack(CU.dust()), new OreDictStack(REDSTONE.dust()), new ItemStack(ModItems.ingot_red_copper, 2));
 
-		addRecipe(new NbtComparableStack(ItemFluidCanister.getFullCanister(ModForgeFluids.diesel)), new ComparableStack(Items.SLIME_BALL), new ItemStack(ModItems.canister_napalm, 1));
+		addRecipe(new NbtComparableStack(ItemFluidCanister.getFullCanister(ModForgeFluids.DIESEL)), new ComparableStack(Items.SLIME_BALL), new ItemStack(ModItems.canister_napalm, 1));
 		
 		addRecipe(new OreDictStack(MINGRADE.ingot()), new OreDictStack(STEEL.ingot()), new ItemStack(ModItems.ingot_advanced_alloy, 2));
 		addRecipe(new OreDictStack(MINGRADE.dust()), new OreDictStack(STEEL.ingot()), new ItemStack(ModItems.ingot_advanced_alloy, 2));
@@ -96,7 +95,7 @@ public class DiFurnaceRecipes {
 			addRecipe(new OreDictStack(IRON.ingot()), new OreDictStack(NETHERQUARTZ.gem()), new ItemStack(ModBlocks.test_render, 1));
 		}
 		if(GeneralConfig.enableBabyMode) {
-			addRecipe(new ComparableStack(ModItems.canister_generic), new OreDictStack(COAL.gem()), ItemFluidCanister.getFullCanister(ModForgeFluids.oil));
+			addRecipe(new ComparableStack(ModItems.canister_generic), new OreDictStack(COAL.gem()), ItemFluidCanister.getFullCanister(ModForgeFluids.OIL));
 		}
 	}
 
@@ -138,8 +137,8 @@ public class DiFurnaceRecipes {
 	}
 
 	public static void removeRecipe(ItemStack output){
-		diRecipes.values().removeIf(value -> areItemStacksEqual(value,output));;
-	}
+		diRecipes.values().removeIf(value -> areItemStacksEqual(value,output));
+    }
 	public static void addFuel(AStack fuel, int power){
 		diFuels.put(fuel, power);
 	}
@@ -247,12 +246,12 @@ public class DiFurnaceRecipes {
 	}
 
 	public static List<ItemStack> getAlloyFuels() {
-		HashSet uniqueFuels = new HashSet<ItemStack>();
+//		HashSet uniqueFuels = new HashSet<ItemStack>();
 		ArrayList<ItemStack> fuels = new ArrayList<ItemStack>();
 		for(AStack entry : DiFurnaceRecipes.diFuels.keySet()){
 			fuels.addAll(entry.getStackList());
 		}
-		fuels.addAll(uniqueFuels);
+//		fuels.addAll(uniqueFuels);
 		return fuels;
 	}
 }

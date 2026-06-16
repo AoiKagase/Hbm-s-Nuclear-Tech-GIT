@@ -41,7 +41,7 @@ public class BlockSiloHatch extends BlockContainer implements IBomb, IMultiBlock
 	
 	public BlockSiloHatch(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -163,7 +163,7 @@ public class BlockSiloHatch extends BlockContainer implements IBomb, IMultiBlock
 	
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing enumfacing = EnumFacing.getFront(meta);
+		EnumFacing enumfacing = EnumFacing.byIndex(meta);
 
         if (enumfacing.getAxis() == EnumFacing.Axis.Y)
         {
@@ -199,14 +199,5 @@ public class BlockSiloHatch extends BlockContainer implements IBomb, IMultiBlock
 		}
 
 		return true;
-	}
-
-	@Override
-	public void addInformation(ItemStack stack, World player, List<String> tooltip, ITooltipFlag advanced) {
-		float hardness = this.getExplosionResistance(null);
-		tooltip.add("§2[" + I18nUtil.resolveKey("trait.radshield") + "]");
-		if(hardness > 50){
-			tooltip.add("§6" + I18nUtil.resolveKey("trait.blastres", hardness));
-		}
 	}
 }

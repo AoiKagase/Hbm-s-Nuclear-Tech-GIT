@@ -7,18 +7,17 @@ import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemMold;
 import com.hbm.items.machine.ItemMold.Mold;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Thank god we have a base class now. Now with documentation and as little redundant crap in the child classes as possible.
@@ -42,12 +41,7 @@ public abstract class TileEntityFoundryCastingBase extends TileEntityFoundryBase
 				super.onContentsChanged(slot);
 				markDirty();
 			}
-			
-			@Override
-			public int getSlotLimit(int slot) {
-				return 64;
-			}
-		};
+        };
 	}
 	
 	@Override
@@ -147,6 +141,26 @@ public abstract class TileEntityFoundryCastingBase extends TileEntityFoundryBase
 			inventory.deserializeNBT(compound.getCompoundTag("inventory"));
 		super.readFromNBT(compound);
 	}
+
+    @Override
+    public @NotNull NBTTagCompound getUpdateTag() {
+        return this.writeToNBT(super.getUpdateTag());
+    }
+
+    @Override
+    public void handleUpdateTag(NBTTagCompound tag) {
+        this.readFromNBT(tag);
+    }
+
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket() {
+        return new SPacketUpdateTileEntity(this.pos, 1, this.getUpdateTag());
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+        this.readFromNBT(pkt.getNbtCompound());
+    }
 
 	public int[] getAccessibleSlotsFromSide(EnumFacing face) {
 		return new int[] { 1 };

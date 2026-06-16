@@ -1,15 +1,11 @@
 package com.hbm.tileentity.machine;
 
-import com.hbm.blocks.BlockDummyable;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.inventory.HeatRecipes;
-import com.hbm.lib.ForgeDirection;
-import com.hbm.lib.Library;
-import com.hbm.packet.FluidTankPacket;
 import com.hbm.tileentity.INBTPacketReceiver;
 
-import api.hbm.tile.IHeatSource;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -27,24 +23,27 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.util.List;
+
 public class TileEntitySolarBoiler extends TileEntity implements INBTPacketReceiver, ITickable, IFluidHandler {
 
     public FluidTank[] tanks;
     public Fluid[] types = new Fluid[2];
     public int heat;
     public int heatInput;
-    public static int maxHeat = 320_000; //the heat required to turn 64k of water into steam
+    public static int maxHeat = 32_000_000; //the heat required to turn 64k of water into steam
     public static final double diffusion = 0.1D;
+    public static final int cap = 10_000_000;
 
     public TileEntitySolarBoiler() {
         super();
         tanks = new FluidTank[2];
 
-        tanks[0] = new FluidTank(FluidRegistry.WATER, 0, 16000);
+        tanks[0] = new FluidTank(FluidRegistry.WATER, 0, cap);
         types[0] = FluidRegistry.WATER;
 
-        tanks[1] = new FluidTank(ModForgeFluids.steam, 0, 1600000);
-        types[1] = ModForgeFluids.steam;
+        tanks[1] = new FluidTank(ModForgeFluids.STEAM, 0, cap * 100);
+        types[1] = ModForgeFluids.STEAM;
 
     }
 
@@ -67,12 +66,26 @@ public class TileEntitySolarBoiler extends TileEntity implements INBTPacketRecei
             setupTanks();
             tryConvert();
             
-            fillFluidInit(tanks[1]);
             heat += heatInput;
+            heat *= 0.999;
             if(heat > maxHeat) heat = maxHeat;
             networkPack();
-            heat *= 0.999;
             heatInput = 0;
+            fillFluidInit(tanks[1]);
+
+            burn();
+        }
+    }
+
+    public void burn(){
+        if(heat > 0) {
+            double r = 64 * Math.sqrt(heat / (double) maxHeat);
+            if(r > 1){
+                List<EntityLivingBase> mobs = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos.up()).grow(r));
+                for(EntityLivingBase mob : mobs) {
+                    mob.setFire(5);
+                }
+            }
         }
     }
 
@@ -82,7 +95,7 @@ public class TileEntitySolarBoiler extends TileEntity implements INBTPacketRecei
 	}
 	
 	public void fillFluid(BlockPos pos, FluidTank tank) {
-		FFUtils.fillFluid(this, tank, world, pos, 1600000);
+		FFUtils.fillFluid(this, tank, world, pos, cap*100);
 	}
 
     @Override
@@ -121,8 +134,7 @@ public class TileEntitySolarBoiler extends TileEntity implements INBTPacketRecei
 
     @Override
     public FluidStack drain(int maxDrain, boolean doDrain){
-        FluidStack drain = tanks[1].drain(maxDrain, doDrain);
-        return drain;
+        return tanks[1].drain(maxDrain, doDrain);
     }
 
     @Override
@@ -136,6 +148,7 @@ public class TileEntitySolarBoiler extends TileEntity implements INBTPacketRecei
                 types[i] = null;
             }
         }
+        fixTankSize();
     }
 
     @Override
@@ -182,27 +195,39 @@ public class TileEntitySolarBoiler extends TileEntity implements INBTPacketRecei
         this.heatInput = nbt.getInteger("heatInput");
     }
 
+    public void fixTankSize(){
+        if(tanks[0].getCapacity() != cap) {
+            tanks[0].setCapacity(cap);
+            markDirty();
+        }
+        int correctSize = cap * HeatRecipes.getOutputAmountHot(types[0])/HeatRecipes.getInputAmountHot(types[0]);
+        if(correctSize > 0 && tanks[1].getCapacity() != correctSize){
+            tanks[1].setCapacity(correctSize);
+            markDirty();
+        }
+    }
+
     private void setupTanks() {
         Fluid fluid = HeatRecipes.getBoilFluid(types[0]);
         if (fluid != null) {
             setTankType(0, types[0]);
             setTankType(1, fluid);
         } else {
-            setTankType(0, null);
-            setTankType(1, null);
+            setTankType(0, FluidRegistry.WATER);
+            setTankType(1, ModForgeFluids.STEAM);
         }
+        fixTankSize();
     }
 
     private void tryConvert() {
         if(HeatRecipes.hasBoilRecipe(types[0])) {
-            Fluid hotFluid = HeatRecipes.getBoilFluid(types[0]);
             int heatReq = HeatRecipes.getRequiredHeat(types[0]);
             int inputAmount = HeatRecipes.getInputAmountHot(types[0]);
             int outputAmount = HeatRecipes.getOutputAmountHot(types[0]);
             
             int inputOps = tanks[0].getFluidAmount() / inputAmount;
             int outputOps = (tanks[1].getCapacity() - tanks[1].getFluidAmount()) / outputAmount;
-            int tempOps = (int) Math.floor(this.heat / heatReq);
+            int tempOps = (int) (double) (this.heat / heatReq);
             int ops = Math.min(inputOps, Math.min(outputOps, tempOps));
             
             tanks[0].drain(inputAmount * ops, true);
@@ -235,5 +260,4 @@ public class TileEntitySolarBoiler extends TileEntity implements INBTPacketRecei
     public double getMaxRenderDistanceSquared() {
         return 65536.0D;
     }
-
 }

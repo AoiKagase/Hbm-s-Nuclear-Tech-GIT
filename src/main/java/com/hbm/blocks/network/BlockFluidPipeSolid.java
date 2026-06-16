@@ -30,7 +30,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.Pre;
 
 public class BlockFluidPipeSolid extends BlockContainer implements IToolable, ILookOverlay {
@@ -40,7 +39,7 @@ public class BlockFluidPipeSolid extends BlockContainer implements IToolable, IL
 	
 	public BlockFluidPipeSolid(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setDefaultState(this.blockState.getBaseState().withProperty(EXTRACTS, false));
 		
@@ -159,6 +158,6 @@ public class BlockFluidPipeSolid extends BlockContainer implements IToolable, IL
 			text.add("&[" + color + "&]" +I18nUtil.resolveKey(ductFluid.getUnlocalizedName()));
 		}
 		
-		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);
+		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getTranslationKey() + ".name"), 0xffff00, 0x404000, text);
 	}
 }

@@ -37,7 +37,6 @@ public class BlockGasFlammable extends BlockGasBase {
 
 	@Override
 	public void updateTick(World world, BlockPos pos, IBlockState state, Random rand){
-		super.updateTick(world, pos, state, rand);
 		if(!world.isRemote) {
 			if(!world.isChunkGeneratedAt(pos.getX() >> 4, pos.getZ() >> 4)) return;
 			MutableBlockPos posN = new BlockPos.MutableBlockPos();
@@ -51,10 +50,10 @@ public class BlockGasFlammable extends BlockGasBase {
 					return;
 				}
 			}
+            super.updateTick(world, pos, state, rand);
 
-			if(rand.nextInt(20) == 0 && world.isAirBlock(pos.down())) {
+            if(rand.nextInt(20) == 0 && world.isAirBlock(pos.down())) {
 				world.setBlockToAir(pos);
-				return;
 			}
 		}
 	}
@@ -69,8 +68,8 @@ public class BlockGasFlammable extends BlockGasBase {
 			IBlockState b = world.getBlockState(posN);
 			
 			if(isFireSource(b)) {
-				world.scheduleUpdate(pos, this, 2);
-				return;
+				world.scheduleUpdate(pos, this, getDelay(world));
+                return;
 			}
 		}
 	}

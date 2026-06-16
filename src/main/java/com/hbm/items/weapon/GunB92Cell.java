@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 public class GunB92Cell extends Item {
 
 	public GunB92Cell(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModItems.ALL_ITEMS.add(this);
@@ -53,8 +53,7 @@ public class GunB92Cell extends Item {
 	}
 	
 	private static int getPower(ItemStack stack) {
-		if (stack.getTagCompound() == null) {
-			stack.setTagCompound(new NBTTagCompound());
+		if(!stack.hasTagCompound()) {
 			return 0;
 		}
 
@@ -63,7 +62,7 @@ public class GunB92Cell extends Item {
 	}
 
 	private static void setPower(ItemStack stack, int i) {
-		if (stack.getTagCompound() == null) {
+		if(!stack.hasTagCompound()) {
 			stack.setTagCompound(new NBTTagCompound());
 		}
 

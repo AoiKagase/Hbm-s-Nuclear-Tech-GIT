@@ -518,10 +518,8 @@ public class EntityBullet extends Entity implements IProjectile {
 										((EntityLivingBase) movingobjectposition.entityHit).setHealth(0.0F);
 									}
 								}
-								if (!this.getIsCritical())
-									// this.setDead();
-									;
-							}
+                                this.getIsCritical();// this.setDead();
+                            }
 						} else {
 
 							if (movingobjectposition.entityHit instanceof EntityLivingBase) {
@@ -567,7 +565,7 @@ public class EntityBullet extends Entity implements IProjectile {
 					this.arrowShake = 7;
 
 					if (this.test_blockstate.getMaterial() != Material.AIR) {
-						this.field_145790_g.onEntityCollidedWithBlock(this.world, pos, test_blockstate, this);
+						this.field_145790_g.onEntityCollision(this.world, pos, test_blockstate, this);
 					}
 				}
 			}
@@ -592,8 +590,7 @@ public class EntityBullet extends Entity implements IProjectile {
 			// this.prevRotationPitch < -180.0F; this.prevRotationPitch -=
 			// 360.0F)
 			{
-				;
-			}
+            }
 
 			/*
 			 * while (this.rotationPitch - this.prevRotationPitch >= 180.0F) {

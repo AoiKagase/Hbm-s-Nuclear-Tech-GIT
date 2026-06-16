@@ -12,6 +12,7 @@ import com.hbm.entity.effect.EntityNukeTorex;
 import com.hbm.entity.logic.EntityNukeExplosionMK5;
 import com.hbm.explosion.ExplosionLarge;
 import com.hbm.items.ModItems;
+import com.hbm.lib.Library;
 import com.hbm.lib.ModDamageSource;
 import com.hbm.main.MainRegistry;
 
@@ -30,7 +31,7 @@ public class Meteorite {
 	public void generate(World world, Random rand, int x, int y, int z) {
 		
 		List<Entity> list = (List<Entity>)world.getEntitiesWithinAABBExcludingEntity(null, new AxisAlignedBB(x - 7.5, y - 7.5, z - 7.5, x + 7.5, y + 7.5, z + 7.5));
-		
+		y = Library.getGroundHeight(world, x, z);
 		for(Entity e : list) {
 			e.attackEntityFrom(ModDamageSource.meteorite, 1000);
 		}
@@ -45,8 +46,7 @@ public class Meteorite {
 				return;
 			case 1:
 				//Large ore-only meteorite
-				List<ItemStack> list1 = new ArrayList<ItemStack>();
-				list1.addAll(this.getRandomOre(rand));
+                List<ItemStack> list1 = new ArrayList<ItemStack>(this.getRandomOre(rand));
 				int i = list1.size();
 				for(int j = 0; j < i; j++)
 					list1.add(new ItemStack(Blocks.STONE));
@@ -54,8 +54,7 @@ public class Meteorite {
 				return;
 			case 2:
 				//Medium ore-only meteorite
-				List<ItemStack> list2 = new ArrayList<ItemStack>();
-				list2.addAll(this.getRandomOre(rand));
+                List<ItemStack> list2 = new ArrayList<ItemStack>(this.getRandomOre(rand));
 				int k = list2.size() / 2;
 				for(int j = 0; j < k; j++)
 					list2.add(new ItemStack(Blocks.STONE));
@@ -63,8 +62,7 @@ public class Meteorite {
 				return;
 			case 3:
 				//Small pure ore meteorite
-				List<ItemStack> list3 = new ArrayList<ItemStack>();
-				list3.addAll(this.getRandomOre(rand));
+                List<ItemStack> list3 = new ArrayList<ItemStack>(this.getRandomOre(rand));
 				generateBox(world, rand, x, y, z, list3);
 				return;
 			case 4:

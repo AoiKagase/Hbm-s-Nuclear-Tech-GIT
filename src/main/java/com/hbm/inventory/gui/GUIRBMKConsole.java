@@ -43,7 +43,8 @@ public class GUIRBMKConsole extends GuiScreen {
 	protected int guiTop;
 	protected int xSize;
 	protected int ySize;
-	
+
+    public static final int w = 15;
 	private boolean[] selection = new boolean[15 * 15];
 	private boolean az5Lid = true;
 	private long lastPress = 0;
@@ -79,13 +80,12 @@ public class GUIRBMKConsole extends GuiScreen {
 		this.drawGuiContainerBackgroundLayer(f, mouseX, mouseY);
 		
 		int bX = 86;
-		int bY = 11;
-		int size = 10;
+		int bY = 10;
+		int size = 150;
 
-		if(guiLeft + 86 <= mouseX && guiLeft + 86 + 150 > mouseX && guiTop + 11 < mouseY && guiTop + 11 + 10150 >= mouseY) {
-			int index = ((mouseX - bX - guiLeft) / size + (mouseY - bY - guiTop) / size * 15);
-			
-			if(index > 0 && index < console.columns.length) {
+		if(guiLeft + bX <= mouseX && guiLeft + bX + size > mouseX && guiTop + bY < mouseY && guiTop + bY + size >= mouseY) {
+            int index = w * (mouseX - bX - guiLeft) / size + w * (w * (mouseY - bY - guiTop) / size);
+			if(index >= 0 && index < console.columns.length) {
 				RBMKColumn col = console.columns[index];
 				
 				if(col != null) {
@@ -335,15 +335,9 @@ public class GUIRBMKConsole extends GuiScreen {
 			drawTexturedModalRect(guiLeft + x, guiTop + y + size - h, 0, 192 - h, 10, h);
 			
 			switch(col.type) {
-			case ABSORBER: break;
-			case BLANK: break;
-			case MODERATOR: break;
-			case REFLECTOR: break;
-			case OUTGASSER: break;
-			case BREEDER: break;
-			
-			case COOLER:
-				int cryo = (int)Math.ceil(col.data.getShort("cryo") * 8 / 16000);
+			case ABSORBER, BLANK, MODERATOR, REFLECTOR, OUTGASSER, BREEDER: break;
+            case COOLER:
+				int cryo = (int) (double) (col.data.getShort("cryo") * 8 / 16000);
 				if(cryo > 0)
 					drawTexturedModalRect(guiLeft + x + 3, guiTop + y + size - cryo - 1, 123, 191 - cryo, 4, cryo);
 				break;
@@ -381,13 +375,13 @@ public class GUIRBMKConsole extends GuiScreen {
 
 				Fluid fluid = FluidRegistry.getFluid(col.data.getString("type"));
 				
-				if(fluid == ModForgeFluids.steam)
+				if(fluid == ModForgeFluids.STEAM)
 					drawTexturedModalRect(guiLeft + x + 4, guiTop + y + 1, 44, 183, 2, 2);
-				if(fluid == ModForgeFluids.hotsteam)
+				if(fluid == ModForgeFluids.HOTSTEAM)
 					drawTexturedModalRect(guiLeft + x + 4, guiTop + y + 3, 44, 185, 2, 2);
-				if(fluid == ModForgeFluids.superhotsteam)
+				if(fluid == ModForgeFluids.SUPERHOTSTEAM)
 					drawTexturedModalRect(guiLeft + x + 4, guiTop + y + 5, 44, 187, 2, 2);
-				if(fluid == ModForgeFluids.ultrahotsteam)
+				if(fluid == ModForgeFluids.ULTRAHOTSTEAM)
 					drawTexturedModalRect(guiLeft + x + 4, guiTop + y + 7, 44, 189, 2, 2);
 				
 				break;

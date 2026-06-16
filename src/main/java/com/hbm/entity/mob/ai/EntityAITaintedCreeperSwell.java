@@ -10,7 +10,6 @@ public class EntityAITaintedCreeperSwell extends EntityAIBase {
     EntityTaintedCreeper swellingCreeper;
     /** The creeper's attack target. This is used for the changing of the creeper's state. */
     EntityLivingBase creeperAttackTarget;
-    private static final String __OBFID = "CL_00001614";
 
     public EntityAITaintedCreeperSwell(EntityTaintedCreeper p_i1655_1_)
     {
@@ -34,7 +33,7 @@ public class EntityAITaintedCreeperSwell extends EntityAIBase {
     @Override
 	public void startExecuting()
     {
-        this.swellingCreeper.getNavigator().clearPath();;
+        this.swellingCreeper.getNavigator().clearPath();
         this.creeperAttackTarget = this.swellingCreeper.getAttackTarget();
     }
 

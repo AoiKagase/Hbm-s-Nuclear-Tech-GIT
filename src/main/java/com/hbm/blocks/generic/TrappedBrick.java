@@ -38,7 +38,7 @@ public class TrappedBrick extends BlockContainer {
 	
 	public TrappedBrick(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -158,18 +158,18 @@ public class TrappedBrick extends BlockContainer {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> items) {
-		if(tab == this.getCreativeTabToDisplayOn() || tab == CreativeTabs.SEARCH)
+		if(tab == this.getCreativeTab() || tab == CreativeTabs.SEARCH)
 			for (int i = 0; i < Trap.values().length; ++i) {
 				items.add(new ItemStack(this, 1, i));
 			}
 	}
 	
-	public static enum TrapType {
+	public enum TrapType {
 		ON_STEP,
 		DETECTOR
 	}
 
-	public static enum Trap {
+	public enum Trap {
 
 		FALLING_ROCKS(TrapType.DETECTOR),
 		FIRE(TrapType.ON_STEP),
@@ -187,9 +187,9 @@ public class TrappedBrick extends BlockContainer {
 		ZOMBIE(TrapType.DETECTOR),
 		SPIDERS(TrapType.DETECTOR);
 
-		public TrapType type;
+		public final TrapType type;
 
-		private Trap(TrapType type) {
+		Trap(TrapType type) {
 			this.type = type;
 		}
 

@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine;
 
+import java.util.HashMap;
 import java.util.List;
 
 import com.hbm.blocks.ModBlocks;
@@ -8,12 +9,13 @@ import com.hbm.config.MobConfig;
 import com.hbm.explosion.ExplosionNukeGeneric;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
+import com.hbm.handler.RadiationSystemNT;
 import com.hbm.interfaces.ITankPacketAcceptor;
-import com.hbm.interfaces.IRadResistantBlock;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemFuelRod;
-import com.hbm.items.tool.ItemSwordMeteorite;
 import com.hbm.lib.HBMSoundHandler;
+import com.hbm.lib.ItemStackHandlerWrapper;
+import com.hbm.lib.Library;
 import com.hbm.packet.AuxGaugePacket;
 import com.hbm.packet.FluidTankPacket;
 import com.hbm.packet.PacketDispatcher;
@@ -21,6 +23,7 @@ import com.hbm.saveddata.RadiationSavedData;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -44,6 +47,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineReactorSmall extends TileEntity implements ITickable, IFluidHandler, ITankPacketAcceptor {
 
@@ -68,7 +72,7 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 	private double decayMod = 1.0D;
 	private double coreHeatMod = 1.0D;
 	private double hullHeatMod = 1.0D;
-	private double conversionMod = 1.0D;
+	private double steamProdMod = 1.0D;
 
 	// private static final int[] slots_top = new int[] { 0 };
 	// private static final int[] slots_bottom = new int[] { 0, 1, 2, 3, 4, 5,
@@ -76,56 +80,100 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 	// private static final int[] slots_side = new int[] { 0, 1, 2, 3, 4, 5, 6,
 	// 7, 8, 9, 10, 11, 12, 14, 16 };
 
+    public static HashMap<Item, Item> conversions = new HashMap<>();
+    public static HashMap<Block, double[]> interactions = new HashMap<>();
+
 	private String customName;
 
 	public TileEntityMachineReactorSmall() {
-		inventory = new ItemStackHandler(16) {
-			@Override
-			protected void onContentsChanged(int slot) {
-				markDirty();
-				super.onContentsChanged(slot);
-			}
-
-			@Override
-			public boolean isItemValid(int i, ItemStack itemStack) {
-				if(i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 10 || i == 11)
-					if(itemStack.getItem() instanceof ItemFuelRod)
-						return true;
-				if(i == 12)
-					if(FFUtils.containsFluid(itemStack, FluidRegistry.WATER))
-						return true;
-				if(i == 14)
-					if(FFUtils.containsFluid(itemStack, ModForgeFluids.coolant))
-						return true;
-				return false;
-			}
-
-			@Override
-			public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-				if(isItemValid(slot, stack))
-					return super.insertItem(slot, stack, simulate);
-				return stack;
-			}
-		};
+		inventory = new ItemStackHandler(16);
 
 		tanks = new FluidTank[3];
 		tankTypes = new Fluid[3];
 		tanks[0] = new FluidTank(32000);
 		tankTypes[0] = FluidRegistry.WATER;
 		tanks[1] = new FluidTank(16000);
-		tankTypes[1] = ModForgeFluids.coolant;
+		tankTypes[1] = ModForgeFluids.COOLANT;
 		tanks[2] = new FluidTank(8000);
-		tankTypes[2] = ModForgeFluids.steam;
+		tankTypes[2] = ModForgeFluids.STEAM;
 		needsUpdate = true;
 
 	}
 
-	public String getInventoryName() {
+    public static void setupConversions() {
+        if(!conversions.isEmpty()) return;
+        conversions.put(ModItems.rod_uranium_fuel, ModItems.rod_uranium_fuel_depleted);
+        conversions.put(ModItems.rod_thorium_fuel, ModItems.rod_thorium_fuel_depleted);
+        conversions.put(ModItems.rod_plutonium_fuel, ModItems.rod_plutonium_fuel_depleted);
+        conversions.put(ModItems.rod_mox_fuel, ModItems.rod_mox_fuel_depleted);
+        conversions.put(ModItems.rod_schrabidium_fuel, ModItems.rod_schrabidium_fuel_depleted);
+
+        conversions.put(ModItems.rod_dual_uranium_fuel, ModItems.rod_dual_uranium_fuel_depleted);
+        conversions.put(ModItems.rod_dual_thorium_fuel, ModItems.rod_dual_thorium_fuel_depleted);
+        conversions.put(ModItems.rod_dual_plutonium_fuel, ModItems.rod_dual_plutonium_fuel_depleted);
+        conversions.put(ModItems.rod_dual_mox_fuel, ModItems.rod_dual_mox_fuel_depleted);
+        conversions.put(ModItems.rod_dual_schrabidium_fuel, ModItems.rod_dual_schrabidium_fuel_depleted);
+
+        conversions.put(ModItems.rod_quad_uranium_fuel, ModItems.rod_quad_uranium_fuel_depleted);
+        conversions.put(ModItems.rod_quad_thorium_fuel, ModItems.rod_quad_thorium_fuel_depleted);
+        conversions.put(ModItems.rod_quad_plutonium_fuel, ModItems.rod_quad_plutonium_fuel_depleted);
+        conversions.put(ModItems.rod_quad_mox_fuel, ModItems.rod_quad_mox_fuel_depleted);
+        conversions.put(ModItems.rod_quad_schrabidium_fuel, ModItems.rod_quad_schrabidium_fuel_depleted);
+        setupInteractions();
+    }
+
+    public static void addBlock(Block b, double addDecay, double addCore, double addHull, double addSteam, double mulDecay, double mulCore, double mulHull, double mulSteam){
+        interactions.put(b, new double[]{addDecay, addCore, addHull, addSteam, mulDecay, mulCore, mulHull, mulSteam});
+    }
+
+    public static void setupInteractions(){
+        //+dchs *dchs
+        addBlock(Blocks.LAVA, 0, 0, 0, 0, 1, 1, 3, 0.5);
+        addBlock(Blocks.FLOWING_LAVA, 0, 0, 0, 0, 1, 1, 3, 0.5);
+        addBlock(Blocks.REDSTONE_BLOCK, 0, 0, 0, 0, 1, 1, 1, 1.15);
+        addBlock(Blocks.COAL_BLOCK, 0, 0, 0, 0, 1, 1, 1.1, 1);
+        addBlock(ModBlocks.block_lead, 1, 0, 0, 0, 1, 1, 1, 1);
+        addBlock(ModBlocks.block_uranium, 0, 0, 0, 0, 1, 1.05, 1, 1);
+        addBlock(ModBlocks.block_beryllium, 0, 0, 0, 0, 1, 1, 0.95, 1.05);
+        addBlock(ModBlocks.block_schrabidium, 1, 0, 0, 0, 1, 1, 1.1, 1.25);
+        addBlock(ModBlocks.block_waste, 3, 0, 0, 0, 1, 1, 1, 1);
+        addBlock(ModBlocks.block_waste_painted, 3, 0, 0, 0, 1, 1, 1, 1);
+    }
+
+    public static void addReactorInteractionTooltip(ItemStack stack, List<String> list){
+        if(stack.isEmpty()) return;
+        Block b = Block.getBlockFromItem(stack.getItem());
+        if(b == Blocks.AIR) return;
+        double[] v = getBlockFactors(b);
+        if(v == null) return;
+        list.add("§5[Nuclear Reactor Side Block]");
+        if(v[0] != 0) list.add(" §dDecay Mod: §a+"+v[0]);
+        if(v[1] != 0) list.add(" §dCore Heat Mod: §a+"+v[1]);
+        if(v[2] != 0) list.add(" §dHull Heat Mod: §a+"+v[2]);
+        if(v[3] != 0) list.add(" §dSteam Mod: §a+"+v[3]);
+        if(v[4] != 1) list.add(" §dDecay Mod: "+pretty(v[4]));
+        if(v[5] != 1) list.add(" §dCore Heat Mod: "+pretty(v[5]));
+        if(v[6] != 1) list.add(" §dHull Heat Mod: "+pretty(v[6]));
+        if(v[7] != 1) list.add(" §dSteam Mod: "+pretty(v[7]));
+    }
+
+    public static String pretty(double val){
+        return Library.getColor(val) + Library.getPercentage(val-1)+"%";
+    }
+
+    public boolean canExtractItem(int slot, ItemStack stack){
+    	if(slot == 13 || slot == 15) return true;
+        if(slot == 12 || slot == 14) return false;
+        if(!stack.isEmpty()) return !conversions.containsKey(stack.getItem());
+        return true;
+    }
+
+    public String getInventoryName() {
 		return this.hasCustomInventoryName() ? this.customName : "container.reactorSmall";
 	}
 
 	public boolean hasCustomInventoryName() {
-		return this.customName != null && this.customName.length() > 0;
+		return this.customName != null && !this.customName.isEmpty();
 	}
 
 	public void setCustomName(String name) {
@@ -146,13 +194,13 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 		if(level >= 0 && level < 3) {
 			if(compression == 0) {
 				if(level == 1) {
-					tankTypes[2] = ModForgeFluids.hotsteam;
+					tankTypes[2] = ModForgeFluids.HOTSTEAM;
 					int newAmount = (int) (tanks[2].getFluidAmount() / 10D);
 					tanks[2].drain(tanks[2].getCapacity(), true);
 					tanks[2].fill(new FluidStack(tankTypes[2], newAmount), true);
 				}
 				if(level == 2) {
-					tankTypes[2] = ModForgeFluids.superhotsteam;
+					tankTypes[2] = ModForgeFluids.SUPERHOTSTEAM;
 					int newAmount = (int) (tanks[2].getFluidAmount() / 100D);
 					tanks[2].drain(tanks[2].getCapacity(), true);
 					tanks[2].fill(new FluidStack(tankTypes[2], newAmount), true);
@@ -160,13 +208,13 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 			}
 			if(compression == 1) {
 				if(level == 0) {
-					tankTypes[2] = ModForgeFluids.steam;
+					tankTypes[2] = ModForgeFluids.STEAM;
 					int newAmount = (int) (tanks[2].getFluidAmount() * 10);
 					tanks[2].drain(tanks[2].getCapacity(), true);
 					tanks[2].fill(new FluidStack(tankTypes[2], newAmount), true);
 				}
 				if(level == 2) {
-					tankTypes[2] = ModForgeFluids.superhotsteam;
+					tankTypes[2] = ModForgeFluids.SUPERHOTSTEAM;
 					int newAmount = (int) (tanks[2].getFluidAmount() / 10D);
 					tanks[2].drain(tanks[2].getCapacity(), true);
 					tanks[2].fill(new FluidStack(tankTypes[2], newAmount), true);
@@ -174,14 +222,14 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 			}
 			if(compression == 2) {
 				if(level == 0) {
-					tankTypes[2] = ModForgeFluids.steam;
+					tankTypes[2] = ModForgeFluids.STEAM;
 					int newAmount = (int) (tanks[2].getFluidAmount() * 100);
 					tanks[2].drain(tanks[2].getCapacity(), true);
 					tanks[2].fill(new FluidStack(tankTypes[2], newAmount), true);
 				}
 				if(level == 1) {
-					tankTypes[2] = ModForgeFluids.hotsteam;
-					int newAmount = (int) (tanks[2].getFluidAmount() * 10D);
+					tankTypes[2] = ModForgeFluids.HOTSTEAM;
+					int newAmount = (int) (tanks[2].getFluidAmount() * 10);
 					tanks[2].drain(tanks[2].getCapacity(), true);
 					tanks[2].fill(new FluidStack(tankTypes[2], newAmount), true);
 				}
@@ -241,12 +289,12 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 
 			coreHeatMod = 1.0;
 			hullHeatMod = 1.0;
-			conversionMod = 1.0;
+			steamProdMod = 1.0;
 			decayMod = 1.0;
 
 			getInteractions();
 
-			if(this.coreHeat > 0 && this.tanks[1].getFluidAmount() > 0 && this.hullHeat < this.maxHullHeat) {
+			if(this.coreHeat > 0 && this.tanks[1].getFluidAmount() > 0 && this.hullHeat < maxHullHeat) {
 				this.hullHeat += this.coreHeat * 0.175 * hullHeatMod;
 				this.coreHeat -= this.coreHeat * 0.1;
 
@@ -322,39 +370,31 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 			return false;
 		}
 
-		boolean side4 = blocksRad(pos.add(0, 1, -1));
-		if(!side4){
-			return false;
-		}
-
-		return true;
-	}
+        return blocksRad(pos.add(0, 1, -1));
+    }
 
 	@SuppressWarnings("deprecation")
 	private boolean blocksRad(BlockPos pos) {
 
 		Block b = world.getBlockState(pos).getBlock();
 
-		if(b instanceof IRadResistantBlock)
-			return ((IRadResistantBlock)b).isRadResistant(world, pos);
-
-		if(b == Blocks.FLOWING_WATER || b == Blocks.WATER)
+        if(RadiationSystemNT.isRadResistant(world, b, pos))
 			return true;
 
-		return false;
-	}
+        return b == Blocks.FLOWING_WATER || b == Blocks.WATER;
+    }
 
 	private void generateSteam() {
 
 		// function of SHS produced per tick
 		// maxes out at heat% * tank capacity / 20
-		double steam = (((double) hullHeat / (double) maxHullHeat) * ((double) tanks[2].getCapacity() / 50D)) * conversionMod;
+		double steam = (((double) hullHeat / (double) maxHullHeat) * ((double) tanks[2].getCapacity() / 50D)) * steamProdMod;
 
 		double water = steam;
 
-		if(tankTypes[2] == ModForgeFluids.steam) {
+		if(tankTypes[2] == ModForgeFluids.STEAM) {
 			water /= 100D;
-		} else if(tankTypes[2] == ModForgeFluids.hotsteam) {
+		} else if(tankTypes[2] == ModForgeFluids.HOTSTEAM) {
 			water /= 10D;
 		}
 
@@ -400,22 +440,15 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 		Block b = world.getBlockState(pos).getBlock();
 		TileEntity te = world.getTileEntity(pos);
 
-		if(b == Blocks.LAVA || b == Blocks.FLOWING_LAVA) {
-			hullHeatMod *= 3;
-			conversionMod *= 0.5;
-
-		} else if(b == Blocks.REDSTONE_BLOCK) {
-			conversionMod *= 1.15;
-
-		} else if(b == ModBlocks.block_lead) {
-			decayMod += 1;
-
-		} else if(b == Blocks.WATER || b == Blocks.FLOWING_WATER) {
+        double[] factors = getBlockFactors(b);
+        if(factors != null){
+            applyFactors(factors);
+        } else if(b == Blocks.WATER || b == Blocks.FLOWING_WATER) {
 			tanks[0].fill(new FluidStack(tankTypes[0], 25), true);
 		} else if(b == ModBlocks.block_niter || b == ModBlocks.block_niter_reinforced) {
-			if(tanks[0].getFluidAmount() >= 50 && tanks[1].getFluidAmount() + 5 <= tanks[1].getCapacity()) {
+			if(tanks[0].getFluidAmount() >= 50 && tanks[1].getFluidAmount() + 10 <= tanks[1].getCapacity()) {
 				tanks[0].drain(50, true);
-				tanks[1].fill(new FluidStack(tankTypes[1], 5), true);
+				tanks[1].fill(new FluidStack(tankTypes[1], 10), true);
 			}
 		} else if(b == ModBlocks.machine_reactor) {
 
@@ -425,41 +458,36 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 
 				TileEntity tile = world.getTileEntity(new BlockPos(pos1[0], pos1[1], pos1[2]));
 
-				if(tile instanceof TileEntityMachineReactor) {
+				if(tile instanceof TileEntityMachineReactor reactor) {
 
-					TileEntityMachineReactor reactor = (TileEntityMachineReactor) tile;
-
-					if(reactor.charge <= 1 && this.hullHeat > 0) {
-						reactor.charge = 1;
+                    if(reactor.charge <= 2 && this.hullHeat > 0) {
+						reactor.charge = 2;
 						reactor.heat = (int) Math.floor(hullHeat * 4 / maxHullHeat) + 1;
 					}
 				}
 			}
 
-		} else if(te instanceof TileEntityNukeFurnace) {
-			TileEntityNukeFurnace reactor = (TileEntityNukeFurnace) te;
-			if(reactor.dualPower < 1 && this.coreHeat > 0)
-				reactor.dualPower = 1;
-
-		} else if(b == ModBlocks.block_uranium) {
-			coreHeatMod *= 1.05;
-
-		} else if(b == Blocks.COAL_BLOCK) {
-			hullHeatMod *= 1.1;
-
-		} else if(b == ModBlocks.block_beryllium) {
-			hullHeatMod *= 0.95;
-			conversionMod *= 1.05;
-
-		} else if(b == ModBlocks.block_schrabidium) {
-			decayMod += 1;
-			conversionMod *= 1.25;
-			hullHeatMod *= 1.1;
-
-		} else if(b == ModBlocks.block_waste) {
-			decayMod += 3;
-		}
+		} else if(te instanceof TileEntityNukeFurnace reactor) {
+            if(reactor.dualPower < 2 && this.coreHeat > 0)
+				reactor.dualPower = 2;
+        }
 	}
+
+    public void applyFactors(double[] v){
+        decayMod += v[0];
+        coreHeatMod += v[1];
+        hullHeatMod += v[2];
+        steamProdMod += v[3];
+        decayMod *= v[4];
+        coreHeatMod *= v[5];
+        hullHeatMod *= v[6];
+        steamProdMod *= v[7];
+    }
+
+    public static double[] getBlockFactors(Block b){
+        if(b == null) return null;
+        return interactions.get(b);
+    }
 
 	private void decay(int id) {
 		if(id > 11)
@@ -467,12 +495,12 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 
 		int decay = getNeightbourCount(id) + 1;
 
-		decay *= decayMod;
+		decay *= (int) decayMod;
 
 		for(int i = 0; i < decay; i++) {
 			ItemFuelRod rod = ((ItemFuelRod) inventory.getStackInSlot(id).getItem());
-			this.coreHeat += rod.getHeatPerTick() * coreHeatMod;
-			ItemFuelRod.setLifetime(inventory.getStackInSlot(id), ItemFuelRod.getLifeTime(inventory.getStackInSlot(id)) + 1);
+			this.coreHeat += (int) (rod.getHeatPerTick() * coreHeatMod);
+			ItemFuelRod.incrementTime(inventory.getStackInSlot(id), 1);
 
 			if(ItemFuelRod.getLifeTime(inventory.getStackInSlot(id)) > ((ItemFuelRod) inventory.getStackInSlot(id).getItem()).getMaxLifeTime()) {
 				onRunOut(id);
@@ -481,57 +509,15 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 		}
 	}
 
+
 	private void onRunOut(int id) {
 
 		// System.out.println("aaa");
 
 		Item item = inventory.getStackInSlot(id).getItem();
-
-		if(item == ModItems.rod_uranium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_uranium_fuel_depleted));
-
-		} else if(item == ModItems.rod_thorium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_thorium_fuel_depleted));
-
-		} else if(item == ModItems.rod_plutonium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_plutonium_fuel_depleted));
-
-		} else if(item == ModItems.rod_mox_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_mox_fuel_depleted));
-
-		} else if(item == ModItems.rod_schrabidium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_schrabidium_fuel_depleted));
-
-		} else if(item == ModItems.rod_dual_uranium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_dual_uranium_fuel_depleted));
-
-		} else if(item == ModItems.rod_dual_thorium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_dual_thorium_fuel_depleted));
-
-		} else if(item == ModItems.rod_dual_plutonium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_dual_plutonium_fuel_depleted));
-
-		} else if(item == ModItems.rod_dual_mox_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_dual_mox_fuel_depleted));
-
-		} else if(item == ModItems.rod_dual_schrabidium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_dual_schrabidium_fuel_depleted));
-
-		} else if(item == ModItems.rod_quad_uranium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_quad_uranium_fuel_depleted));
-
-		} else if(item == ModItems.rod_quad_thorium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_quad_thorium_fuel_depleted));
-
-		} else if(item == ModItems.rod_quad_plutonium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_quad_plutonium_fuel_depleted));
-
-		} else if(item == ModItems.rod_quad_mox_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_quad_mox_fuel_depleted));
-
-		} else if(item == ModItems.rod_quad_schrabidium_fuel) {
-			inventory.setStackInSlot(id, new ItemStack(ModItems.rod_quad_schrabidium_fuel_depleted));
-		}
+        Item out = conversions.get(item);
+        if(out == null) return;
+        inventory.setStackInSlot(id, new ItemStack(out));
 	}
 
 	private int getNeightbourCount(int id) {
@@ -543,9 +529,9 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 
 		int count = 0;
 
-		for(int i = 0; i < neighbours.length; i++)
-			if(hasFuelRod(neighbours[i]))
-				count++;
+        for (int neighbour : neighbours)
+            if (hasFuelRod(neighbour))
+                count++;
 
 		return count;
 
@@ -563,9 +549,7 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 
 	protected boolean inputValidForTank(int tank, int slot) {
 		if(inventory.getStackInSlot(slot) != ItemStack.EMPTY && tanks[tank] != null) {
-			if(isValidFluidForTank(tank, FluidUtil.getFluidContained(inventory.getStackInSlot(slot)))) {
-				return true;
-			}
+            return isValidFluidForTank(tank, FluidUtil.getFluidContained(inventory.getStackInSlot(slot)));
 		}
 		return false;
 	}
@@ -592,16 +576,16 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 		if(nbt.hasKey("tanks"))
 			FFUtils.deserializeTankArray(nbt.getTagList("tanks", 10), tanks);
 		tankTypes[0] = FluidRegistry.WATER;
-		tankTypes[1] = ModForgeFluids.coolant;
+		tankTypes[1] = ModForgeFluids.COOLANT;
 		compression = nbt.getInteger("compression");
 		detectCompression = compression + 1;
 
 		if(compression == 0) {
-			tankTypes[2] = ModForgeFluids.steam;
+			tankTypes[2] = ModForgeFluids.STEAM;
 		} else if(compression == 1) {
-			tankTypes[2] = ModForgeFluids.hotsteam;
+			tankTypes[2] = ModForgeFluids.HOTSTEAM;
 		} else if(compression == 2) {
-			tankTypes[2] = ModForgeFluids.superhotsteam;
+			tankTypes[2] = ModForgeFluids.SUPERHOTSTEAM;
 		}
 		super.readFromNBT(nbt);
 	}
@@ -640,35 +624,23 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 
 	private int[] getNeighbouringSlots(int id) {
 
-		switch(id) {
-		case 0:
-			return new int[] { 1, 5 };
-		case 1:
-			return new int[] { 0, 6 };
-		case 2:
-			return new int[] { 3, 7 };
-		case 3:
-			return new int[] { 2, 4, 8 };
-		case 4:
-			return new int[] { 3, 9 };
-		case 5:
-			return new int[] { 0, 6, 0xA };
-		case 6:
-			return new int[] { 1, 5, 0xB };
-		case 7:
-			return new int[] { 2, 8 };
-		case 8:
-			return new int[] { 3, 7, 9 };
-		case 9:
-			return new int[] { 4, 8 };
-		case 10:
-			return new int[] { 5, 0xB };
-		case 11:
-			return new int[] { 6, 0xA };
-		}
+        return switch (id) {
+            case 0 -> new int[]{1, 5};
+            case 1 -> new int[]{0, 6};
+            case 2 -> new int[]{3, 7};
+            case 3 -> new int[]{2, 4, 8};
+            case 4 -> new int[]{3, 9};
+            case 5 -> new int[]{0, 6, 0xA};
+            case 6 -> new int[]{1, 5, 0xB};
+            case 7 -> new int[]{2, 8};
+            case 8 -> new int[]{3, 7, 9};
+            case 9 -> new int[]{4, 8};
+            case 10 -> new int[]{5, 0xB};
+            case 11 -> new int[]{6, 0xA};
+            default -> null;
+        };
 
-		return null;
-	}
+    }
 
 	public int getFuelPercent() {
 
@@ -774,14 +746,47 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 		return 65536.0D;
 	}
 
+    public boolean isItemValid(int i, ItemStack itemStack) {
+        if(i == 0 || i == 1 || i == 2 || i == 3 || i == 4 || i == 5 || i == 6 || i == 7 || i == 8 || i == 9 || i == 10 || i == 11)
+            if(itemStack.getItem() instanceof ItemFuelRod)
+                return true;
+        if(i == 12)
+            if(FFUtils.containsFluid(itemStack, FluidRegistry.WATER))
+                return true;
+        if(i == 14)
+            return FFUtils.containsFluid(itemStack, ModForgeFluids.COOLANT);
+        return false;
+    }
+
 	@Override
-	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+	public boolean hasCapability(@NotNull Capability<?> capability, EnumFacing facing) {
 		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY || super.hasCapability(capability, facing);
 	}
 
 	@Override
-	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY ? CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventory) : capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY ? CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this) : super.getCapability(capability, facing);
+	public <T> T getCapability(@NotNull Capability<T> capability, EnumFacing facing) {
+		if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
+            if(facing == null)
+                return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventory);
+            else return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(new ItemStackHandlerWrapper(inventory){
+                @Override
+                public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+                    if(canExtractItem(slot, inventory.getStackInSlot(slot)))
+                        return super.extractItem(slot, amount, simulate);
+                    return ItemStack.EMPTY;
+                }
+
+                @Override
+                public @NotNull ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+                    if(isItemValid(slot, stack))
+                        return super.insertItem(slot, stack, simulate);
+                    return stack;
+                }
+            });
+        else if(capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY)
+            return CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(this);
+        else
+            return super.getCapability(capability, facing);
 	}
 
 	private int detectHeat;

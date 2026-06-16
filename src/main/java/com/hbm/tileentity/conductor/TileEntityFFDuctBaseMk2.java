@@ -47,7 +47,7 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
 			world.notifyNeighborsOfStateChange(pos, getBlockType(), true);
 			world.neighborChanged(pos, getBlockType(), pos);
 			IBlockState state = world.getBlockState(pos);
-			world.markAndNotifyBlock(pos, world.getChunkFromBlockCoords(pos), state, state, 2);
+			world.markAndNotifyBlock(pos, world.getChunk(pos), state, state, 2);
 			rebuildNetworks(world, pos);
 			if(world instanceof WorldServer) {
 				PlayerChunkMapEntry entry = ((WorldServer) world).getPlayerChunkMap().getEntry(MathHelper.floor(pos.getX()) >> 4, MathHelper.floor(pos.getZ()) >> 4);
@@ -149,7 +149,7 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
 					BlockPos pos = te.getPos().offset(e);
 					if(world.isBlockLoaded(pos)) {
 						TileEntity ent = world.getTileEntity(pos);
-						if(ent instanceof IFluidPipeMk2 && ((IFluidPipeMk2) ent).getNetwork() == network) {
+						if(ent instanceof IFluidPipeMk2 pipe && pipe.getNetwork() == network) {
 							flag = false;
 							break;
 						}
@@ -177,8 +177,8 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
 	// client, and the tile entity is gone before a packet can reach it.
 	public static void breakBlock(World world, BlockPos pos) {
 		TileEntity te = world.getTileEntity(pos);
-		if(te instanceof TileEntityFFDuctBaseMk2) {
-			((TileEntityFFDuctBaseMk2) te).isBeingDestroyed = true;
+		if(te instanceof TileEntityFFDuctBaseMk2 duct) {
+            duct.isBeingDestroyed = true;
 		}
 		rebuildNetworks(world, pos);
 	}
@@ -187,14 +187,13 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
 		TileEntity center = world.getTileEntity(pos);
 		for(EnumFacing e : EnumFacing.VALUES) {
 			TileEntity te = world.getTileEntity(pos.offset(e));
-			if(te instanceof IFluidPipeMk2) {
-				IFluidPipeMk2 pipe = (IFluidPipeMk2) te;
-				if(pipe.getNetwork() != null)
+			if(te instanceof IFluidPipeMk2 pipe) {
+                if(pipe.getNetwork() != null)
 					pipe.getNetwork().destroy();
 			}
 		}
-		if(center instanceof IFluidPipeMk2 && ((IFluidPipeMk2) center).getNetwork() != null)
-			((IFluidPipeMk2) center).getNetwork().destroy();
+		if(center instanceof IFluidPipeMk2 duct && duct.getNetwork() != null)
+			duct.getNetwork().destroy();
 
 		for(EnumFacing e : EnumFacing.VALUES)
 			FFPipeNetworkMk2.buildNetwork(world.getTileEntity(pos.offset(e)));
@@ -207,9 +206,8 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
 		for(EnumFacing e : EnumFacing.VALUES) {
 			BlockPos offset = pos.offset(e);
 			TileEntity te = world.getTileEntity(offset);
-			if(te instanceof IFluidPipeMk2) {
-				IFluidPipeMk2 pipe = (IFluidPipeMk2) te;
-				if(pipe.getNetwork() != null && pipe.getNetwork().getType() == this.getType() && !otherNetworks.contains(pipe.getNetwork())) {
+			if(te instanceof IFluidPipeMk2 pipe) {
+                if(pipe.getNetwork() != null && pipe.getNetwork().getType() == this.getType() && !otherNetworks.contains(pipe.getNetwork())) {
 					otherNetworks.add(pipe.getNetwork());
 				}
 			}
@@ -217,10 +215,9 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
 		if(otherNetworks.isEmpty()) {
 			network = new FFPipeNetworkMk2(this);
 			network.tryAdd(this);
-			return;
 		} else {
 			FFPipeNetworkMk2 net = otherNetworks.remove(0);
-			while(otherNetworks.size() > 0)
+			while(!otherNetworks.isEmpty())
 				net = FFPipeNetworkMk2.mergeNetworks(net, otherNetworks.remove(0));
 			network = net;
 			net.tryAdd(this);
@@ -254,11 +251,9 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
 				}
 			}
 		}
-		if(world.isRemote){
-			//System.out.println(this + " " + this.getPos() + " " + changed);
-			//new Exception().printStackTrace();
-		}
-		return changed;
+        //System.out.println(this + " " + this.getPos() + " " + changed);
+        //new Exception().printStackTrace();
+        return changed;
 	}
 
 	public void updateConnections() {

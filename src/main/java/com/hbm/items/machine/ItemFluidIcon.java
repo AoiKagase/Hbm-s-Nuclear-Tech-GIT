@@ -21,7 +21,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class ItemFluidIcon extends Item {
 
 	public ItemFluidIcon(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setHasSubtypes(true);
 		this.setMaxDamage(0);
@@ -45,7 +45,7 @@ public class ItemFluidIcon extends Item {
 			if(stack.getTagCompound().getInteger("fill") > 0)
 				tooltip.add(stack.getTagCompound().getInteger("fill") + "mB");
 		Fluid f = getFluid(stack);
-        if(f != null) FFUtils.addFluidInfo(f, tooltip);
+        if(f != null) FFUtils.addFluidInfo(f, tooltip, flagIn.isAdvanced());
 	}
 	
 	@Override

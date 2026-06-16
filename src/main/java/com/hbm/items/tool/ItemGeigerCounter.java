@@ -3,17 +3,12 @@ package com.hbm.items.tool;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.lib.Library;
 import com.hbm.items.ModItems;
 import com.hbm.items.gear.ArmorFSB;
-import com.hbm.items.weapon.ItemGunEgon;
-import com.hbm.render.misc.RenderScreenOverlay;
 import com.hbm.lib.HBMSoundHandler;
-import com.hbm.lib.Library;
-import com.hbm.saveddata.RadiationSavedData;
 import com.hbm.util.ContaminationUtil;
 
 import baubles.api.BaubleType;
@@ -23,7 +18,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
@@ -37,7 +31,7 @@ import net.minecraftforge.fml.common.Optional;
 public class ItemGeigerCounter extends Item implements IBauble {
 	
 	public ItemGeigerCounter(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModItems.ALL_ITEMS.add(this);
@@ -96,7 +90,7 @@ public class ItemGeigerCounter extends Item implements IBauble {
 				if(480 < x){
 					list.add(8);
 				}
-				if(list.size() > 0){
+				if(!list.isEmpty()){
 					int r = list.get(world.rand.nextInt(list.size()));
 					
 					if(r > 0){
@@ -124,7 +118,6 @@ public class ItemGeigerCounter extends Item implements IBauble {
 	public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand handIn) {
 		if(!world.isRemote) {
 	    	world.playSound(null, player.posX, player.posY, player.posZ, HBMSoundHandler.techBoop, SoundCategory.PLAYERS, 1.0F, 1.0F);
-
 	    	ContaminationUtil.printGeigerData(player);
 		}
 		

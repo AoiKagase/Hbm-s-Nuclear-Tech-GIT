@@ -26,8 +26,7 @@ public class TileEntityRBMKControlManual extends TileEntityRBMKControl implement
 	}
 
 	public void setColor(int color) {
-		RBMKColor new_color = RBMKColor.values()[color];
-		this.color = new_color;
+        this.color = RBMKColor.values()[color];
 	}
 	public boolean isSameColor(int color) {
 		return this.color == RBMKColor.values()[color];
@@ -56,7 +55,6 @@ public class TileEntityRBMKControlManual extends TileEntityRBMKControl implement
 		
 		if(this.targetLevel < this.startingLevel && Math.abs(this.level - this.targetLevel) > 0.01D) {
 			surge = Math.sin(Math.pow((1D - this.level), 15) * Math.PI) * (this.startingLevel - this.targetLevel) * RBMKDials.getSurgeMod(world);
-			
 		}
 		
 		return this.level + surge;
@@ -64,7 +62,7 @@ public class TileEntityRBMKControlManual extends TileEntityRBMKControl implement
 
 	@Override
 	public boolean hasPermission(EntityPlayer player) {
-		return Vec3.createVectorHelper(pos.getX() - player.posX, pos.getY() - player.posY, pos.getZ() - player.posZ).lengthVector() < 20;
+		return Vec3.createVectorHelper(pos.getX() - player.posX, pos.getY() - player.posY, pos.getZ() - player.posZ).length() < 20;
 	}
 
 	@Override
@@ -114,7 +112,7 @@ public class TileEntityRBMKControlManual extends TileEntityRBMKControl implement
 		return nbt;
 	}
 	
-	public static enum RBMKColor {
+	public enum RBMKColor {
 		RED,
 		YELLOW,
 		GREEN,

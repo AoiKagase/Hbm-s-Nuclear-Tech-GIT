@@ -1,42 +1,27 @@
 package com.hbm.entity.effect;
 
 import com.hbm.blocks.ModBlocks;
+import com.hbm.blocks.generic.WasteLeaves;
 import com.hbm.config.BombConfig;
-import com.hbm.config.RadiationConfig;
 import com.hbm.config.VersatileConfig;
 import com.hbm.config.CompatibilityConfig;
 import com.hbm.entity.effect.EntityFalloutRain;
-import com.hbm.interfaces.IConstantRenderer;
-import com.hbm.render.amlfrom1710.Vec3;
-import com.hbm.saveddata.AuxSavedData;
 
 //Chunkloading stuff
 import java.util.ArrayList;
 import java.util.List;
 
+import com.hbm.entity.logic.EntityChunky;
 import com.hbm.entity.logic.IChunkLoader;
 import com.hbm.main.MainRegistry;
 import com.hbm.blocks.generic.WasteLog;
 
+import net.minecraft.block.*;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import net.minecraft.util.math.ChunkPos;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.block.BlockHugeMushroom;
-import net.minecraft.block.BlockSand;
-import net.minecraft.block.BlockDirt;
-import net.minecraft.block.BlockBush;
-import net.minecraft.block.BlockGrass;
-import net.minecraft.block.BlockGravel;
-import net.minecraft.block.BlockIce;
-import net.minecraft.block.BlockSnow;
-import net.minecraft.block.BlockSnowBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockStone;
-import net.minecraft.block.BlockLog;
-import net.minecraft.block.BlockLeaves;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
@@ -45,20 +30,16 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockPos.MutableBlockPos;
 import net.minecraft.world.World;
 
-public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
+public class EntityFalloutUnderGround extends EntityChunky {
 	private static final DataParameter<Integer> SCALE = EntityDataManager.createKey(EntityFalloutUnderGround.class, DataSerializers.VARINT);
 	public boolean done;
 	private int maxSamples;
 	private int currentSample;
 	private int radius;
-
-	private Ticket loaderTicket;
 
 	private double s0;
 	private double s1;
@@ -67,6 +48,7 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 	private double s4;
 	private double s5;
 	private double s6;
+    private double s7;
 
 	private double phi;
 
@@ -74,7 +56,6 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 	public int falloutRainRadius2 = 0;
 	public boolean falloutRainDoFallout = false;
 	public boolean falloutRainDoFlood = false;
-	public boolean falloutRainFire = false;
 
 	public EntityFalloutUnderGround(World p_i1582_1_) {
 		super(p_i1582_1_);
@@ -97,62 +78,8 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 
 	@Override
 	protected void entityInit() {
-		init(ForgeChunkManager.requestTicket(MainRegistry.instance, world, Type.ENTITY));
-		this.dataManager.register(SCALE, Integer.valueOf(0));
-	}
-
-	@Override
-	public void init(Ticket ticket) {
-		if(!world.isRemote) {
-			
-            if(ticket != null) {
-            	
-                if(loaderTicket == null) {
-                	
-                	loaderTicket = ticket;
-                	loaderTicket.bindEntity(this);
-                	loaderTicket.getModData();
-                }
-
-                ForgeChunkManager.forceChunk(loaderTicket, new ChunkPos(chunkCoordX, chunkCoordZ));
-            }
-        }
-	}
-
-	List<ChunkPos> loadedChunks = new ArrayList<ChunkPos>();
-	@Override
-	public void loadNeighboringChunks(int newChunkX, int newChunkZ) {
-		if(!world.isRemote && loaderTicket != null)
-        {
-            for(ChunkPos chunk : loadedChunks)
-            {
-                ForgeChunkManager.unforceChunk(loaderTicket, chunk);
-            }
-
-            loadedChunks.clear();
-            loadedChunks.add(new ChunkPos(newChunkX, newChunkZ));
-            loadedChunks.add(new ChunkPos(newChunkX + 1, newChunkZ + 1));
-            loadedChunks.add(new ChunkPos(newChunkX - 1, newChunkZ - 1));
-            loadedChunks.add(new ChunkPos(newChunkX + 1, newChunkZ - 1));
-            loadedChunks.add(new ChunkPos(newChunkX - 1, newChunkZ + 1));
-            loadedChunks.add(new ChunkPos(newChunkX + 1, newChunkZ));
-            loadedChunks.add(new ChunkPos(newChunkX, newChunkZ + 1));
-            loadedChunks.add(new ChunkPos(newChunkX - 1, newChunkZ));
-            loadedChunks.add(new ChunkPos(newChunkX, newChunkZ - 1));
-
-            for(ChunkPos chunk : loadedChunks)
-            {
-                ForgeChunkManager.forceChunk(loaderTicket, chunk);
-            }
-        }
-	}
-
-	private void unloadAllChunks() {
-		if(loaderTicket != null){
-			for(ChunkPos chunk : loadedChunks) {
-		        ForgeChunkManager.unforceChunk(loaderTicket, chunk);
-		    }
-		}
+		super.entityInit();
+		this.dataManager.register(SCALE, 0);
 	}
 
 	int age = 0;
@@ -162,13 +89,12 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 		if(!world.isRemote) {
 			if(!CompatibilityConfig.isWarDim(world)){
 				this.done=true;
-				unloadAllChunks();
 				this.setDead();
 				return;
 			}
 			age++;
-			if(age == 120){
-				System.out.println("NTM F "+currentSample+" "+Math.round(10000D * 100D*currentSample/(double)this.maxSamples)/10000D+"% "+currentSample+"/"+this.maxSamples);
+			if(age == 1200){
+//				System.out.println("NTM F "+currentSample+" "+Math.round(10000D * 100D*currentSample/(double)this.maxSamples)/10000D+"% "+currentSample+"/"+this.maxSamples);
 				age = 0;
 			}
 			MutableBlockPos pos = new BlockPos.MutableBlockPos();
@@ -197,11 +123,10 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 					falloutRain.posX = this.posX;
 					falloutRain.posY = this.posY;
 					falloutRain.posZ = this.posZ;
-					falloutRain.spawnFire = falloutRainFire;
 					falloutRain.setScale(falloutRainRadius1, falloutRainRadius2);
 					this.world.spawnEntity(falloutRain);
 				}
-				unloadAllChunks();
+
 				this.setDead();
 			}
 		}
@@ -243,9 +168,16 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 				if(world.isAirBlock(pos.up())) world.setBlockState(pos.up(), ModBlocks.toxic_block.getDefaultState());
 				return;
 			
-			} else if(bblock instanceof BlockLeaves) {
+			} else if(bblock instanceof BlockLeaves bLeaf && !(bblock instanceof WasteLeaves)) {
 				if(l > s1){
-					world.setBlockState(pos, ModBlocks.waste_leaves.getDefaultState());
+                    BlockPlanks.EnumType type = null;
+                    try {
+                        type = bLeaf.getWoodType(bLeaf.getMetaFromState(b));
+                    } catch(UnsupportedOperationException ignored) {
+                        //TK bag programming catch
+                    }
+                    if(type == null) type = BlockPlanks.EnumType.OAK;
+                    world.setBlockState(pos, ModBlocks.waste_leaves.getDefaultState().withProperty(WasteLeaves.VARIANT, type));
 				}else{
 					world.setBlockToAir(pos);
 				}
@@ -363,7 +295,7 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 
 			} else if(bblock == ModBlocks.ore_uranium) {
 				if(l <= s6){
-					if (rand.nextInt((int)(1+VersatileConfig.getSchrabOreChance())) == 0)
+					if (rand.nextInt((int)(1+VersatileConfig.getSchrabOreChance())) == 0 || l < s7)
 						world.setBlockState(pos, ModBlocks.ore_schrabidium.getDefaultState());
 					else
 						world.setBlockState(pos, ModBlocks.ore_uranium_scorched.getDefaultState());
@@ -424,7 +356,6 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 		falloutRainRadius2 = nbt.getInteger("fR2");
 		falloutRainDoFallout = nbt.getBoolean("fRfallout");
 		falloutRainDoFlood = nbt.getBoolean("fRflood");
-		falloutRainFire = nbt.getBoolean("fRfire");
 	}
 
 	@Override
@@ -435,11 +366,10 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 		nbt.setInteger("fR2", falloutRainRadius2);
 		nbt.setBoolean("fRfallout", falloutRainDoFallout);
 		nbt.setBoolean("fRflood", falloutRainDoFlood);
-		nbt.setBoolean("fRfire", falloutRainFire);
 	}
 
 	public void setScale(int i) {
-		this.dataManager.set(SCALE, Integer.valueOf(i));
+		this.dataManager.set(SCALE, i);
 		s0 = 0.84 * i;
 		s1 = 0.74 * i;
 		s2 = 0.64 * i;
@@ -447,7 +377,8 @@ public class EntityFalloutUnderGround extends Entity implements IChunkLoader {
 		s4 = 0.44 * i;
 		s5 = 0.34 * i;
 		s6 = 0.24 * i;
-		radius = i;
+        s7 = 0.05 * i;
+        radius = i;
 		maxSamples = (int)(Math.PI * Math.pow(i, 2));
 	}
 

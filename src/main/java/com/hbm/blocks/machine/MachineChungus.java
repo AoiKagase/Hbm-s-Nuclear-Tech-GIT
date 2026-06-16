@@ -21,7 +21,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.Pre;
@@ -71,21 +70,21 @@ public class MachineChungus extends BlockDummyable implements ILookOverlay {
 					
 					if(!world.isRemote) {
 						int newFill = 0;
-						if(entity.types[0] == ModForgeFluids.steam){
-							entity.types[0] = ModForgeFluids.hotsteam;
-							entity.types[1] = ModForgeFluids.steam;
+						if(entity.types[0] == ModForgeFluids.STEAM){
+							entity.types[0] = ModForgeFluids.HOTSTEAM;
+							entity.types[1] = ModForgeFluids.STEAM;
 							newFill = entity.tanks[0].getFluidAmount() / 10;
-						} else if(entity.types[0] == ModForgeFluids.hotsteam){
-							entity.types[0] = ModForgeFluids.superhotsteam;
-							entity.types[1] = ModForgeFluids.hotsteam;
+						} else if(entity.types[0] == ModForgeFluids.HOTSTEAM){
+							entity.types[0] = ModForgeFluids.SUPERHOTSTEAM;
+							entity.types[1] = ModForgeFluids.HOTSTEAM;
 							newFill = entity.tanks[0].getFluidAmount() / 10;
-						} else if(entity.types[0] == ModForgeFluids.superhotsteam){
-							entity.types[0] = ModForgeFluids.ultrahotsteam;
-							entity.types[1] = ModForgeFluids.superhotsteam;
+						} else if(entity.types[0] == ModForgeFluids.SUPERHOTSTEAM){
+							entity.types[0] = ModForgeFluids.ULTRAHOTSTEAM;
+							entity.types[1] = ModForgeFluids.SUPERHOTSTEAM;
 							newFill = entity.tanks[0].getFluidAmount() / 10;
-						} else if(entity.types[0] == ModForgeFluids.ultrahotsteam){
-							entity.types[0] = ModForgeFluids.steam;
-							entity.types[1] = ModForgeFluids.spentsteam;
+						} else if(entity.types[0] == ModForgeFluids.ULTRAHOTSTEAM){
+							entity.types[0] = ModForgeFluids.STEAM;
+							entity.types[1] = ModForgeFluids.SPENTSTEAM;
 							newFill = Math.min(entity.tanks[0].getFluidAmount() * 1000, entity.tanks[0].getCapacity());
 						}
 						entity.tanks[0].setFluid(new FluidStack(entity.types[0], newFill));
@@ -133,10 +132,8 @@ public class MachineChungus extends BlockDummyable implements ILookOverlay {
 		if(!MultiblockHandlerXR.checkSpace(world, x + dir.offsetX * o , y + dir.offsetY * o, z + dir.offsetZ * o, getDimensions(), x, y, z, dir)) return false;
 		if(!MultiblockHandlerXR.checkSpace(world, x + dir.offsetX * o , y + dir.offsetY * o, z + dir.offsetZ * o, new int[] {3, 0, 6, -1, 1, 1}, x, y, z, dir)) return false;
 		if(!MultiblockHandlerXR.checkSpace(world, x + dir.offsetX * o , y + dir.offsetY * o, z + dir.offsetZ * o, new int[] {2, 0, 10, -7, 1, 1}, x, y, z, dir)) return false;
-		if(!world.getBlockState(new BlockPos(x + dir.offsetX, y + 2, z + dir.offsetZ)).getBlock().canPlaceBlockAt(world, new BlockPos(x + dir.offsetX, y + 2, z + dir.offsetZ))) return false;
-		
-		return true;
-	}
+        return world.getBlockState(new BlockPos(x + dir.offsetX, y + 2, z + dir.offsetZ)).getBlock().canPlaceBlockAt(world, new BlockPos(x + dir.offsetX, y + 2, z + dir.offsetZ));
+    }
 
 	@Override
 	public void printHook(Pre event, World world, int x, int y, int z) {
@@ -153,7 +150,7 @@ public class MachineChungus extends BlockDummyable implements ILookOverlay {
 		TileEntityChungus chungus = (TileEntityChungus) te;
 		
 		List<String> text = new ArrayList();
-		text.add(Library.getShortNumber(chungus.power) + "/" + Library.getShortNumber(chungus.maxPower) + " HE");
+		text.add(Library.getShortNumber(chungus.power) + "/" + Library.getShortNumber(TileEntityChungus.maxPower) + " HE");
 		text.add("§a-> §r" + Library.getShortNumber(20 * chungus.powerProduction) + "HE/s");
 		if(chungus.types[0] != null)
 			text.add("§a-> §r" + chungus.types[0].getLocalizedName(new FluidStack(chungus.types[0], 1)) + ": " + chungus.tanks[0].getFluidAmount() + "/" + chungus.tanks[0].getCapacity() + "mB");

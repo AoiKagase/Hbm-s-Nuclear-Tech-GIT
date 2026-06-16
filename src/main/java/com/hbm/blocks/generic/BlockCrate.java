@@ -37,7 +37,7 @@ public class BlockCrate extends BlockFalling {
 	
 	public BlockCrate(Material material, String s) {
 		super(material);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -136,10 +136,10 @@ public class BlockCrate extends BlockFalling {
     	BlockCrate.addToListWithWeight(leadList, ModItems.nugget_uranium_fuel, 8);
     	BlockCrate.addToListWithWeight(leadList, ModItems.nugget_plutonium_fuel, 7);
     	BlockCrate.addToListWithWeight(leadList, ModItems.nugget_mox_fuel, 6);
-    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.deuterium), 8);
-    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.tritium), 8);
-    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.uf6), 8);
-    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.puf6), 8);
+    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.DEUTERIUM), 8);
+    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.TRITIUM), 8);
+    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.UF6), 8);
+    	BlockCrate.addToListWithWeight(leadList, ItemCell.getFullCell(ModForgeFluids.PUF6), 8);
     	BlockCrate.addToListWithWeight(leadList, ModItems.pellet_rtg, 6);
     	BlockCrate.addToListWithWeight(leadList, ModItems.pellet_rtg_weak, 7);
     	BlockCrate.addToListWithWeight(leadList, ModItems.tritium_deuterium_cake, 5);
@@ -170,7 +170,6 @@ public class BlockCrate extends BlockFalling {
     	BlockCrate.addToListWithWeight(metalList, ModItems.coil_copper, 10);
     	BlockCrate.addToListWithWeight(metalList, ModItems.tank_steel, 9);
     	BlockCrate.addToListWithWeight(metalList, ModItems.blade_titanium, 3);
-    	BlockCrate.addToListWithWeight(metalList, ModItems.bolt_compound, 2);
     	BlockCrate.addToListWithWeight(metalList, ModItems.piston_selenium, 6);
     	
     	//Red Crate
@@ -222,10 +221,8 @@ public class BlockCrate extends BlockFalling {
     	
     	if(this == ModBlocks.crate_red) {
     		list.clear();
-    		
-    		for(int k = 0; k < redList.size(); k++) {
-    			list.add(redList.get(k));
-    		}
+
+            list.addAll(redList);
     	}
     	
     	for(ItemStack stack : list) {

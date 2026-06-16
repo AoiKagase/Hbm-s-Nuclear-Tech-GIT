@@ -8,7 +8,6 @@ import com.hbm.util.ContaminationUtil;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -29,8 +28,8 @@ public class BlockGasCoal extends BlockGasBase {
 	}
 
 	@Override
-	public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entity){
-		ContaminationUtil.applyCoal(entity, 5, 1, 5);
+	public void onEntityCollision(World worldIn, BlockPos pos, IBlockState state, Entity entity){
+		ContaminationUtil.applyCoal(entity, 5, 0.05F);
 	}
 
 	@Override

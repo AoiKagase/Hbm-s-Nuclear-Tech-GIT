@@ -57,7 +57,7 @@ public class ArmorGasMask extends ItemArmor implements IGasMask {
 	
 	public ArmorGasMask(ArmorMaterial materialIn, int renderIndexIn, EntityEquipmentSlot equipmentSlotIn, String s) {
 		super(materialIn, renderIndexIn, equipmentSlotIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(CreativeTabs.COMBAT);
 		
@@ -197,11 +197,11 @@ public class ArmorGasMask extends ItemArmor implements IGasMask {
 	@Override
 	public ArrayList<HazardClass> getBlacklist(ItemStack stack) {
 		if(stack.getItem() == ModItems.gas_mask_mono) {
-			return new ArrayList<HazardClass>(Arrays.asList(new HazardClass[] {HazardClass.GAS_CHLORINE, HazardClass.GAS_CORROSIVE, HazardClass.NERVE_AGENT, HazardClass.BACTERIA}));
+			return new ArrayList<>(Arrays.asList(HazardClass.GAS_CHLORINE, HazardClass.GAS_CORROSIVE, HazardClass.BACTERIA));
 		} else if(stack.getItem() == ModItems.gas_mask || stack.getItem() == ModItems.gas_mask_m65){
-			return new ArrayList<HazardClass>(Arrays.asList(new HazardClass[] {HazardClass.GAS_CORROSIVE, HazardClass.NERVE_AGENT}));
+			return new ArrayList<>(Arrays.asList(HazardClass.GAS_CORROSIVE));
 		} else {
-			return new ArrayList();
+			return new ArrayList<>();
 		}
 	}
 
@@ -215,10 +215,10 @@ public class ArmorGasMask extends ItemArmor implements IGasMask {
 		ArmorUtil.installGasMaskFilter(stack, filter);
 	}
 
-	@Override
-	public void damageFilter(ItemStack stack, int damage) {
-		ArmorUtil.damageGasMaskFilter(stack, damage);
-	}
+    @Override
+    public void damageFilter(EntityLivingBase entity, ItemStack stack, int damage) {
+        ArmorUtil.damageGasMaskFilter(entity, stack, damage);
+    }
 
 	@Override
 	public boolean isFilterApplicable(ItemStack stack, ItemStack filter) {

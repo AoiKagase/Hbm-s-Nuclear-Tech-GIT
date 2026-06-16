@@ -91,7 +91,7 @@ public class TileEntityRailgun extends TileEntityLoadedBase implements ITickable
 	}
 
 	public boolean hasCustomInventoryName() {
-		return this.customName != null && this.customName.length() > 0;
+		return this.customName != null && !this.customName.isEmpty();
 	}
 	
 	public void setCustomName(String name) {
@@ -168,13 +168,13 @@ public class TileEntityRailgun extends TileEntityLoadedBase implements ITickable
     			vec = vec.rotateYaw((float) (world.rand.nextGaussian() * Math.PI / 45));
     		}
     		
-    		if(vec.lengthVector() < 1 || vec.lengthVector() > 9000)
+    		if(vec.length() < 1 || vec.length() > 9000)
     			return false;
     		
     		double yawUpper = vec.x * unit.x/* + vec.zCoord * unit.zCoord*/; //second side falls away since unit.z is always 0
-    		double yawLower = vec.lengthVector()/* * unit.lengthVector()*/; //second side falls away since unit always has length 1
+    		double yawLower = vec.length()/* * unit.length()*/; //second side falls away since unit always has length 1
     		float yaw = (float) Math.acos(yawUpper / yawLower);
-    		float pitch = (float) (Math.asin((vec.lengthVector() * 9.81) / (300 * 300)) / 2D);
+    		float pitch = (float) (Math.asin((vec.length() * 9.81) / (300 * 300)) / 2D);
 			
     		float newYaw = (float) (yaw * 180D / Math.PI);
     		float newPitch = (float) (pitch * 180D / Math.PI) - 90F;
@@ -196,13 +196,9 @@ public class TileEntityRailgun extends TileEntityLoadedBase implements ITickable
 	public boolean canFire() {
 		
 		int required = RadiationConfig.railgunUse;
-		
-		if(inventory.getStackInSlot(2).getItem() == ModItems.charge_railgun && power >= required) {
-			return true;
-		}
-		
-		return false;
-	}
+
+        return inventory.getStackInSlot(2).getItem() == ModItems.charge_railgun && power >= required;
+    }
 	
 	public void tryFire() {
 		

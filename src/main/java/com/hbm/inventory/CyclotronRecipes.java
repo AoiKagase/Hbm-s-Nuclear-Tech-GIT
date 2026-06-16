@@ -98,7 +98,7 @@ public class CyclotronRecipes {
 		makeRecipe(plutonium, plAmat, PU.dust(), new ItemStack(ModItems.powder_tennessine), plA);
 		makeRecipe(plutonium, plAmat, new ComparableStack(ModItems.powder_tennessine), new ItemStack(ModItems.powder_reiium), plA);
 		makeRecipe(plutonium, plAmat, new ComparableStack(ModItems.pellet_charged), new ItemStack(ModItems.nugget_schrabidium, 6), 200);
-		makeRecipe(plutonium, plAmat, new NbtComparableStack(ItemCell.getFullCell(ModForgeFluids.amat)), ItemCell.getFullCell(ModForgeFluids.aschrab), 0);
+		makeRecipe(plutonium, plAmat, new NbtComparableStack(ItemCell.getFullCell(ModForgeFluids.AMAT)), ItemCell.getFullCell(ModForgeFluids.ASCHRAB), 0);
 		/// PLUTONIUM END ///
 
 		///TODO: fictional elements
@@ -111,7 +111,7 @@ public class CyclotronRecipes {
 
 	public static Object[] getOutput(ItemStack stack, ItemStack box) {
 
-		if(stack == null || stack.getItem() == null || box == null || stack.isEmpty() || box.isEmpty())
+		if(stack == null || box == null || stack.isEmpty() || box.isEmpty())
 			return null;
 
 		HashMap<Object, ItemStack> pool = null;

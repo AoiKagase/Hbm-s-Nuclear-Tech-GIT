@@ -8,6 +8,7 @@ import com.hbm.handler.BulletConfigSyncingUtil;
 import com.hbm.interfaces.IRadiationImmune;
 import com.hbm.items.ModItems;
 import com.hbm.lib.HBMSoundHandler;
+import com.hbm.lib.Library;
 import com.hbm.lib.ModDamageSource;
 import com.hbm.main.AdvancementManager;
 import com.hbm.packet.AuxParticlePacketNT;
@@ -133,12 +134,12 @@ public class EntityUFO extends EntityFlying implements IMob, IRadiationImmune {
 				if(!entity.isEntityAlive() || !canAttackClass(entity.getClass()))
 					continue;
 				
-				if(entity instanceof EntityPlayer) {
+				if(entity instanceof EntityPlayer p) {
 					
-					if(((EntityPlayer)entity).capabilities.isCreativeMode)
+					if(Library.isCreative(entity))
 						continue;
 					
-					if(((EntityPlayer)entity).isPotionActive(MobEffects.INVISIBILITY))
+					if(p.isPotionActive(MobEffects.INVISIBILITY))
 						continue;
 					
 					if(this.target == null) {
@@ -168,7 +169,7 @@ public class EntityUFO extends EntityFlying implements IMob, IRadiationImmune {
 			if(rand.nextInt(3) > 0)
 				vec.rotateAroundY((float)Math.PI * 2 * rand.nextFloat());
 			
-			double length = vec.lengthVector();
+			double length = vec.length();
 			double overshoot = 35;
 			
 			int wX = (int)Math.floor(this.target.posX - vec.xCoord / length * overshoot);
@@ -287,7 +288,7 @@ public class EntityUFO extends EntityFlying implements IMob, IRadiationImmune {
 			double deltaY = this.getY() - this.posY;
 			double deltaZ = this.getZ() - this.posZ;
 			Vec3 delta = Vec3.createVectorHelper(deltaX, deltaY, deltaZ);
-			double len = delta.lengthVector();
+			double len = delta.length();
 			double speed = this.target instanceof EntityPlayer ? 5D : 2D;
 			
 			if(len > 5) {

@@ -31,7 +31,7 @@ public class BlockRailing extends Block {
 	
 	public BlockRailing(Material materialIn, int type, String s){
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.type = type;
 		
@@ -67,11 +67,11 @@ public class BlockRailing extends Block {
 		switch(type){
 		case 0:
 		case 1:
-			addCollisionBoxToList(pos, entityBox, collidingBoxes, state.getCollisionBoundingBox(worldIn, pos));
+			addCollisionBoxToList(pos, entityBox, collidingBoxes, Library.rotateAABB(new AxisAlignedBB(0, 0, 0, 1, 1.5, 0.125), state.getValue(FACING)));
 			return;
 		case 2:
-			addCollisionBoxToList(pos, entityBox, collidingBoxes, Library.rotateAABB(new AxisAlignedBB(0, 0, 0, 1, 1, 0.125), state.getValue(FACING)));
-			addCollisionBoxToList(pos, entityBox, collidingBoxes, Library.rotateAABB(new AxisAlignedBB(0, 0, 0, 1, 1, 0.125), state.getValue(FACING).rotateY()));
+			addCollisionBoxToList(pos, entityBox, collidingBoxes, Library.rotateAABB(new AxisAlignedBB(0, 0, 0, 1, 1.5, 0.125), state.getValue(FACING)));
+			addCollisionBoxToList(pos, entityBox, collidingBoxes, Library.rotateAABB(new AxisAlignedBB(0, 0, 0, 1, 1.5, 0.125), state.getValue(FACING).rotateY()));
 			return;
 		default:
 			super.addCollisionBoxToList(state, worldIn, pos, entityBox, collidingBoxes, entityIn, isActualState);
@@ -95,7 +95,7 @@ public class BlockRailing extends Block {
 	
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing enumfacing = EnumFacing.getFront(meta);
+		EnumFacing enumfacing = EnumFacing.byIndex(meta);
 
         if (enumfacing.getAxis() == EnumFacing.Axis.Y)
         {

@@ -29,6 +29,7 @@ import net.minecraftforge.items.ItemStackHandler;
 public abstract class TileEntityOilDrillBase extends TileEntityLoadedBase implements ITickable, IEnergyUser, IFluidHandler, ITankPacketAcceptor
 {
     public ItemStackHandler inventory;
+    public static final int maxRecursions = 2000;
 
     public long power;
     public int warning;
@@ -55,9 +56,9 @@ public abstract class TileEntityOilDrillBase extends TileEntityLoadedBase implem
         tankTypes = new Fluid[3];
 
         tanks[0] = new FluidTank(128000);
-        tankTypes[0] = ModForgeFluids.oil;
+        tankTypes[0] = ModForgeFluids.OIL;
         tanks[1] = new FluidTank(128000);
-        tankTypes[1] = ModForgeFluids.gas;
+        tankTypes[1] = ModForgeFluids.GAS;
         needsUpdate = false;
     }
 
@@ -65,7 +66,7 @@ public abstract class TileEntityOilDrillBase extends TileEntityLoadedBase implem
 
 
     public boolean hasCustomInventoryName() {
-        return this.customName != null && this.customName.length() > 0;
+        return this.customName != null && !this.customName.isEmpty();
     }
 
     public void setCustomName(String name) {
@@ -90,8 +91,8 @@ public abstract class TileEntityOilDrillBase extends TileEntityLoadedBase implem
     public void readFromNBT(NBTTagCompound compound) {
         this.power = compound.getLong("powerTime");
         this.age = compound.getInteger("age");
-        tankTypes[0] = ModForgeFluids.oil;
-        tankTypes[1] = ModForgeFluids.gas;
+        tankTypes[0] = ModForgeFluids.OIL;
+        tankTypes[1] = ModForgeFluids.GAS;
         if(compound.hasKey("tanks"))
             FFUtils.deserializeTankArray(compound.getTagList("tanks", 10), tanks);
         if(compound.hasKey("inventory"))
@@ -119,8 +120,8 @@ public abstract class TileEntityOilDrillBase extends TileEntityLoadedBase implem
 
         list.clear();
 
-        succ1(x, y, z);
-        succ2(x, y, z);
+        succ1(x, y, z, 1);
+        succ2(x, y, z, 1);
 
         if(!list.isEmpty()) {
 
@@ -146,37 +147,37 @@ public abstract class TileEntityOilDrillBase extends TileEntityLoadedBase implem
         return 0;
     }
 
-    public void succInit1(int x, int y, int z) {
-        succ1(x + 1, y, z);
-        succ1(x - 1, y, z);
-        succ1(x, y + 1, z);
-        succ1(x, y - 1, z);
-        succ1(x, y, z + 1);
-        succ1(x, y, z - 1);
+    public void succInit1(int x, int y, int z, int recDepth) {
+        succ1(x + 1, y, z, recDepth+1);
+        succ1(x - 1, y, z, recDepth+1);
+        succ1(x, y + 1, z, recDepth+1);
+        succ1(x, y - 1, z, recDepth+1);
+        succ1(x, y, z + 1, recDepth+1);
+        succ1(x, y, z - 1, recDepth+1);
     }
 
-    public void succInit2(int x, int y, int z) {
-        succ2(x + 1, y, z);
-        succ2(x - 1, y, z);
-        succ2(x, y + 1, z);
-        succ2(x, y - 1, z);
-        succ2(x, y, z + 1);
-        succ2(x, y, z - 1);
+    public void succInit2(int x, int y, int z, int recDepth) {
+        succ2(x + 1, y, z, recDepth+1);
+        succ2(x - 1, y, z, recDepth+1);
+        succ2(x, y + 1, z, recDepth+1);
+        succ2(x, y - 1, z, recDepth+1);
+        succ2(x, y, z + 1, recDepth+1);
+        succ2(x, y, z - 1, recDepth+1);
     }
 
-    public void succ1(int x, int y, int z) {
+    public void succ1(int x, int y, int z, int recDepth) {
         BlockPos newPos = new BlockPos(x, y, z);
-        if(world.getBlockState(newPos).getBlock() == ModBlocks.ore_oil_empty && !processed.contains(newPos)) {
+        if(world.getBlockState(newPos).getBlock() == ModBlocks.ore_oil_empty && !processed.contains(newPos) && recDepth < maxRecursions) {
             processed.add(newPos);
-            succInit1(x, y, z);
+            succInit1(x, y, z, recDepth+1);
         }
     }
 
-    public void succ2(int x, int y, int z) {
+    public void succ2(int x, int y, int z, int recDepth) {
         BlockPos newPos = new BlockPos(x, y, z);
-        if(world.getBlockState(newPos).getBlock() == ModBlocks.ore_oil_empty && processed.contains(newPos)) {
+        if(world.getBlockState(newPos).getBlock() == ModBlocks.ore_oil_empty && processed.contains(newPos) && recDepth < maxRecursions) {
             processed.remove(newPos);
-            succInit2(x, y, z);
+            succInit2(x, y, z, recDepth+1);
         } else if(world.getBlockState(newPos).getBlock() == ModBlocks.ore_oil || world.getBlockState(newPos).getBlock() == ModBlocks.ore_bedrock_oil) {
             list.add(new int[] { x, y, z });
         }

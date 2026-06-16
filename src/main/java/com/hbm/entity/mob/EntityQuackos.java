@@ -1,6 +1,7 @@
 package com.hbm.entity.mob;
 
 import com.hbm.entity.particle.EntityBSmokeFX;
+import com.hbm.interfaces.IRadiationImmune;
 import com.hbm.lib.HBMSoundHandler;
 
 import net.minecraft.entity.Entity;
@@ -18,7 +19,7 @@ import net.minecraft.world.World;
 /**
  *  BOW
  */
-public class EntityQuackos extends EntityDuck {
+public class EntityQuackos extends EntityDuck implements IRadiationImmune {
 
 	/**
      *  BOW
@@ -104,7 +105,7 @@ public class EntityQuackos extends EntityDuck {
 	public boolean processInteract(EntityPlayer player, EnumHand hand) {
 		if(super.processInteract(player, hand)){
 			return true;
-		} else if(!this.world.isRemote && this.getPassengers().size() == 0) {
+		} else if(!this.world.isRemote && this.getPassengers().isEmpty()) {
 			player.startRiding(this);
 			return true;
 

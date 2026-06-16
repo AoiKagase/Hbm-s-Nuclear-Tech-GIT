@@ -3,7 +3,6 @@ package com.hbm.blocks.gas;
 import java.util.Random;
 
 import com.hbm.lib.ForgeDirection;
-import com.hbm.capability.HbmLivingProps;
 import com.hbm.util.ArmorRegistry;
 import com.hbm.handler.ArmorUtil;
 import com.hbm.util.ContaminationUtil;
@@ -25,7 +24,7 @@ public class BlockGasRadon extends BlockGasBase {
 	}
 
 	@Override
-	public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entity){
+	public void onEntityCollision(World worldIn, BlockPos pos, IBlockState state, Entity entity){
 		if(!(entity instanceof EntityLivingBase))
 			return;
 		

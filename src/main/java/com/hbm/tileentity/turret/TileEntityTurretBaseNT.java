@@ -46,6 +46,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase implements IEnergyUser, IControllable, IControlReceiver, ITickable {
 
@@ -118,7 +119,7 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt){
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound nbt){
 		nbt.setLong("power", this.power);
 		nbt.setBoolean("isOn", this.isOn);
 		nbt.setBoolean("targetPlayers", this.targetPlayers);
@@ -426,7 +427,7 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 			Vec3d ent = this.getEntityPos(entity);
 			Vec3d delta = new Vec3d(ent.x - pos.x, ent.y - pos.y, ent.z - pos.z);
 			
-			double dist = delta.lengthVector();
+			double dist = delta.length();
 			
 			//check if it's in range
 			if(dist > range)
@@ -473,7 +474,7 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		Vec3d pos = this.getTurretPos();
 		Vec3d delta = new Vec3d(ent.x - pos.x, ent.y - pos.y, ent.z - pos.z);
 		
-		double targetPitch = Math.asin(delta.y / delta.lengthVector());
+		double targetPitch = Math.asin(delta.y / delta.length());
 		double targetYaw = -Math.atan2(delta.x, delta.z);
 		
 		//if we are about to overshoot the target by turning, just snap to the correct rotation
@@ -537,13 +538,13 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		Vec3d pos = this.getTurretPos();
 		Vec3d ent = this.getEntityPos(e);
 		Vec3d delta = new Vec3d(ent.x - pos.x, ent.y - pos.y, ent.z - pos.z);
-		double length = delta.lengthVector();
+		double length = delta.length();
 		
 		if(length < this.getDecetorGrace() || length > this.getDecetorRange() * 1.1) //the latter statement is only relevant for entities that have already been detected
 			return false;
 		
 		delta = delta.normalize();
-		double pitch = Math.asin(delta.y / delta.lengthVector());
+		double pitch = Math.asin(delta.y / delta.length());
 		double pitchDeg = Math.toDegrees(pitch);
 		
 		//check if the entity is within swivel range
@@ -763,13 +764,8 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 	public int[] getAccessibleSlotsFromSide(EnumFacing e){
 		return new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 	}
-	
-	@Override
-	public boolean isItemValidForSlot(int i, ItemStack stack){
-		return true;
-	}
-	
-	public boolean hasPower() {
+
+    public boolean hasPower() {
 		return this.getPower() >= this.getConsumption();
 	}
 	

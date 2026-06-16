@@ -28,7 +28,7 @@ import net.minecraftforge.common.util.FakePlayer;
 public class ItemEnergy extends Item {
 
 	public ItemEnergy(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.consumableTab);
 		ModItems.ALL_ITEMS.add(this);
@@ -293,11 +293,8 @@ public class ItemEnergy extends Item {
 		ItemStack stackR = player.getHeldItemMainhand();
 		ItemStack stackL = player.getHeldItemOffhand();
 		if(stackR == null || stackL == null) return false;
-		if(stackR.getItem() == ModItems.bottle_opener || stackL.getItem() == ModItems.bottle_opener){
-			return true;
-		}
-		return false;
-	}	
+        return stackR.getItem() == ModItems.bottle_opener || stackL.getItem() == ModItems.bottle_opener;
+    }
 
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer player, EnumHand hand) {

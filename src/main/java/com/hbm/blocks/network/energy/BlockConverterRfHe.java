@@ -1,7 +1,5 @@
 package com.hbm.blocks.network.energy;
 
-import java.util.List;
-
 import com.hbm.blocks.ModBlocks;
 import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.network.energy.TileEntityConverterRfHe;
@@ -17,7 +15,7 @@ public class BlockConverterRfHe extends BlockContainer {
 
 	public BlockConverterRfHe(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.machineTab);
 		

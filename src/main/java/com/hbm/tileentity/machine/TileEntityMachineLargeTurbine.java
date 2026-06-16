@@ -35,6 +35,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineLargeTurbine extends TileEntityMachineBase implements ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor {
 
@@ -53,8 +54,8 @@ public class TileEntityMachineLargeTurbine extends TileEntityMachineBase impleme
 		tanks = new FluidTank[2];
 		tanks[0] = new FluidTank(512000);
 		tanks[1] = new FluidTank(10240000);
-		types[0] = ModForgeFluids.steam;
-		types[1] = ModForgeFluids.spentsteam;
+		types[0] = ModForgeFluids.STEAM;
+		types[1] = ModForgeFluids.SPENTSTEAM;
 	}
 
 	@Untested
@@ -108,7 +109,7 @@ public class TileEntityMachineLargeTurbine extends TileEntityMachineBase impleme
 				tanks[0].drain((Integer)outs[2] * cycles, true);
 				tanks[1].fill(new FluidStack(types[1], (Integer)outs[1] * cycles), true);
 
-				power += (Integer)outs[3] * cycles;
+				power += (long) (Integer) outs[3] * cycles;
 
 				if(power > maxPower)
 					power = maxPower;
@@ -144,8 +145,7 @@ public class TileEntityMachineLargeTurbine extends TileEntityMachineBase impleme
 	protected boolean inputValidForTank(int tank, int slot) {
 		if(inventory.getStackInSlot(slot) != ItemStack.EMPTY && tanks[tank] != null) {
 			FluidStack f = FluidUtil.getFluidContained(inventory.getStackInSlot(slot));
-			if(f != null && f.getFluid() == types[tank])
-				return true;
+            return f != null && f.getFluid() == types[tank];
 		}
 		return false;
 	}
@@ -153,7 +153,7 @@ public class TileEntityMachineLargeTurbine extends TileEntityMachineBase impleme
 	private boolean isValidFluidForTank(int tank, FluidStack stack) {
 		if(stack == null || tanks[tank] == null)
 			return false;
-		return stack.getFluid() == ModForgeFluids.steam || stack.getFluid() == ModForgeFluids.hotsteam || stack.getFluid() == ModForgeFluids.superhotsteam || stack.getFluid() == ModForgeFluids.ultrahotsteam;
+		return stack.getFluid() == ModForgeFluids.STEAM || stack.getFluid() == ModForgeFluids.HOTSTEAM || stack.getFluid() == ModForgeFluids.SUPERHOTSTEAM || stack.getFluid() == ModForgeFluids.ULTRAHOTSTEAM;
 	}
 	
 	@Override
@@ -183,7 +183,7 @@ public class TileEntityMachineLargeTurbine extends TileEntityMachineBase impleme
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("tanks", FFUtils.serializeTankArray(tanks));
 		compound.setLong("power", power);
 		if(types[0] != null)

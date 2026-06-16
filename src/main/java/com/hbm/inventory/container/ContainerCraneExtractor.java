@@ -2,7 +2,6 @@ package com.hbm.inventory.container;
 
 import com.hbm.inventory.SlotPattern;
 import com.hbm.inventory.SlotUpgrade;
-import com.hbm.items.ModItems;
 import com.hbm.tileentity.network.TileEntityCraneExtractor;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,6 +14,7 @@ import net.minecraftforge.items.SlotItemHandler;
 
 public class ContainerCraneExtractor extends Container  {
     protected TileEntityCraneExtractor extractor;
+    public static int machineSlots = 20;
 
     public ContainerCraneExtractor(InventoryPlayer invPlayer, TileEntityCraneExtractor extractor) {
         this.extractor = extractor;
@@ -63,9 +63,8 @@ public class ContainerCraneExtractor extends Container  {
             ret = slot.getStack().copy();
         }
 
-        if (clickTypeIn == ClickType.PICKUP && dragType == 1 && slot.getHasStack()) {
+        if(clickTypeIn == ClickType.PICKUP && dragType == 1 && slot.getHasStack()) {
             extractor.nextMode(slotId);
-            return ret;
         } else {
             slot.putStack(held.isEmpty() ? ItemStack.EMPTY : held.copy());
 
@@ -76,8 +75,8 @@ public class ContainerCraneExtractor extends Container  {
             slot.onSlotChanged();
             extractor.initPattern(slot.getStack(), slotId);
 
-            return ret;
         }
+        return ret;
     }
 
     @Override
@@ -93,22 +92,29 @@ public class ContainerCraneExtractor extends Container  {
                 return ItemStack.EMPTY;
             }
 
-            if(slot <= this.inventorySlots.size() - 1) {
-                if(!this.mergeItemStack(var5, this.inventorySlots.size(), this.inventorySlots.size(), true)) {
+            if (slot < machineSlots) {//From machine to player
+                if (!this.mergeItemStack(var5, machineSlots, this.inventorySlots.size(), false)) {
                     return ItemStack.EMPTY;
                 }
+                //From player to machine
+            } else if (!this.mergeItemStack(var5, 9, machineSlots, false)) {
+                return ItemStack.EMPTY;
             }
 
-            if (var5.isEmpty())
-            {
+            if (var5.isEmpty()) {
                 var4.putStack(ItemStack.EMPTY);
-            }
-            else {
+            } else {
                 var4.onSlotChanged();
             }
         }
 
         return var3;
+    }
+
+    @Override
+    public boolean canMergeSlot(ItemStack stack, Slot slotIn)
+    {
+        return slotIn.slotNumber > 8;
     }
 
     @Override

@@ -11,13 +11,13 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextFormatting;
 
 public class HazardTypeDigamma extends HazardTypeBase {
 
 	@Override
 	public void onUpdate(EntityLivingBase target, float level, ItemStack stack) {
-		ContaminationUtil.applyDigammaData(target, level / 20F);
+        level *= stack.getCount();
+        ContaminationUtil.applyDigammaData(target, level / 20F);
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public class HazardTypeDigamma extends HazardTypeBase {
 	public void addHazardInformation(EntityPlayer player, List<String> list, float level, ItemStack stack, List<HazardModifier> modifiers) {
 		
 		level = HazardModifier.evalAllModifiers(stack, player, level, modifiers);
-		
+        level *= stack.getCount();
 		list.add("§c[" + I18nUtil.resolveKey("trait.digamma") + "]");
 		list.add(" §4" + Library.roundFloat(level * 1000F, 2) + " " + I18nUtil.resolveKey("desc.digammaed"));
 		if(stack.getCount() > 1) {

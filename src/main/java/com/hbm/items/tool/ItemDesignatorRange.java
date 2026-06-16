@@ -27,7 +27,7 @@ import net.minecraft.world.World;
 public class ItemDesignatorRange extends Item {
 
 	public ItemDesignatorRange(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.missileTab);
 		
@@ -46,8 +46,8 @@ public class ItemDesignatorRange extends Item {
 		if(stack.getTagCompound() != null)
 		{
 			tooltip.add(TextFormatting.GREEN + I18nUtil.resolveKey("desc.targetcoord")+"§r");
-			tooltip.add("§aX: " + String.valueOf(stack.getTagCompound().getInteger("xCoord"))+"§r");
-			tooltip.add("§aZ: " + String.valueOf(stack.getTagCompound().getInteger("zCoord"))+"§r");
+			tooltip.add("§aX: " + stack.getTagCompound().getInteger("xCoord") +"§r");
+			tooltip.add("§aZ: " + stack.getTagCompound().getInteger("zCoord") +"§r");
 		} else {
 			tooltip.add(TextFormatting.YELLOW + I18nUtil.resolveKey("desc.choosetarget3"));
 		}

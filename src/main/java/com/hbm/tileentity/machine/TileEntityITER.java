@@ -43,6 +43,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityITER extends TileEntityMachineBase implements ITickable, IEnergyUser, IFluidHandler, ITankPacketAcceptor {
 
@@ -72,7 +73,7 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 		tanks[0] = new FluidTank(12800000);
 		types[0] = FluidRegistry.WATER;
 		tanks[1] = new FluidTank(1280000);
-		types[1] = ModForgeFluids.ultrahotsteam;
+		types[1] = ModForgeFluids.ULTRAHOTSTEAM;
 		plasma = new FluidTank(16000);
 	}
 
@@ -155,7 +156,7 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 			/// END Processing part ///
 
 			/// START Notif packets ///
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] { tanks[0], tanks[1], plasma }), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 120));
+			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, tanks[0], tanks[1], plasma), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 120));
 			PacketDispatcher.wrapper.sendToAllAround(new FluidTypePacketTest(pos.getX(), pos.getY(), pos.getZ(), new Fluid[]{plasmaType}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
 			/// END Notif packets ///
 			NBTTagCompound data = new NBTTagCompound();
@@ -309,7 +310,7 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("water", tanks[0].writeToNBT(new NBTTagCompound()));
 		compound.setTag("steam", tanks[1].writeToNBT(new NBTTagCompound()));
 		compound.setTag("plasma", plasma.writeToNBT(new NBTTagCompound()));
@@ -412,7 +413,7 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 
 	@Override
 	public FluidStack drain(FluidStack resource, boolean doDrain) {
-		if(resource != null && resource.getFluid() == ModForgeFluids.ultrahotsteam) {
+		if(resource != null && resource.getFluid() == ModForgeFluids.ULTRAHOTSTEAM) {
 			return tanks[1].drain(resource, doDrain);
 		}
 		return null;
@@ -422,16 +423,23 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 	public FluidStack drain(int maxDrain, boolean doDrain) {
 		return tanks[1].drain(maxDrain, doDrain);
 	}
-	
-	@Override
-	public boolean canExtractItem(int slot, ItemStack itemStack, int amount) {
-		return true;
-	}
-	
-	@Override
+
+    @Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e) {
-		return new int[] { 2, 4 };
+		return new int[] { 1, 2, 3, 4 };
 	}
+
+    @Override
+    public boolean isItemValidForSlot(int i, ItemStack stack) {
+        if(stack.isEmpty()) return false;
+        if(i == 1 && BreederRecipes.getOutput(stack) != null) return true;
+        return i == 3 && stack.getItem() instanceof ItemFusionShield;
+    }
+
+    @Override
+    public boolean canExtractItem(int slot, ItemStack itemStack, int amount) {
+        return slot == 2 || slot == 4;
+    }
 
 	AxisAlignedBB bb = null;
 

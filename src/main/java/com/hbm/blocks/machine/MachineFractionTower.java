@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.blocks.ILookOverlay;
-import com.hbm.inventory.RefineryRecipes;
+import com.hbm.inventory.FractionRecipes;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemForgeFluidIdentifier;
 import com.hbm.lib.ForgeDirection;
@@ -23,9 +23,9 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.Pre;
 
@@ -58,9 +58,9 @@ public class MachineFractionTower extends BlockDummyable implements ILookOverlay
 	
 	@Override
 	public boolean onBlockActivated(World world, BlockPos pos1, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
-		if(!world.isRemote && !player.isSneaking()) {
+		if(!player.isSneaking()) {
 			
-			if(player.getHeldItem(hand).isEmpty() || player.getHeldItem(hand).getItem() == ModItems.forge_fluid_identifier) {
+			if(!player.getHeldItem(hand).isEmpty() && player.getHeldItem(hand).getItem() instanceof ItemForgeFluidIdentifier) {
 				int[] pos = this.findCore(world, pos1.getX(), pos1.getY(), pos1.getZ());
 					
 				if(pos == null)
@@ -68,12 +68,10 @@ public class MachineFractionTower extends BlockDummyable implements ILookOverlay
 				
 				TileEntity te = world.getTileEntity(new BlockPos(pos[0], pos[1], pos[2]));
 				
-				if(!(te instanceof TileEntityMachineFractionTower))
+				if(!(te instanceof TileEntityMachineFractionTower frac))
 					return false;
-				
-				TileEntityMachineFractionTower frac = (TileEntityMachineFractionTower) te;
-				
-				if(player.getHeldItem(hand).isEmpty()) {
+
+                if(player.getHeldItem(hand).isEmpty()) {
 					if(world.isRemote){
 						player.sendMessage(new TextComponentTranslation("chat.fractioning.y", pos[1]));
 
@@ -88,16 +86,16 @@ public class MachineFractionTower extends BlockDummyable implements ILookOverlay
 						}
 					} else {
 						Fluid type = ItemForgeFluidIdentifier.getType(player.getHeldItem(hand));
-						if(RefineryRecipes.getFractions(type) == null){
+						if(FractionRecipes.getFractions(type) == null){
 							if(world.isRemote){
 								player.sendMessage(new TextComponentTranslation("chat.fractioning.norecipe", type.getLocalizedName(new FluidStack(type, 1))));
 							}
 							return false;
 						}
-						
-						frac.setTankType(0, type);
-						frac.markDirty();
-						if(world.isRemote){
+						if(!world.isRemote){
+						    frac.setTankType(0, type);
+						    frac.markDirty();
+                        } else {
 							player.sendMessage(new TextComponentTranslation("chat.fractioning.changedto", I18n.format(type.getUnlocalizedName())));
 						}
 					}
@@ -147,6 +145,6 @@ public class MachineFractionTower extends BlockDummyable implements ILookOverlay
 			}
 		}
 
-		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);
+		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getTranslationKey() + ".name"), 0xffff00, 0x404000, text);
 	}
 }

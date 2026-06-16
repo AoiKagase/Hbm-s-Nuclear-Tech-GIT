@@ -15,6 +15,9 @@ import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nonnull;
 
 @Spaghetti("Not spaghetti in itself, but for the love of god please use this base class for all machines")
 public abstract class TileEntityMachineBase extends TileEntityLoadedBase implements INBTPacketReceiver {
@@ -53,7 +56,7 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	public abstract String getName();
 
 	public boolean hasCustomInventoryName() {
-		return this.customName != null && this.customName.length() > 0;
+		return this.customName != null && !this.customName.isEmpty();
 	}
 	
 	public void setCustomName(String name) {
@@ -72,11 +75,7 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	public int[] getAccessibleSlotsFromSide(EnumFacing e) {
 		return new int[] {};
 	}
-	
-	public int getGaugeScaled(int i, FluidTank tank) {
-		return tank.getFluidAmount() * i / tank.getCapacity();
-	}
-	
+
 	public void networkPack(NBTTagCompound nbt, int range) {
 
 		if(!world.isRemote)
@@ -88,7 +87,7 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	public void handleButtonPacket(int value, int meta) { }
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("inventory", inventory.serializeNBT());
 		return super.writeToNBT(compound);
 	}
@@ -113,13 +112,12 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	}
 	
 	public int countMufflers() {
-
 		int count = 0;
-
-		for(EnumFacing dir : EnumFacing.VALUES)
-			if(world.getBlockState(pos.offset(dir)).getBlock() == ModBlocks.muffler)
-				count++;
-
+		for(EnumFacing dir : EnumFacing.VALUES) {
+            if (world.getBlockState(pos.offset(dir)).getBlock() == ModBlocks.muffler) {
+                count++;
+            }
+        }
 		return count;
 	}
 
@@ -137,14 +135,14 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 				return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventory);
 			return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(new ItemStackHandlerWrapper(inventory, getAccessibleSlotsFromSide(facing)){
 				@Override
-				public ItemStack extractItem(int slot, int amount, boolean simulate) {
+				public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
 					if(canExtractItem(slot, inventory.getStackInSlot(slot), amount))
 						return super.extractItem(slot, amount, simulate);
 					return ItemStack.EMPTY;
 				}
 				
 				@Override
-				public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+				public @NotNull ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 					if(canInsertItem(slot, stack, stack.getCount()))
 						return super.insertItem(slot, stack, simulate);
 					return stack;

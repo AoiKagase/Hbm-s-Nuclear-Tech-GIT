@@ -21,7 +21,7 @@ public class ItemAMSCore extends Item {
 	float fuelBase;
 	
 	public ItemAMSCore(int powerBase, float heatBase, float fuelBase, String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.powerBase = powerBase;
 		this.heatBase = heatBase;
@@ -99,13 +99,8 @@ public class ItemAMSCore extends Item {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public boolean hasEffect(ItemStack stack) {
-		if(this == ModItems.ams_core_thingy && MainRegistry.polaroidID == 11)
-    	{
-    		return true;
-    	}
-    	
-    	return false;
-	}
+        return this == ModItems.ams_core_thingy && MainRegistry.polaroidID == 11;
+    }
 	
 	public static int getPowerBase(ItemStack stack) {
 		if(stack == null || !(stack.getItem() instanceof ItemAMSCore))

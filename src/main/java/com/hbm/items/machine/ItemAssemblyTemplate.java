@@ -4,9 +4,7 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import com.hbm.interfaces.IHasCustomModel;
 import com.hbm.inventory.AssemblerRecipes;
-import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RecipesCommon.OreDictStack;
 import com.hbm.items.ModItems;
@@ -32,7 +30,7 @@ public class ItemAssemblyTemplate extends Item {
 	public static final ModelResourceLocation location = new ModelResourceLocation(RefStrings.MODID + ":assembly_template", "inventory");
 
 	public ItemAssemblyTemplate(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setHasSubtypes(true);
 		this.setMaxDamage(0);
@@ -44,7 +42,7 @@ public class ItemAssemblyTemplate extends Item {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public String getItemStackDisplayName(ItemStack stack) {
-		String s = ("" + I18n.format(this.getUnlocalizedName() + ".name")).trim();
+		String s = ("" + I18n.format(this.getTranslationKey() + ".name")).trim();
 		int damage = getTagWithRecipeNumber(stack).getInteger("type");
 		ItemStack out = damage < AssemblerRecipes.recipeList.size() ? AssemblerRecipes.recipeList.get(damage).toStack() : ItemStack.EMPTY;
 		String s1 = out!=null ? out.getDisplayName() : "ERROR";
@@ -124,11 +122,11 @@ public class ItemAssemblyTemplate extends Item {
 				OreDictStack input = (OreDictStack) o;
 				NonNullList<ItemStack> ores = OreDictionary.getOres(input.name);
 
-				if(ores.size() > 0) {
+				if(!ores.isEmpty()) {
 					ItemStack inStack = ores.get((int) (Math.abs(System.currentTimeMillis() / 1000) % ores.size()));
 		    		list.add(" §c"+ input.count() + "x " + inStack.getDisplayName());
 				} else {
-		    		list.add("I AM ERROR - No OrdDict match found for "+o.toString());
+		    		list.add("I AM ERROR - No OrdDict match found for "+ o);
 				}
 			}
 		}

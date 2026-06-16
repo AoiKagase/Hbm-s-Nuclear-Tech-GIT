@@ -11,10 +11,8 @@ import com.hbm.render.amlfrom1710.Tessellator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
@@ -40,7 +38,6 @@ public class ParticleFoundry extends Particle {
 		this.length = length;
 		this.base = base;
 		this.offset = offset;
-		
 		this.particleMaxAge = 20;
 	}
 	
@@ -118,18 +115,17 @@ public class ParticleFoundry extends Particle {
 		tess.addVertexWithUV(dirXG + rotXW,	-length,	dirZG + rotZW,	uMax,	vMin + add);
 		
 		double wMin = 0;
-		double wMax = girth;
-		
-		//lower left
+
+        //lower left
 		tess.addVertexWithUV(rotXW,			girth,		rotZW,			wMin, vMax + add + girth);
-		tess.addVertexWithUV(dirXG + rotXW,	0,			dirZG + rotZW,	wMax, vMax + add);
-		tess.addVertexWithUV(dirXG + rotXW,	-length,	dirZG + rotZW,	wMax, vMin + add);
+		tess.addVertexWithUV(dirXG + rotXW,	0,			dirZG + rotZW, girth, vMax + add);
+		tess.addVertexWithUV(dirXG + rotXW,	-length,	dirZG + rotZW, girth, vMin + add);
 		tess.addVertexWithUV(rotXW,			-length,	rotZW,			wMin, vMin + add);
 		
 		//lower right
 		tess.addVertexWithUV(-rotXW,		girth,		-rotZW,			wMin, vMax + add + girth);
-		tess.addVertexWithUV(dirXG - rotXW,	0,			dirZG - rotZW,	wMax, vMax + add);
-		tess.addVertexWithUV(dirXG - rotXW,	-length,	dirZG - rotZW,	wMax, vMin + add);
+		tess.addVertexWithUV(dirXG - rotXW,	0,			dirZG - rotZW, girth, vMax + add);
+		tess.addVertexWithUV(dirXG - rotXW,	-length,	dirZG - rotZW, girth, vMin + add);
 		tess.addVertexWithUV(-rotXW,		-length,	-rotZW,			wMin, vMin + add);
 
 		double dirOX = dir.offsetX * offset;
@@ -150,16 +146,16 @@ public class ParticleFoundry extends Particle {
 		tess.addVertexWithUV(rotXW - dirOX,		base + girth,	rotZW - dirOZ,	uMax, vMin - add + 0.25);
 		
 		//upper left
-		tess.addVertexWithUV(rotXW,			0,				rotZW,			wMax, vMax - add + 0.75);
+		tess.addVertexWithUV(rotXW,			0,				rotZW, girth, vMax - add + 0.75);
 		tess.addVertexWithUV(rotXW,			girth,			rotZW,			wMin, vMax - add + 0.75);
 		tess.addVertexWithUV(rotXW - dirOX,	base + girth,	rotZW - dirOZ,	wMin, vMin - add + 0.75);
-		tess.addVertexWithUV(rotXW - dirOX,	base,			rotZW - dirOZ,	wMax, vMin - add + 0.75);
+		tess.addVertexWithUV(rotXW - dirOX,	base,			rotZW - dirOZ, girth, vMin - add + 0.75);
 		
 		//upper right
-		tess.addVertexWithUV(-rotXW,			0,				-rotZW,			wMax, vMax - add + 0.75);
+		tess.addVertexWithUV(-rotXW,			0,				-rotZW, girth, vMax - add + 0.75);
 		tess.addVertexWithUV(-rotXW,			girth,			-rotZW,			wMin, vMax - add + 0.75);
 		tess.addVertexWithUV(-rotXW - dirOX,	base + girth,	-rotZW - dirOZ,	wMin, vMin - add + 0.75);
-		tess.addVertexWithUV(-rotXW - dirOX,	base,			-rotZW - dirOZ, wMax, vMin - add + 0.75);
+		tess.addVertexWithUV(-rotXW - dirOX,	base,			-rotZW - dirOZ, girth, vMin - add + 0.75);
 		
 		vMax = 0.125F;
 		
@@ -171,8 +167,8 @@ public class ParticleFoundry extends Particle {
 		
 		tess.draw();
 
-		
-		GL11.glColor3f(1F, 1F, 1F);
+
+		GlStateManager.resetColor();
 		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glPopMatrix();
 	}

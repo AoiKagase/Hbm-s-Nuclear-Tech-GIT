@@ -21,7 +21,7 @@ import net.minecraft.world.World;
 public class CraneUnboxer extends BlockCraneBase implements IEnterableBlock {
     public CraneUnboxer(Material materialIn, String s) {
         super(materialIn);
-        this.setUnlocalizedName(s);
+        this.setTranslationKey(s);
         this.setRegistryName(s);
         ModBlocks.ALL_BLOCKS.add(this);
     }
@@ -73,8 +73,7 @@ public class CraneUnboxer extends BlockCraneBase implements IEnterableBlock {
 
     @Override
     public int getComparatorInputOverride(IBlockState blockState, World world, BlockPos pos) {
-        int redstoneSignal = blockState.getComparatorInputOverride(world, pos);
-        return redstoneSignal;
+        return blockState.getComparatorInputOverride(world, pos);
     }
 
     @Override

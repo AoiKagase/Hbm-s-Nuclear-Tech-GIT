@@ -58,7 +58,7 @@ public class LaunchPad extends BlockContainer implements IBomb {
 	public LaunchPad(Material materialIn, String s) {
 		super(materialIn);
 		this.setRegistryName(s);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setCreativeTab(MainRegistry.missileTab);
 
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -92,7 +92,7 @@ public class LaunchPad extends BlockContainer implements IBomb {
 
 	@Override
 	public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
-		if (worldIn.isBlockIndirectlyGettingPowered(pos) > 0 && !worldIn.isRemote) {
+		if (worldIn.getRedstonePowerFromNeighbors(pos) > 0 && !worldIn.isRemote) {
 			this.explode(worldIn, pos);
 		}
 	}
@@ -429,7 +429,7 @@ public class LaunchPad extends BlockContainer implements IBomb {
 					missile.posY = y + 1.5F;
 					missile.posZ = z + 0.5F;
 
-					if (entity.inventory.getStackInSlot(1) != null)
+					if (!entity.inventory.getStackInSlot(1).isEmpty())
 						missile.setPayload(entity.inventory.getStackInSlot(1));
 
 					entity.inventory.setStackInSlot(1, ItemStack.EMPTY);

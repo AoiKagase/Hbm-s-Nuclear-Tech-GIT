@@ -6,12 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.annotation.Nullable;
-
 import com.hbm.items.ModItems;
 import com.hbm.items.tool.ItemGeigerCounter;
 import com.hbm.config.PotionConfig;
-import com.hbm.lib.HBMSoundHandler;
 import com.hbm.main.ClientProxy;
 import com.hbm.packet.KeybindPacket;
 import com.hbm.packet.PacketDispatcher;
@@ -38,7 +35,6 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -87,7 +83,7 @@ public class ArmorFSB extends ItemArmor {
 	
 	public ArmorFSB(ArmorMaterial materialIn, int renderIndexIn, EntityEquipmentSlot equipmentSlotIn, String texture, String name) {
 		super(materialIn, renderIndexIn, equipmentSlotIn);
-		this.setUnlocalizedName(name);
+		this.setTranslationKey(name);
 		this.setRegistryName(name);
 		this.texture = texture;
 		
@@ -100,10 +96,9 @@ public class ArmorFSB extends ItemArmor {
 		
 		ItemStack plate = entity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
 		
-		if(plate != null && plate.getItem() instanceof ArmorFSB) {
+		if(!plate.isEmpty() && plate.getItem() instanceof ArmorFSB chestplate) {
 
-			ArmorFSB chestplate = (ArmorFSB)plate.getItem();
-			boolean noHelmet = chestplate.noHelmet;
+            boolean noHelmet = chestplate.noHelmet;
 
 			for(EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
 				if(slot == EntityEquipmentSlot.MAINHAND || slot == EntityEquipmentSlot.OFFHAND)
@@ -112,7 +107,7 @@ public class ArmorFSB extends ItemArmor {
 					continue;
 				ItemStack armor = entity.getItemStackFromSlot(slot);
 
-				if(armor == null || !(armor.getItem() instanceof ArmorFSB))
+				if(armor.isEmpty() || !(armor.getItem() instanceof ArmorFSB))
 					return false;
 
 				if(((ArmorFSB)armor.getItem()).getArmorMaterial() != chestplate.getArmorMaterial())
@@ -130,7 +125,7 @@ public class ArmorFSB extends ItemArmor {
 	public static boolean hasFSBArmorHelmet(EntityLivingBase entity){
 		ItemStack plate = entity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
 
-		if(plate != null && plate.getItem() instanceof ArmorFSB) {
+		if(!plate.isEmpty() && plate.getItem() instanceof ArmorFSB) {
 			return !((ArmorFSB)plate.getItem()).noHelmet && hasFSBArmor(entity);
 		}
 		return false;
@@ -142,10 +137,9 @@ public class ArmorFSB extends ItemArmor {
 
 		ItemStack plate = entity.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
 		
-		if(plate != null && plate.getItem() instanceof ArmorFSB) {
+		if(!plate.isEmpty() && plate.getItem() instanceof ArmorFSB chestplate) {
 
-			ArmorFSB chestplate = (ArmorFSB)plate.getItem();
-			boolean noHelmet = chestplate.noHelmet;
+            boolean noHelmet = chestplate.noHelmet;
 			
 			for(EntityEquipmentSlot slot : EntityEquipmentSlot.values()) {
 				if(slot == EntityEquipmentSlot.MAINHAND || slot == EntityEquipmentSlot.OFFHAND)
@@ -154,7 +148,7 @@ public class ArmorFSB extends ItemArmor {
 					continue;
 				ItemStack armor = entity.getItemStackFromSlot(slot);
 
-				if(armor == null || !(armor.getItem() instanceof ArmorFSB))
+				if(armor.isEmpty() || !(armor.getItem() instanceof ArmorFSB))
 					return false;
 
 				if(((ArmorFSB)armor.getItem()).getArmorMaterial() != chestplate.getArmorMaterial())
@@ -329,9 +323,9 @@ public class ArmorFSB extends ItemArmor {
 
 					Vec3 vec = Vec3.createVectorHelper(entity.posX - e.posX, 0, entity.posZ - e.posZ);
 
-					if(vec.lengthVector() < 3) {
+					if(vec.length() < 3) {
 
-						double intensity = 3 - vec.lengthVector();
+						double intensity = 3 - vec.length();
 						e.motionX += vec.xCoord * intensity * -2;
 						e.motionY += 0.1D * intensity;
 						e.motionZ += vec.zCoord * intensity * -2;
@@ -361,10 +355,9 @@ public class ArmorFSB extends ItemArmor {
 	@Override
 	public void onUpdate(ItemStack stack, World world, Entity e, int itemSlot, boolean isSelected) {
 
-		if(this.armorType != EntityEquipmentSlot.CHEST || !(e instanceof EntityLivingBase))
+		if(this.armorType != EntityEquipmentSlot.CHEST || !(e instanceof EntityLivingBase entity))
 			return;
-		EntityLivingBase entity = (EntityLivingBase)e;
-		if(!hasFSBArmor(entity))
+        if(!hasFSBArmor(entity))
 			return;
 		ArmorFSB fsbarmor = (ArmorFSB) entity.getItemStackFromSlot(EntityEquipmentSlot.CHEST).getItem();
 		

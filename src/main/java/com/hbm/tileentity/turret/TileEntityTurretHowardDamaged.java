@@ -2,6 +2,7 @@ package com.hbm.tileentity.turret;
 
 import com.hbm.config.WeaponConfig;
 import com.hbm.lib.HBMSoundHandler;
+import com.hbm.lib.Library;
 import com.hbm.lib.ModDamageSource;
 import com.hbm.packet.AuxParticlePacketNT;
 import com.hbm.packet.PacketDispatcher;
@@ -13,7 +14,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 
 public class TileEntityTurretHowardDamaged extends TileEntityTurretHoward {
@@ -56,7 +56,7 @@ public class TileEntityTurretHowardDamaged extends TileEntityTurretHoward {
 	@Override
 	public boolean entityAcceptableTarget(Entity e) { //will fire at any living entity
 		
-		if(e instanceof EntityPlayer && ((EntityPlayer)e).capabilities.isCreativeMode)
+		if(Library.isCreative(e))
 			return false;
 		
 		return e instanceof EntityLivingBase;

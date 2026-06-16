@@ -7,7 +7,7 @@ import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.interfaces.ITankPacketAcceptor;
-import com.hbm.inventory.FluidCombustionRecipes;
+import com.hbm.inventory.FluidFlameRecipes;
 import com.hbm.inventory.UpgradeManager;
 import com.hbm.inventory.container.ContainerMachineGasFlare;
 import com.hbm.inventory.gui.GUIMachineGasFlare;
@@ -45,6 +45,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 
 public class TileEntityMachineGasFlare extends TileEntityMachineBase implements ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor, IGUIProvider, IControlReceiver {
@@ -54,16 +55,16 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 	public FluidTank tank;
 	public boolean isOn = false;
 	public boolean doesBurn = false;
-	public int cacheEnergy = 0;
+	public long cacheEnergy = 0;
 	public boolean needsUpdate;
 
 	private final UpgradeManager upgradeManager = new UpgradeManager();
 
 	public TileEntityMachineGasFlare() {
 		super(6);
-		tankType = ModForgeFluids.gas;
+		tankType = ModForgeFluids.GAS;
 		tank = new FluidTank(64000);
-		cacheEnergy = FluidCombustionRecipes.getFlameEnergy(ModForgeFluids.gas);
+		cacheEnergy = FluidFlameRecipes.getHeatEnergy(ModForgeFluids.GAS);
 		needsUpdate = false;
 	}
 
@@ -72,16 +73,7 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 		return "container.gasFlare";
 	}
 
-	public boolean isUseableByPlayer(EntityPlayer player) {
-		if(world.getTileEntity(pos) != this)
-		{
-			return false;
-		}else{
-			return player.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <=128;
-		}
-	}
-	
-	@Override
+    @Override
 	public void readFromNBT(NBTTagCompound compound) {
 		this.power = compound.getLong("powerTime");
 		tank.readFromNBT(compound);
@@ -94,7 +86,7 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setLong("powerTime", power);
 		tank.writeToNBT(compound);
 		if (tankType != null) {
@@ -142,14 +134,14 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 				maxVent += maxVent * burn;
 				maxBurn += maxBurn * burn;
 
-				cacheEnergy = FluidCombustionRecipes.getFlameEnergy(tankType);
+				cacheEnergy = FluidFlameRecipes.getHeatEnergy(tankType);
 
 				if (doesBurn && cacheEnergy != 0) {
 					int eject = Math.min(maxBurn, tank.getFluidAmount());
 					tank.drain(eject, true);
 					needsUpdate = true;
 
-					int powerGen = cacheEnergy * eject;
+					long powerGen = cacheEnergy * eject;
 					powerGen += powerGen * yield / 3;
 
 					this.power += powerGen;
@@ -205,7 +197,7 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 		Item itemId = slotId.getItem();
 		if (itemId == ModItems.forge_fluid_identifier) {
 			Fluid fluid = ItemForgeFluidIdentifier.getType(slotId);
-			int energy = FluidCombustionRecipes.getFlameEnergy(fluid);
+			long energy = FluidFlameRecipes.getHeatEnergy(fluid);
 
 			if (tankType != fluid) {
 				tankType = fluid;

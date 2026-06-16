@@ -30,7 +30,7 @@ public class RadioTorchReceiver extends BlockContainer {
 
 	public RadioTorchReceiver(String s) {
 		super(Material.IRON);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -80,7 +80,7 @@ public class RadioTorchReceiver extends BlockContainer {
 	
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing enumfacing = EnumFacing.getFront(meta);
+		EnumFacing enumfacing = EnumFacing.byIndex(meta);
         return this.getDefaultState().withProperty(FACING, enumfacing);
 	}
 	
@@ -102,12 +102,7 @@ public class RadioTorchReceiver extends BlockContainer {
 		return true;
 	}
 
-	@Override
-	public boolean getWeakChanges(IBlockAccess world, BlockPos pos){
-		return false;
-	}
-	
-	@Override
+    @Override
 	public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
 		TileEntityRadioTorchReceiver entity = (TileEntityRadioTorchReceiver) blockAccess.getTileEntity(pos);
         return entity.lastState;

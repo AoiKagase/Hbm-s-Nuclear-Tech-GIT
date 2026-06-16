@@ -16,7 +16,6 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumBlockRenderType;
@@ -47,7 +46,7 @@ public class DecoBlock extends BlockContainer {
 	public DecoBlock(Material materialIn, String s) {
 		super(materialIn);
 		this.setRegistryName(s);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setCreativeTab(MainRegistry.blockTab);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -67,10 +66,8 @@ public class DecoBlock extends BlockContainer {
 	
 	@Override
 	public boolean hasTileEntity(IBlockState state) {
-		if(this == ModBlocks.steel_scaffold || this == ModBlocks.steel_beam)
-			return false;
-		return true;
-	}
+        return this != ModBlocks.steel_scaffold && this != ModBlocks.steel_beam;
+    }
 	
 	@Override
 	public EnumBlockRenderType getRenderType(IBlockState state) {
@@ -110,11 +107,6 @@ public class DecoBlock extends BlockContainer {
 	@Override
 	public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
 		worldIn.setBlockState(pos, state.withProperty(FACING, placer.getHorizontalFacing()));
-	}
-	
-	@Override
-	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
-		return super.getItemDropped(state, rand, fortune);
 	}
 	
 	@Override
@@ -170,7 +162,7 @@ public class DecoBlock extends BlockContainer {
 	
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing enumfacing = EnumFacing.getFront(meta);
+		EnumFacing enumfacing = EnumFacing.byIndex(meta);
 
         if (enumfacing.getAxis() == EnumFacing.Axis.Y)
         {

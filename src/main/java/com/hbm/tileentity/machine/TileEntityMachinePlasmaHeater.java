@@ -32,6 +32,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachinePlasmaHeater extends TileEntityMachineBase implements ITickable, IFluidHandler, ITankPacketAcceptor, IEnergyUser {
 
@@ -39,9 +40,9 @@ public class TileEntityMachinePlasmaHeater extends TileEntityMachineBase impleme
 	public static final long maxPower = 10000000000L;
 
 	public FluidTank[] tanks;
-	public Fluid[] types = new Fluid[]{ModForgeFluids.deuterium, ModForgeFluids.tritium};
+	public Fluid[] types = new Fluid[]{ModForgeFluids.DEUTERIUM, ModForgeFluids.TRITIUM};
 	public FluidTank plasma;
-	public Fluid plasmaType = ModForgeFluids.plasma_dt;
+	public Fluid plasmaType = ModForgeFluids.PLASMA_DT;
 	
 	public TileEntityMachinePlasmaHeater() {
 		super(1);
@@ -159,28 +160,28 @@ public class TileEntityMachinePlasmaHeater extends TileEntityMachineBase impleme
 
 		List<Fluid> types = Arrays.asList(this.types[0], this.types[1]);
 
-		if(types.contains(ModForgeFluids.deuterium) && types.contains(ModForgeFluids.tritium)) {
-			plasmaType = ModForgeFluids.plasma_dt;
+		if(types.contains(ModForgeFluids.DEUTERIUM) && types.contains(ModForgeFluids.TRITIUM)) {
+			plasmaType = ModForgeFluids.PLASMA_DT;
 			return;
 		}
-		if(types.contains(ModForgeFluids.deuterium) && types.contains(ModForgeFluids.hydrogen)) {
-			plasmaType = ModForgeFluids.plasma_hd;
+		if(types.contains(ModForgeFluids.DEUTERIUM) && types.contains(ModForgeFluids.HYDROGEN)) {
+			plasmaType = ModForgeFluids.PLASMA_HD;
 			return;
 		}
-		if(types.contains(ModForgeFluids.hydrogen) && types.contains(ModForgeFluids.tritium)) {
-			plasmaType = ModForgeFluids.plasma_ht;
+		if(types.contains(ModForgeFluids.HYDROGEN) && types.contains(ModForgeFluids.TRITIUM)) {
+			plasmaType = ModForgeFluids.PLASMA_HT;
 			return;
 		}
-		if(types.contains(ModForgeFluids.xenon) && types.contains(ModForgeFluids.mercury)) {
-			plasmaType = ModForgeFluids.plasma_xm;
+		if(types.contains(ModForgeFluids.XENON) && types.contains(ModForgeFluids.MERCURY)) {
+			plasmaType = ModForgeFluids.PLASMA_MX;
 			return;
 		}
-		if(types.contains(ModForgeFluids.puf6) && types.contains(ModForgeFluids.tritium)) {
-			plasmaType = ModForgeFluids.plasma_put;
+		if(types.contains(ModForgeFluids.PUF6) && types.contains(ModForgeFluids.TRITIUM)) {
+			plasmaType = ModForgeFluids.PLASMA_PUT;
 			return;
 		}
-		if(types.contains(ModForgeFluids.balefire) && types.contains(ModForgeFluids.amat)) {
-			plasmaType = ModForgeFluids.plasma_bf;
+		if(types.contains(ModForgeFluids.BALEFIRE) && types.contains(ModForgeFluids.AMAT)) {
+			plasmaType = ModForgeFluids.PLASMA_BF;
 			return;
 		}
 
@@ -192,7 +193,7 @@ public class TileEntityMachinePlasmaHeater extends TileEntityMachineBase impleme
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setLong("power", power);
 		compound.setTag("fuel_1", tanks[0].writeToNBT(new NBTTagCompound()));
 		compound.setTag("fuel_2", tanks[1].writeToNBT(new NBTTagCompound()));

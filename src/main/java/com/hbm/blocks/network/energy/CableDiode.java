@@ -6,7 +6,6 @@ import java.util.List;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.ILookOverlay;
 import com.hbm.blocks.ITooltipProvider;
-import com.hbm.main.MainRegistry;
 import com.hbm.lib.Library;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.tileentity.INBTPacketReceiver;
@@ -37,7 +36,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
@@ -51,7 +49,7 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 	
 	public CableDiode(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -69,7 +67,7 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
-		EnumFacing enumfacing = EnumFacing.getFront(meta);
+		EnumFacing enumfacing = EnumFacing.byIndex(meta);
         return this.getDefaultState().withProperty(FACING, enumfacing);
 	}
 
@@ -131,8 +129,8 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 
 	@Override
 	public void addInformation(ItemStack stack, World worldIn, List<String> list, ITooltipFlag flagIn) {
-        this.addStandardInfo((List)list);
-        super.addInformation(stack, worldIn, (List)list, flagIn);
+        this.addStandardInfo(list);
+        super.addInformation(stack, worldIn, list, flagIn);
     }
 
 	@Override
@@ -140,16 +138,14 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 		
 		TileEntity te = world.getTileEntity(new BlockPos(x, y, z));
 		
-		if(!(te instanceof TileEntityDiode))
+		if(!(te instanceof TileEntityDiode diode))
 			return;
-		
-		TileEntityDiode diode = (TileEntityDiode) te;
-		
-		List<String> text = new ArrayList();
+
+        List<String> text = new ArrayList<>();
 		text.add("Max.: " + Library.getShortNumber(diode.getMaxPower()*20) + "HE/s");
 		text.add("Priority: " + diode.priority.name());
 		
-		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);
+		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getTranslationKey() + ".name"), 0xffff00, 0x404000, text);
 	}
 
 	@Override
@@ -273,7 +269,7 @@ public class CableDiode extends BlockContainer implements IEnergyConnectorBlock,
 
 		@Override
 		public long getMaxPower() {
-			return (long) Math.pow(10, level) >> 1;
+			return Library.getMagnitude(level) >> 1;
 		}
 
 		@Override

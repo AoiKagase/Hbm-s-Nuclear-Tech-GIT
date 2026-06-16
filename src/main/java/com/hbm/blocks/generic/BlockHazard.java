@@ -12,15 +12,11 @@ import com.hbm.potion.HbmPotion;
 import com.hbm.hazard.HazardSystem;
 
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.EnumHand;
-import net.minecraft.init.MobEffects;
-import net.minecraft.item.ItemStack;
 import net.minecraft.item.Item;
 import net.minecraft.init.Items;
 import net.minecraft.nbt.NBTTagCompound;
@@ -192,14 +188,14 @@ public class BlockHazard extends BlockBase {
 	}
 
 	@Override
-	public void onBlockDestroyedByPlayer(World world, BlockPos pos, IBlockState state) {
+	public void onPlayerDestroy(World world, BlockPos pos, IBlockState state) {
 		if(this == ModBlocks.block_meteor_molten) {
         	if(!world.isRemote)
         		world.setBlockState(pos, Blocks.LAVA.getDefaultState());
         }
 	}
 	
-	public static enum ExtDisplayEffect {
+	public enum ExtDisplayEffect {
 		RADFOG,
 		SPARKS,
 		SCHRAB,
@@ -215,12 +211,11 @@ public class BlockHazard extends BlockBase {
 		
     	if(entity instanceof EntityLivingBase && this == ModBlocks.brick_jungle_mystic) {
     		((EntityLivingBase) entity).addPotionEffect(new PotionEffect(HbmPotion.taint, 15 * 20, 2));
-    		return;
-    	}
+        }
 	}
 
 	@Override
-	public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entity){
+	public void onEntityCollision(World worldIn, BlockPos pos, IBlockState state, Entity entity){
 		if(entity instanceof EntityLivingBase)
 			HazardSystem.applyHazards(this, (EntityLivingBase)entity);
 

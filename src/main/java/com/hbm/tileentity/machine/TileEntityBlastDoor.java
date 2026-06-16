@@ -13,7 +13,6 @@ import com.hbm.inventory.control_panel.ControlEventSystem;
 import com.hbm.inventory.control_panel.DataValueFloat;
 import com.hbm.inventory.control_panel.IControllable;
 import com.hbm.lib.HBMSoundHandler;
-import com.hbm.main.MainRegistry;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.TEVaultPacket;
 
@@ -52,7 +51,7 @@ public class TileEntityBlastDoor extends TileEntityLockableBase implements ITick
 	public void update() {
 		if(!world.isRemote) {
 			
-			if(!isLocked() && world.isBlockIndirectlyGettingPowered(pos) > 0 || world.isBlockIndirectlyGettingPowered(pos.up(6)) > 0) {
+			if(!isLocked() && world.getRedstonePowerFromNeighbors(pos) > 0 || world.getRedstonePowerFromNeighbors(pos.up(6)) > 0) {
 				
 				if(!redstoned) {
 					this.tryToggle();

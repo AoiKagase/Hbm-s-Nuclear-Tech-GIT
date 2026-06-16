@@ -22,10 +22,10 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityFurnaceSteel extends TileEntityMachineBase implements IGUIProvider, ITickable {
 
@@ -36,7 +36,7 @@ public class TileEntityFurnaceSteel extends TileEntityMachineBase implements IGU
 	public int heat;
 	public static final int maxHeat = 100_000;
 	public static final double diffusion = 0.05D;
-	private ItemStack[] lastItems = new ItemStack[3];
+	private ItemStack[] lastItems = new ItemStack[]{ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY};
 	
 	public boolean wasOn = false;
 	    
@@ -102,13 +102,13 @@ public class TileEntityFurnaceSteel extends TileEntityMachineBase implements IGU
 					
 				}
 			}
-			
 			NBTTagCompound data = new NBTTagCompound();
 			data.setIntArray("progress", progress);
 			data.setIntArray("bonus", bonus);
 			data.setInteger("heat", heat);
 			data.setBoolean("wasOn", wasOn);
 			this.networkPack(data, 50);
+
 		} else {
 			
 			if(this.wasOn) {
@@ -155,7 +155,7 @@ public class TileEntityFurnaceSteel extends TileEntityMachineBase implements IGU
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
 
 		nbt.setIntArray("progress", progress);
@@ -189,12 +189,11 @@ public class TileEntityFurnaceSteel extends TileEntityMachineBase implements IGU
 	protected void tryPullHeat() {
 		
 		if(this.heat >= TileEntityFurnaceSteel.maxHeat) return;
-		BlockPos blockBelow = pos.down();
-		TileEntity con = world.getTileEntity(blockBelow);
+
+		TileEntity con = world.getTileEntity(pos.down());
 		
-		if(con instanceof IHeatSource) {
-			IHeatSource source = (IHeatSource) con;
-			int diff = source.getHeatStored() - this.heat;
+		if(con instanceof IHeatSource source) {
+            int diff = source.getHeatStored() - this.heat;
 			
 			if(diff == 0) {
 				return;
@@ -222,7 +221,7 @@ public class TileEntityFurnaceSteel extends TileEntityMachineBase implements IGU
 		}
         ItemStack itemStack = FurnaceRecipes.instance().getSmeltingResult(inventory.getStackInSlot(index));
         
-		if(itemStack == null || itemStack.isEmpty())
+		if(itemStack.isEmpty())
 		{
 			return false;
 		}

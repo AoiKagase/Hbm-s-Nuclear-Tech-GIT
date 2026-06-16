@@ -16,7 +16,6 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -32,7 +31,7 @@ public class MachineCharger extends BlockContainer implements ITooltipProvider, 
 		super(mat);
 		this.maxThroughput = max / 20L;
 		this.pointingUp = pointingUp;
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		ModBlocks.ALL_BLOCKS.add(this);
 	}

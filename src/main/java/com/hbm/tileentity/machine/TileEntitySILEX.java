@@ -34,6 +34,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntitySILEX extends TileEntityMachineBase implements ITickable, IFluidHandler, ITankPacketAcceptor {
 
@@ -137,8 +138,8 @@ public class TileEntitySILEX extends TileEntityMachineBase implements ITickable,
 	public static final HashMap<Fluid, ComparableStack> fluidConversion = new HashMap<>();
 	
 	static {
-		fluidConversion.put(ModForgeFluids.uf6, new NbtComparableStack(ItemFluidIcon.getStack(ModForgeFluids.uf6)));
-		fluidConversion.put(ModForgeFluids.puf6, new NbtComparableStack(ItemFluidIcon.getStack(ModForgeFluids.puf6)));
+		fluidConversion.put(ModForgeFluids.UF6, new NbtComparableStack(ItemFluidIcon.getStack(ModForgeFluids.UF6)));
+		fluidConversion.put(ModForgeFluids.PUF6, new NbtComparableStack(ItemFluidIcon.getStack(ModForgeFluids.PUF6)));
 	}
 	
 	int loadDelay;
@@ -166,7 +167,7 @@ public class TileEntitySILEX extends TileEntityMachineBase implements ITickable,
 		if(loadDelay > 20)
 			loadDelay = 0;
 		
-		if(loadDelay == 0 && !inventory.getStackInSlot(0).isEmpty() && getTankType() == ModForgeFluids.acid && (this.current == null || this.current.equals(new ComparableStack(inventory.getStackInSlot(0)).makeSingular()))) {
+		if(loadDelay == 0 && !inventory.getStackInSlot(0).isEmpty() && getTankType() != null && getTankType().getName().equals(ModForgeFluids.ACID.getName()) && (this.current == null || this.current.equals(new ComparableStack(inventory.getStackInSlot(0)).makeSingular()))) {
 			SILEXRecipe recipe = SILEXRecipes.getOutput(inventory.getStackInSlot(0));
 			
 			if(recipe == null)
@@ -271,7 +272,7 @@ public class TileEntitySILEX extends TileEntityMachineBase implements ITickable,
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
 		nbt.setTag("tank", this.tank.writeToNBT(new NBTTagCompound()));
 		nbt.setInteger("fill", this.currentFill);
@@ -310,7 +311,7 @@ public class TileEntitySILEX extends TileEntityMachineBase implements ITickable,
 
 	@Override
 	public int fill(FluidStack resource, boolean doFill){
-		if(resource != null && (resource.getFluid() == ModForgeFluids.acid || fluidConversion.containsKey(resource.getFluid()))){
+		if(resource != null && (resource.getFluid().getName().equals(ModForgeFluids.ACID.getName()) || fluidConversion.containsKey(resource.getFluid()))){
 			return tank.fill(resource, doFill);
 		}
 		return 0;

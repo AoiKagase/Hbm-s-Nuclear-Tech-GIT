@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine;
 
+import com.hbm.blocks.ModBlocks;
 import com.hbm.inventory.PressRecipes;
 import com.hbm.items.machine.ItemStamp;
 import com.hbm.lib.HBMSoundHandler;
@@ -21,10 +22,12 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachinePress extends TileEntityMachineBase implements ITickable, ICapabilityProvider {
 
 	public int progress = 0;
+	public int prevProgress = 0;
 	public int power = 0;
 	public int burnTime = 0;
 	public final static int maxProgress = 200;
@@ -32,6 +35,8 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 	public int maxBurn = 160;
 	public int item;
 	public int meta;
+	public int stampItem;
+	public int stampMeta;
 	public boolean isRetracting = false;
 	public boolean test = true;
 
@@ -68,11 +73,11 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 		isRetracting = nbt.getBoolean("ret");
 		detectIsRetracting = !isRetracting;
 		if (nbt.hasKey("inventory"))
-			((ItemStackHandler) inventory).deserializeNBT((NBTTagCompound) nbt.getTag("inventory"));
+			inventory.deserializeNBT((NBTTagCompound) nbt.getTag("inventory"));
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
 
 		nbt.setInteger("progress", progress);
@@ -88,27 +93,18 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 
 	@Override
 	public void update() {
-		/*
-		 * if(test){
-		 * Vec3d bottomLeft = new Vec3d(pos.getX(), pos.getY() + 5, pos.getZ());
-		 * Portal portal = new Mirror(world, bottomLeft, bottomLeft.addVector(1, 0, 0),
-		 * bottomLeft.addVector(0, 1, 0), bottomLeft.addVector(1, 1, 0), null);
-		 * System.out.println(portal);
-		 * test = false;
-		 * }
-		 */
 		if (!world.isRemote) {
 			if (burnTime > 0) {
 				this.burnTime--;
-				this.power++;
+				this.power += world.getBlockState(pos.down()).getBlock() == ModBlocks.press_preheater ? 5 : 1;
 				if (power > maxPower)
 					power = maxPower;
 			} else {
 				if (power > 0)
 					power--;
 			}
-			if (!(world.isBlockIndirectlyGettingPowered(pos) > 0)) {
-				if (inventory.getStackInSlot(0) != ItemStack.EMPTY && this.burnTime == 0
+			if (!(world.getRedstonePowerFromNeighbors(pos) > 0)) {
+				if (!inventory.getStackInSlot(0).isEmpty() && this.burnTime == 0
 						&& TileEntityFurnace.getItemBurnTime(inventory.getStackInSlot(0)) > 0) {
 					this.maxBurn = this.burnTime = TileEntityFurnace.getItemBurnTime(inventory.getStackInSlot(0)) / 8;
 					ItemStack copy = inventory.getStackInSlot(0).copy();
@@ -143,10 +139,8 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 									inventory.setStackInSlot(3, stack.copy());
 								else
 									inventory.getStackInSlot(3).grow(stack.getCount());
-								;
 
 								inventory.getStackInSlot(2).shrink(1);
-								;
 								if (inventory.getStackInSlot(2).getCount() <= 0)
 									inventory.setStackInSlot(2, ItemStack.EMPTY);
 
@@ -187,6 +181,8 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 				}
 			}
 			detectAndSendChanges();
+		} else {
+			prevProgress = progress;
 		}
 	}
 
@@ -227,8 +223,7 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 
 	@Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e) {
-		int i = e.ordinal();
-		return i == 0 ? new int[] { 3 } : new int[] { 0, 1, 2 };
+		return new int[] { 0, 1, 2, 3 };
 	}
 
 	@Override
@@ -249,9 +244,7 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 		if (TileEntityFurnace.getItemBurnTime(stack) > 0 && i == 0)
 			return true;
 
-		if (!(stack.getItem() instanceof ItemStamp) && i == 2)
-			return true;
-		return false;
+		return !(stack.getItem() instanceof ItemStamp) && i == 2;
 	}
 
 	private int detectProgress;
@@ -286,7 +279,8 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 		if (mark)
 			markDirty();
 		PacketDispatcher.wrapper.sendToAllAround(
-				new TEPressPacket(this.pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(2), progress),
+				new TEPressPacket(this.pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(2),
+						inventory.getStackInSlot(1), progress),
 				new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
 	}
 

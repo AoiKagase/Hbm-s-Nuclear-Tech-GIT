@@ -9,7 +9,6 @@ import com.hbm.inventory.PressRecipes;
 import com.hbm.forgefluid.FluidTypeHandler;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemCassette;
-import com.hbm.items.machine.ItemChemistryTemplate;
 import com.hbm.inventory.ChemplantRecipes;
 import com.hbm.inventory.CrucibleRecipes;
 import com.hbm.items.machine.ItemForgeFluidIdentifier;
@@ -123,7 +122,7 @@ public class GUIScreenTemplateFolder extends GuiScreen {
     }
     
     int getPageCount() {
-    	return (int)Math.ceil((stacks.size() - 1) / (5 * 7));
+    	return (int) (double) ((stacks.size() - 1) / (5 * 7));
     }
     
     public void updateScreen() {
@@ -179,11 +178,7 @@ public class GUIScreenTemplateFolder extends GuiScreen {
     }
 
     protected void mouseClicked(int i, int j, int k) {
-		if(i >= guiLeft + 45 && i < guiLeft + 117 && j >= guiTop + 211 && j < guiTop + 223) {
-			this.search.setFocused(true);
-		} else  {
-			this.search.setFocused(false);
-		}
+        this.search.setFocused(i >= guiLeft + 45 && i < guiLeft + 117 && j >= guiTop + 211 && j < guiTop + 223);
 
     	try {
     		for(FolderButton b : buttons)

@@ -52,6 +52,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineMiningLaser extends TileEntityMachineBase implements ITickable, IEnergyUser, IFluidHandler, ITankPacketAcceptor, IMiningDrill {
 
@@ -239,12 +240,10 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 		if(te == null || !te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null))
 			return;
 		IItemHandler h = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-		if(!(h instanceof IItemHandlerModifiable))
+		if(!(h instanceof IItemHandlerModifiable inv))
 			return;
-		
-		IItemHandlerModifiable inv = (IItemHandlerModifiable)h;
-		
-		for(int i = 9; i <= 29; i++) {
+
+        for(int i = 9; i <= 29; i++) {
 
 			if(!inventory.getStackInSlot(i).isEmpty()) {
 				int prev = inventory.getStackInSlot(i).getCount();
@@ -269,7 +268,7 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 
 		ItemStack stack = new ItemStack(b, 1, b.getMetaFromState(state));
 
-		if(stack != null && stack.getItem() != null) {
+		if(!stack.isEmpty()) {
 			if(hasCrystallizer()) {
 
 				ItemStack result = CrystallizerRecipes.getOutputItem(stack);
@@ -309,9 +308,8 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 			}
 		}
 		
-		if(normal && b instanceof IDrillInteraction) {
-			IDrillInteraction in = (IDrillInteraction) b;
-			doesBreak = in.canBreak(world, targetX, targetY, targetZ, state, this);
+		if(normal && b instanceof IDrillInteraction in) {
+            doesBreak = in.canBreak(world, targetX, targetY, targetZ, state, this);
 			if(doesBreak){
 				ItemStack drop = in.extractResource(world, targetX, targetY, targetZ, state, this);
 				
@@ -357,7 +355,7 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 			
 			if(item.getItem().getItem() == Item.getItemFromBlock(ModBlocks.ore_oil)) {
 
-				tank.fill(new FluidStack(ModForgeFluids.oil, 500), true);
+				tank.fill(new FluidStack(ModForgeFluids.OIL, 500), true);
 
 				item.setDead();
 				continue;
@@ -428,9 +426,8 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 		if(b instanceof BlockGasBase) return false;
 		float hardness = block.getBlockHardness(world, new BlockPos(x, y, z));
 		if(hardness < 0 || hardness > 3_500_000) return false;
-		if(block.getMaterial().isLiquid()) return false;
-		return true;
-	}
+        return !block.getMaterial().isLiquid();
+    }
 
 	public int getOverdrive() {
 
@@ -596,9 +593,7 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 
 	public int getConsumption() {
 
-		int consumption = TileEntityMachineMiningLaser.consumption;
-
-		return consumption;
+        return TileEntityMachineMiningLaser.consumption;
 	}
 	
 	public int getWidth() {
@@ -626,12 +621,7 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 		return (int) (breakProgress * i);
 	}
 
-	@Override
-	public boolean canInsertItem(int i, ItemStack itemStack, int j) {
-		return this.isItemValidForSlot(i, itemStack);
-	}
-
-	@Override
+    @Override
 	public boolean canExtractItem(int i, ItemStack itemStack, int j) {
 		return i >= 9 && i <= 29;
 	}
@@ -686,7 +676,7 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 
 	@Override
 	public FluidStack drain(FluidStack resource, boolean doDrain) {
-		if(resource != null && resource.getFluid() == ModForgeFluids.oil)
+		if(resource != null && resource.getFluid() == ModForgeFluids.OIL)
 			return tank.drain(resource, doDrain);
 		return null;
 	}
@@ -715,7 +705,7 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("tank", tank.writeToNBT(new NBTTagCompound()));
 		compound.setBoolean("isOn", isOn);
 		compound.setLong("power", power);

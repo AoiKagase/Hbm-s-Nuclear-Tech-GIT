@@ -93,8 +93,7 @@ public class TileEntityTurretMaxwell extends TileEntityTurretBaseNT {
 			
 			if(this.tPos != null) {
 				Vec3d pos = this.getTurretPos();
-				double length = new Vec3d(tPos.x - pos.x, tPos.y - pos.y, tPos.z - pos.z).lengthVector();
-				this.lastDist = length;
+                this.lastDist = new Vec3d(tPos.x - pos.x, tPos.y - pos.y, tPos.z - pos.z).length();
 			}
 			
 			if(beam > 0)
@@ -152,7 +151,7 @@ public class TileEntityTurretMaxwell extends TileEntityTurretBaseNT {
 		long demand = this.getConsumption() * 10;
 		
 		if(this.target != null && this.getPower() >= demand) {
-			if(this.target instanceof EntityPlayer && (((EntityPlayer)this.target).capabilities.isCreativeMode || ((EntityPlayer)this.target).isSpectator()))
+			if(this.target instanceof EntityPlayer p && (p.capabilities.isCreativeMode || p.isSpectator()))
 				return;
 			EntityDamageUtil.attackEntityFromIgnoreIFrame(this.target, ModDamageSource.gluon, (Math.max(0, this.blackLevel * 10 + this.redLevel - this.blueLevel>>1) + 1F) * 0.25F);
 			

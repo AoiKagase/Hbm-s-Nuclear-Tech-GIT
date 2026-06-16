@@ -19,7 +19,7 @@ public class ItemLemon extends ItemFood {
 
 	public ItemLemon(int amount, float saturation, boolean isWolfFood, String s) {
 		super(amount, saturation, isWolfFood);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModItems.ALL_ITEMS.add(this);
@@ -270,7 +270,7 @@ public class ItemLemon extends ItemFood {
 
     	
         if (this == ModItems.canned_bhole && !worldIn.isRemote) {
-    		EntityVortex vortex = new EntityVortex(worldIn, 0.5F);
+    		EntityVortex vortex = new EntityVortex(worldIn, 0.5F, 3);
     		vortex.posX = entityLiving.posX;
     		vortex.posY = entityLiving.posY;
     		vortex.posZ = entityLiving.posZ;

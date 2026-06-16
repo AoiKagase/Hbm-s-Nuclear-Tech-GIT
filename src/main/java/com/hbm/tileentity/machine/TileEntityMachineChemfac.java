@@ -35,6 +35,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemStackHandler;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -54,8 +55,8 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 	public TileEntityMachineChemfac() {
 		super(77);
 
-		water = new TypedFluidTank(ModForgeFluids.coolant, new FluidTank(6400));
-		steam = new TypedFluidTank(ModForgeFluids.hotcoolant, new FluidTank(6400));
+		water = new TypedFluidTank(ModForgeFluids.COOLANT, new FluidTank(6400));
+		steam = new TypedFluidTank(ModForgeFluids.HOTCOOLANT, new FluidTank(6400));
 
 		inventory = new ItemStackHandler(77) {
 			@Override
@@ -188,7 +189,7 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 	protected void process(int index) {
 		super.process(index);
 		this.water.tank.drain(getWaterRequired(), true);
-		this.steam.tank.fill(new FluidStack(ModForgeFluids.hotcoolant, getWaterRequired()), true);
+		this.steam.tank.fill(new FluidStack(ModForgeFluids.HOTCOOLANT, getWaterRequired()), true);
 	}
 
 
@@ -320,7 +321,7 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound nbt) {
 		NBTTagCompound tankWater = new NBTTagCompound();
 		water.tank.writeToNBT(tankWater);
 		nbt.setTag("water", tankWater);

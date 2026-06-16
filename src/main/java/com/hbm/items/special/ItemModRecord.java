@@ -34,7 +34,7 @@ public class ItemModRecord extends ItemRecord {
 	
 	public ItemModRecord(String p_i46742_1_, SoundEvent soundIn, String name) {
 		super(p_i46742_1_, soundIn);
-		this.setUnlocalizedName(name);
+		this.setTranslationKey(name);
 		this.setRegistryName(name);
 		this.setCreativeTab(CreativeTabs.MISC);
 		recordName = p_i46742_1_;
@@ -71,16 +71,11 @@ public class ItemModRecord extends ItemRecord {
 	public String getRecordNameLocal() {
 		return I18n.format("item.record." + this.recordName + ".desc");
 	}
-	
-	@Override
-	public EnumRarity getRarity(ItemStack stack) {
-		return EnumRarity.RARE;
-	}
-	
-	@Override
+
+    @Override
 	@SideOnly(Side.CLIENT)
 	public String getItemStackDisplayName(ItemStack stack) {
-        return (I18n.format(Items.RECORD_11.getUnlocalizedName() + ".name")).trim();
+        return (I18n.format(Items.RECORD_11.getTranslationKey() + ".name")).trim();
 	}
 	
 	

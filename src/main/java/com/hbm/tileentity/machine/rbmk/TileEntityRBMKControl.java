@@ -68,17 +68,13 @@ public abstract class TileEntityRBMKControl extends TileEntityRBMKSlottedBase {
 	public void setTarget(double target) {
 		this.targetLevel = target;
 	}
-	
-	public double getMult() {
+
+    @Override
+    public double getMult() {
 		return this.level;
 	}
-	
-	@Override
-	public int trackingRange() {
-		return 150;
-	}
-	
-	@Override
+
+    @Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
 

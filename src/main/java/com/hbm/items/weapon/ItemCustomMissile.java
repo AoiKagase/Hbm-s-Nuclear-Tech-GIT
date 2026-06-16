@@ -17,7 +17,7 @@ import net.minecraft.world.World;
 public class ItemCustomMissile extends Item {
 
 	public ItemCustomMissile(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 
 		ModItems.ALL_ITEMS.add(this);
@@ -109,9 +109,7 @@ public class ItemCustomMissile extends Item {
 				stability = (ItemMissile) item;
 			ItemMissile thruster = (ItemMissile) Item.getItemById(readFromNBT(stack, "thruster"));
 
-			MissileStruct missile = new MissileStruct(warhead, fuselage, stability, thruster);
-
-			return missile;
+            return new MissileStruct(warhead, fuselage, stability, thruster);
 		} catch(ClassCastException x) {
 			return null;
 		}

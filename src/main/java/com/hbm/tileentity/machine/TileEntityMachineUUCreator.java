@@ -23,6 +23,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineUUCreator extends TileEntityMachineBase implements IEnergyUser, IFluidHandler, ITickable, ITankPacketAcceptor {
 	
@@ -60,7 +61,7 @@ public class TileEntityMachineUUCreator extends TileEntityMachineBase implements
 					int producedUUmB = (int)Math.min(power / rfPerMbOfUU, this.tank.getCapacity()-this.tank.getFluidAmount());
 					
 					if(producedUUmB > 0){
-						producedUUmB = tank.fill(new FluidStack(ModForgeFluids.uu_matter, producedUUmB), true);
+						producedUUmB = tank.fill(new FluidStack(ModForgeFluids.UU_MATTER, producedUUmB), true);
 						power -= producedUUmB * rfPerMbOfUU;
 						this.markDirty();
 						loggedProducedMB = producedUUmB;
@@ -169,7 +170,7 @@ public class TileEntityMachineUUCreator extends TileEntityMachineBase implements
 	}
 
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
 		nbt.setBoolean("isOn", isOn);
 		nbt.setLong("power", power);

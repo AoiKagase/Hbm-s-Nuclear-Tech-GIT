@@ -13,7 +13,6 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.world.WorldServer;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
@@ -42,7 +41,7 @@ public abstract class TileEntityPylonBase extends TileEntityCableBaseNT {
 				(secondPos.getZ()) - (firstPos.getZ())
 				);
 		
-		return len >= delta.lengthVector();
+		return len >= delta.length();
 	}
 	
 	public void addConnection(BlockPos targetPos) {
@@ -185,7 +184,7 @@ public abstract class TileEntityPylonBase extends TileEntityCableBaseNT {
 		this.readFromNBT(pkt.getNbtCompound());
 	}
 
-	public static enum ConnectionType {
+	public enum ConnectionType {
 		SINGLE,
 		QUAD
 		//more to follow

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.hbm.blocks.ModBlocks;
-import com.hbm.explosion.ExplosionLarge;
+import com.hbm.explosion.ExplosionNT;
 import com.hbm.items.ModItems;
 
 import net.minecraft.item.ItemStack;
@@ -25,9 +25,8 @@ public class EntityMissileVolcano extends EntityMissileBaseAdvanced {
 
 	@Override
 	public void onImpact() {
-		
-		ExplosionLarge.explode(world, posX, posY, posZ, 10.0F, true, true, true);
-		
+
+        new ExplosionNT(world, null, posX, posY, posZ, 10).overrideResolution(12).explode();
 		for(int x = -1; x <= 1; x++) {
 			for(int y = -1; y <= 1; y++) {
 				for(int z = -1; z <= 1; z++) {
@@ -47,7 +46,6 @@ public class EntityMissileVolcano extends EntityMissileBaseAdvanced {
 		list.add(new ItemStack(ModItems.plate_steel, 20));
 		list.add(new ItemStack(ModItems.plate_aluminium, 12));
 		list.add(new ItemStack(ModItems.thruster_large, 1));
-		list.add(new ItemStack(ModItems.circuit_targeting_tier4, 1));
 
 		return list;
 	}

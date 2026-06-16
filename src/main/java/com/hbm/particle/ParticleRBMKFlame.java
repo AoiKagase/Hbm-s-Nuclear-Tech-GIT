@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
@@ -23,10 +22,10 @@ public class ParticleRBMKFlame extends Particle {
 
 	private static final ResourceLocation texture = new ResourceLocation(RefStrings.MODID + ":textures/particle/rbmk_fire.png");
 	
-	public ParticleRBMKFlame(World worldIn, double posXIn, double posYIn, double posZIn, int maxAge){
+	public ParticleRBMKFlame(World worldIn, double posXIn, double posYIn, double posZIn, int maxAge, float scale){
 		super(worldIn, posXIn, posYIn, posZIn);
 		this.particleMaxAge = maxAge;
-		this.particleScale = rand.nextFloat() + 1F;
+		this.particleScale = (rand.nextFloat() + 1F) * scale;
 	}
 	
 	@Override

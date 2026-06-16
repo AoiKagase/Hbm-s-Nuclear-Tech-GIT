@@ -1,7 +1,5 @@
 package com.hbm.blocks.bomb;
 
-import java.util.Random;
-
 import com.hbm.blocks.ModBlocks;
 import com.hbm.potion.HbmPotion;
 
@@ -18,7 +16,7 @@ public class Balefire extends BlockFire {
 
 	public Balefire(String s) {
 		super();
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(null);
 
@@ -64,7 +62,7 @@ public class Balefire extends BlockFire {
 	}
 
 	@Override
-	public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn) {
+	public void onEntityCollision(World worldIn, BlockPos pos, IBlockState state, Entity entityIn) {
 		entityIn.setFire(10);
 
 		if (entityIn instanceof EntityLivingBase)

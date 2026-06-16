@@ -66,7 +66,7 @@ public class EntityAIBreaking extends EntityAIBase {
 					markedLoc[1] - (entityDigger.posY + entityDigger.getEyeHeight()),
 					markedLoc[2] - entityDigger.posZ);
 
-			return entityDigger != null && entityDigger.isEntityAlive() && vector.lengthVector() <= 4;
+			return entityDigger != null && entityDigger.isEntityAlive() && vector.length() <= 4;
 		}
 
 		return false;
@@ -189,8 +189,8 @@ public class EntityAIBreaking extends EntityAIBase {
         float f6 = MathHelper.sin(-pitch * 0.017453292F);
         float f7 = f4 * f5;
         float f8 = f3 * f5;
-        double d3 = dist; // Ray Distance
-        Vec3 vec31 = vec3.addVector((double)f7 * d3, (double)f6 * d3, (double)f8 * d3);
+        // Ray Distance
+        Vec3 vec31 = vec3.add((double)f7 * dist, (double)f6 * dist, (double)f8 * dist);
         return RayCastBlocks(world, vec3, vec31, liquids);
     }
 

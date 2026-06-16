@@ -44,14 +44,15 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityCrucible extends TileEntityMachineBase implements ITickable, IGUIProvider, ICrucibleAcceptor, IConfigurableMachine {
 
 	public int heat;
 	public int progress;
 	
-	public List<MaterialStack> recipeStack = new ArrayList();
-	public List<MaterialStack> wasteStack = new ArrayList();
+	public List<MaterialStack> recipeStack = new ArrayList<>();
+	public List<MaterialStack> wasteStack = new ArrayList<>();
 
 	/* CONFIGURABLE CONSTANTS */
 	//because eclipse's auto complete is dumb as a fucking rock, it's now called "ZCapacity" so it's listed AFTER the actual stacks in the auto complete list.
@@ -119,7 +120,7 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 			
 			double level = ((double) totalMass / (double) totalCap) * 0.875D;
 			
-			List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, pos.getX() + 0.5, pos.getY() + 0.5 + level, pos.getZ() + 0.5).expand(1, 0, 1));
+			List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos.getX() - 0.5, pos.getY() + 0.5, pos.getZ() - 0.5, pos.getX() + 1.5, pos.getY() + 0.5 + level, pos.getZ() + 1.5));
 			for(EntityLivingBase entity : living) {
 				entity.attackEntityFrom(DamageSource.LAVA, 5F);
 				entity.setFire(5);
@@ -156,7 +157,7 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 			if(!this.recipeStack.isEmpty()) {
 				
 				ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
-				List<MaterialStack> toCast = new ArrayList();
+				List<MaterialStack> toCast = new ArrayList<>();
 				
 				CrucibleRecipe recipe = this.getLoadedRecipe();
 				//if no recipe is loaded, everything from the recipe stack will be drainable
@@ -247,7 +248,7 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound nbt) {
 		
 		int[] rec = new int[recipeStack.size() * 2];
 		int[] was = new int[wasteStack.size() * 2];
@@ -262,13 +263,12 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 	
 	protected void tryPullHeat() {
 		
-		if(this.heat >= this.maxHeat) return;
+		if(this.heat >= maxHeat) return;
 		
 		TileEntity con = world.getTileEntity(pos.down());
 		
-		if(con instanceof IHeatSource) {
-			IHeatSource source = (IHeatSource) con;
-			int diff = source.getHeatStored() - this.heat;
+		if(con instanceof IHeatSource source) {
+            int diff = source.getHeatStored() - this.heat;
 			
 			if(diff == 0) {
 				return;
@@ -278,8 +278,8 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 				diff = (int) Math.ceil(diff * diffusion);
 				source.useUpHeat(diff);
 				this.heat += diff;
-				if(this.heat > this.maxHeat)
-					this.heat = this.maxHeat;
+				if(this.heat > maxHeat)
+					this.heat = maxHeat;
 				return;
 			}
 		}
@@ -356,7 +356,7 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 			
 			ItemStack stack = inventory.getStackInSlot(i);
 			
-			if(stack != null && isItemSmeltable(stack)) {
+			if(isItemSmeltable(stack)) {
 				return i;
 			}
 		}
@@ -385,9 +385,8 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 		CrucibleRecipe recipe = getLoadedRecipe();
 		
 		//needs to be true, will always be true if there's no recipe loaded
-		boolean matchesRecipe = recipe == null;
-		
-		//the amount of material in the entire recipe input
+
+        //the amount of material in the entire recipe input
 		int recipeContent = recipe != null ? recipe.getInputAmount() : 0;
 		//the total amount of the current waste stack, used for simulation
 		int recipeAmount = getQuantaFromType(this.recipeStack, null);
@@ -397,11 +396,10 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 			//if no recipe is loaded, everything will land in the waste stack
 			int recipeInputRequired = recipe != null ? getQuantaFromType(recipe.input, mat.material) : 0;
 			
-			//this allows pouring the ouput material back into the crucible
+			//this allows pouring the output material back into the crucible
 			if(recipe != null && getQuantaFromType(recipe.output, mat.material) > 0) {
 				recipeAmount += mat.amount;
-				matchesRecipe = true;
-				continue;
+                continue;
 			}
 			
 			if(recipeInputRequired == 0) {
@@ -410,21 +408,19 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 			} else {
 				
 				//the maximum is the recipe's ratio scaled up to the recipe stack's capacity
-				int matMaximum = recipeInputRequired * this.recipeZCapacity / recipeContent;
+				int matMaximum = recipeInputRequired * recipeZCapacity / recipeContent;
 				int amountStored = getQuantaFromType(recipeStack, mat.material);
-				
-				matchesRecipe = true;
-				
-				recipeAmount += mat.amount;
+
+                recipeAmount += mat.amount;
 				
 				//if the amount of that input would exceed the amount dictated by the recipe, return false
-				if(recipe != null && amountStored + mat.amount > matMaximum)
+				if(amountStored + mat.amount > matMaximum)
 					return false;
 			}
 		}
 		
-		//if the amount doesn't exceed the capacity and the recipe matches (or isn't null), return true
-		return recipeAmount <= this.recipeZCapacity && wasteAmount <= this.wasteZCapacity && matchesRecipe;
+		//if the amount doesn't exceed the capacity, return true
+		return recipeAmount <= recipeZCapacity && wasteAmount <= wasteZCapacity;
 	}
 	
 	public void addToStack(List<MaterialStack> stack, MaterialStack matStack) {
@@ -441,7 +437,7 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 	
 	public CrucibleRecipe getLoadedRecipe() {
 		
-		if(inventory.getStackInSlot(0) != null && inventory.getStackInSlot(0).getItem() == ModItems.crucible_template) {
+		if(!inventory.getStackInSlot(0).isEmpty() && inventory.getStackInSlot(0).getItem() == ModItems.crucible_template) {
 			return CrucibleRecipes.recipes.get(inventory.getStackInSlot(0).getItemDamage());
 		}
 		
@@ -518,15 +514,15 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 		CrucibleRecipe recipe = getLoadedRecipe();
 		
 		if(recipe == null) {
-			return getQuantaFromType(this.wasteStack, null) < this.wasteZCapacity;
+			return getQuantaFromType(this.wasteStack, null) < wasteZCapacity;
 		}
 		
 		int recipeContent = recipe.getInputAmount();
 		int recipeInputRequired = getQuantaFromType(recipe.input, stack.material);
-		int matMaximum = recipeInputRequired * this.recipeZCapacity / recipeContent;
+		int matMaximum = recipeInputRequired * recipeZCapacity / recipeContent;
 		int amountStored = getQuantaFromType(recipeStack, stack.material);
 		
-		return amountStored < matMaximum && getQuantaFromType(this.recipeStack, null) < this.recipeZCapacity;
+		return amountStored < matMaximum && getQuantaFromType(this.recipeStack, null) < recipeZCapacity;
 	}
 
 	@Override
@@ -538,11 +534,11 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 			
 			int amount = getQuantaFromType(this.wasteStack, null);
 			
-			if(amount + stack.amount <= this.wasteZCapacity) {
+			if(amount + stack.amount <= wasteZCapacity) {
 				this.addToStack(this.wasteStack, stack.copy());
 				return null;
 			} else {
-				int toAdd = this.wasteZCapacity - amount;
+				int toAdd = wasteZCapacity - amount;
 				this.addToStack(this.wasteStack, new MaterialStack(stack.material, toAdd));
 				return new MaterialStack(stack.material, stack.amount - toAdd);
 			}
@@ -550,7 +546,7 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 		
 		int recipeContent = recipe.getInputAmount();
 		int recipeInputRequired = getQuantaFromType(recipe.input, stack.material);
-		int matMaximum = recipeInputRequired * this.recipeZCapacity / recipeContent;
+		int matMaximum = recipeInputRequired * recipeZCapacity / recipeContent;
 		
 		if(recipeInputRequired + stack.amount <= matMaximum) {
 			this.addToStack(this.recipeStack, stack.copy());
@@ -558,7 +554,7 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 		}
 		
 		int toAdd = matMaximum - stack.amount;
-		toAdd = Math.min(toAdd, this.recipeZCapacity - getQuantaFromType(this.recipeStack, null));
+		toAdd = Math.min(toAdd, recipeZCapacity - getQuantaFromType(this.recipeStack, null));
 		this.addToStack(this.recipeStack, new MaterialStack(stack.material, toAdd));
 		return new MaterialStack(stack.material, stack.amount - toAdd);
 	}

@@ -4,7 +4,6 @@ import org.lwjgl.opengl.GL11;
 
 import com.hbm.main.ResourceManager;
 import com.hbm.tileentity.machine.TileEntityMachineCyclotron;
-import com.hbm.blocks.BlockDummyable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -69,10 +68,10 @@ public class RenderCyclotron extends TileEntitySpecialRenderer<TileEntityMachine
         ResourceManager.cyclotron.renderPart("B4");
         
         if(plugged) {
-
+            double speed = !cyc.isOn ? 0.0125 : cyc.progress==0 ? 0.05 : 0.5;
         	GL11.glPushMatrix();
             RenderHelper.enableStandardItemLighting();
-			GL11.glRotated(System.currentTimeMillis() * 0.025 % 360, 0, 1, 0);
+			GL11.glRotated(System.currentTimeMillis() * speed % 360, 0, 1, 0);
 
 	        GlStateManager.enableBlend();
 	        GlStateManager.disableLighting();

@@ -22,14 +22,14 @@ public class HazardTypeRadiation extends HazardTypeBase {
 
 	@Override
 	public void onUpdate(EntityLivingBase target, float level, ItemStack stack) {
-		
+		if(ContaminationUtil.isRadImmune(target)) return;
 		boolean reacher = false;
-		
-		if(target instanceof EntityPlayer && !GeneralConfig.enable528)
-			reacher = Library.checkForHeld((EntityPlayer) target, ModItems.reacher);
+
+        if(target instanceof EntityPlayer player && !GeneralConfig.enable528)
+            reacher = Library.checkForHeld(player, ModItems.reacher) || Library.checkForBauble(player, ModItems.reacher);
 			
 		if(level > 0) {
-			float rad = level / 20F;
+			float rad = level * stack.getCount() / 20F;
 			
 			if(reacher)
 				rad = (float) Math.min(Math.sqrt(rad), rad); //to prevent radiation from going up when being <1
@@ -68,9 +68,9 @@ public class HazardTypeRadiation extends HazardTypeBase {
 	}
 
 	public static String getSuffix(float radiation){
-		if(radiation < 1000000){
+		if(radiation < 1_000_000){
 			return "";
-		} else if(radiation < 1000000000){
+		} else if(radiation < 1_000_000_000){
 			return I18nUtil.resolveKey("desc.mil");
 		} else{
 			return I18nUtil.resolveKey("desc.bil");

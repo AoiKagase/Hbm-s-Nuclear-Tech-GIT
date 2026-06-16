@@ -27,7 +27,7 @@ public class BlockGeysir extends BlockContainer {
 	
 	public BlockGeysir(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(null);
 		
@@ -65,6 +65,7 @@ public class BlockGeysir extends BlockContainer {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public void randomDisplayTick(IBlockState stateIn, World worldIn, BlockPos pos, Random rand) {
+		if(!worldIn.isAreaLoaded(pos, 10)) return;
 		boolean active = stateIn.getValue(ACTIVE);
 		
 		if(this == ModBlocks.geysir_vapor && active) {

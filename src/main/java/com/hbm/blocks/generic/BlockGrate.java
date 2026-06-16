@@ -23,7 +23,7 @@ public class BlockGrate extends Block {
 	
 	public BlockGrate(Material material, String s) {
 		super(material);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -35,7 +35,7 @@ public class BlockGrate extends Block {
 	}
 
 	@Override
-	public BlockRenderLayer getBlockLayer(){
+	public BlockRenderLayer getRenderLayer(){
 		return BlockRenderLayer.CUTOUT_MIPPED;
 	}
 	
@@ -88,7 +88,7 @@ public class BlockGrate extends Block {
 		} else if(facing == EnumFacing.DOWN){
 			return this.getDefaultState().withProperty(HEIGHT, 7);
 		} else {
-			return this.getDefaultState().withProperty(HEIGHT, (int)Math.floor(hitY*8));
+			return this.getDefaultState().withProperty(HEIGHT, (int)Math.min(7, Math.max(0, Math.floor(hitY*8))));
 		}
 	}
 	

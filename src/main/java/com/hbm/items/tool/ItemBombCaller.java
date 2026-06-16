@@ -30,7 +30,7 @@ public class ItemBombCaller extends Item {
 
 	public ItemBombCaller(String s) {
 		this.setRegistryName(s);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setCreativeTab(MainRegistry.consumableTab);
 		this.setHasSubtypes(true);
 
@@ -144,7 +144,7 @@ public class ItemBombCaller extends Item {
 		return getTypeFromStack(stack).ordinal() >= 4;
 	}
 
-	public static enum EnumCallerType {
+	public enum EnumCallerType {
 		CARPET, NAPALM, POISON, ORANGE, ATOMIC, STINGER, PIP, CLOUD, NONE
 	}
 

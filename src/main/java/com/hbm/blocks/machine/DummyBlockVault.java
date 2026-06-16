@@ -38,7 +38,7 @@ public class DummyBlockVault extends BlockContainer implements IDummy, IBomb, IR
 
 	public DummyBlockVault(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -134,13 +134,8 @@ public class DummyBlockVault extends BlockContainer implements IDummy, IBomb, IR
     	world.removeTileEntity(pos);
 		RadiationSystemNT.markChunkForRebuild(world, pos);
 	}
-	
-	@Override
-	public EnumBlockRenderType getRenderType(IBlockState state) {
-		return EnumBlockRenderType.INVISIBLE;
-	}
-	
-	@Override
+
+    @Override
 	public Item getItemDropped(IBlockState state, Random rand, int fortune) {
 		return Items.AIR;
 	}

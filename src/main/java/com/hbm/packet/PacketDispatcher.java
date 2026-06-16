@@ -12,7 +12,7 @@ public class PacketDispatcher {
 	
 	public static final SimpleNetworkWrapper wrapper = NetworkRegistry.INSTANCE.newSimpleChannel(RefStrings.MODID);
 	
-	public static final void registerPackets(){
+	public static void registerPackets(){
 		int i = 0;
 
 		//PressPacket
@@ -43,8 +43,6 @@ public class PacketDispatcher {
 		wrapper.registerMessage(AuxButtonPacket.Handler.class, AuxButtonPacket.class, i++, Side.SERVER);
 		//For handling fluid tank type updates
 		wrapper.registerMessage(FluidTypePacketTest.Handler.class, FluidTypePacketTest.class, i++, Side.CLIENT);
-		//Fluid pipe type update for rendering
-		wrapper.registerMessage(TEFluidTypePacketTest.Handler.class, TEFluidTypePacketTest.class, i++, Side.CLIENT);
 		//Turret basic packet for making the client has the right ammo amounts
 		wrapper.registerMessage(TETurretPacket.Handler.class, TETurretPacket.class, i++, Side.CLIENT);
 		//CIWS has a really long range, so stuff might not even exist on client, so rotation needs to be sent
@@ -91,8 +89,6 @@ public class PacketDispatcher {
 		wrapper.registerMessage(ItemBobmazonPacket.Handler.class, ItemBobmazonPacket.class, i++, Side.SERVER);
 		//Update packet for force field
 		wrapper.registerMessage(TEFFPacket.Handler.class, TEFFPacket.class, i++, Side.CLIENT);
-		//Siren packet for looped sounds Drillgon200: Wrong descriptions, but eh, whatever.
-		wrapper.registerMessage(TERadarPacket.Handler.class, TERadarPacket.class, i++, Side.CLIENT);
 		//Packet for causing pipes to rebuild their connections
 		wrapper.registerMessage(PipeUpdatePacket.Handler.class, PipeUpdatePacket.class, i++, Side.CLIENT);
 		//Packet for updating entities being zapped

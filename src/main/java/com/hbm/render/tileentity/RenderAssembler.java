@@ -27,8 +27,8 @@ public class RenderAssembler extends TileEntitySpecialRenderer<TileEntityMachine
 	public void render(TileEntityMachineAssembler assembler, double x, double y, double z, float partialTicks, int destroyStage, float alpha)
     {
     	Vec3d start = new Vec3d(assembler.getPos().getX()+0.05, assembler.getPos().getY()+1.5, assembler.getPos().getZ()+3.1);
-    	//RenderHelper.renderFlashLight(start, start.addVector(-20, 0, 0), 20, 1, ResourceManager.fl_cookie, partialTicks);
-    	//FlashlightRenderer.addFlashlight(start, start.addVector(-20, 0, 0), 20, 20, ResourceManager.fl_cookie, true, true);
+    	//RenderHelper.renderFlashLight(start, start.add(-20, 0, 0), 20, 1, ResourceManager.fl_cookie, partialTicks);
+    	//FlashlightRenderer.addFlashlight(start, start.add(-20, 0, 0), 20, 20, ResourceManager.fl_cookie, true, true);
     	//LightRenderer.addPointLight(start, new Vec3d(1, 0.4, 0.1), 10);
         GL11.glPushMatrix();
         GL11.glTranslated(x + 0.5D, y, z + 0.5D);
@@ -124,10 +124,8 @@ public class RenderAssembler extends TileEntitySpecialRenderer<TileEntityMachine
         
         if(offset > 500)
         	offset = 500 - (offset - 500);
-        
-        TileEntityMachineAssembler assembler = (TileEntityMachineAssembler) tileEntity;
-        
-        if(assembler.isProgressing)
+
+        if(((TileEntityMachineAssembler) tileEntity).isProgressing)
         	GL11.glTranslated(offset * 0.003 - 0.75, 0, 0);
 		
         ResourceManager.assembler_slider.renderAll();
@@ -138,7 +136,7 @@ public class RenderAssembler extends TileEntitySpecialRenderer<TileEntityMachine
 
         sway = Math.sin(sway / Math.PI / 50);
 
-        if(assembler.isProgressing)
+        if(((TileEntityMachineAssembler) tileEntity).isProgressing)
         	GL11.glTranslated(0, 0, sway * 0.3);
         ResourceManager.assembler_arm.renderAll();
 
@@ -172,10 +170,8 @@ public class RenderAssembler extends TileEntitySpecialRenderer<TileEntityMachine
 		bindTexture(ResourceManager.assembler_cog_tex);
 
         int rotation = (int) (System.currentTimeMillis() % (360 * 5)) / 5;
-        
-        TileEntityMachineAssembler assembler = (TileEntityMachineAssembler) tileEntity;
 
-        if(!assembler.isProgressing)
+        if(!((TileEntityMachineAssembler) tileEntity).isProgressing)
         	rotation = 0;
         
         GL11.glPushMatrix();

@@ -104,7 +104,7 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 	}
 
 	public boolean hasCustomInventoryName() {
-		return this.customName != null && this.customName.length() > 0;
+		return this.customName != null && !this.customName.isEmpty();
 	}
 
 	public void setCustomName(String name) {
@@ -173,7 +173,7 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 			for(int x = -4; x <= 4; x++) {
 				for(int z = -4; z <= 4; z++) {
 					
-					if(world.isBlockIndirectlyGettingPowered(pos.add(x, 0, z)) > 0 && canLaunch()) {
+					if(world.getRedstonePowerFromNeighbors(pos.add(x, 0, z)) > 0 && canLaunch()) {
 						launch();
 						break outer;
 					}
@@ -207,12 +207,9 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 	}
 	
 	public boolean canLaunch() {
-		
-		if(power >= maxPower * 0.75 && isMissileValid() && hasDesignator() && hasFuel() && clearingTimer == 0)
-			return true;
-		
-		return false;
-	}
+
+        return power >= maxPower * 0.75 && isMissileValid() && hasDesignator() && hasFuel() && clearingTimer == 0;
+    }
 	
 	public void launch() {
 
@@ -377,19 +374,19 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 		
 		switch((FuelType)fuselage.attributes[0]) {
 			case KEROSENE:
-				tankTypes[0] = ModForgeFluids.kerosene;
-				tankTypes[1] = ModForgeFluids.acid;
+				tankTypes[0] = ModForgeFluids.KEROSENE_REFORM;
+				tankTypes[1] = ModForgeFluids.ACID;
 				break;
 			case HYDROGEN:
-				tankTypes[0] = ModForgeFluids.hydrogen;
-				tankTypes[1] = ModForgeFluids.oxygen;
+				tankTypes[0] = ModForgeFluids.HYDROGEN;
+				tankTypes[1] = ModForgeFluids.OXYGEN;
 				break;
 			case XENON:
-				tankTypes[0] = ModForgeFluids.xenon;
+				tankTypes[0] = ModForgeFluids.XENON;
 				break;
 			case BALEFIRE:
-				tankTypes[0] = ModForgeFluids.balefire;
-				tankTypes[1] = ModForgeFluids.acid;
+				tankTypes[0] = ModForgeFluids.BALEFIRE;
+				tankTypes[1] = ModForgeFluids.ACID;
 				break;
 			default: break;
 		}
@@ -397,9 +394,7 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 
 	protected boolean inputValidForTank(int tank, int slot){
 		if(tanks[tank] != null){
-			if(isValidFluidForTank(tank, FluidUtil.getFluidContained(inventory.getStackInSlot(slot)))){
-				return true;
-			}
+            return isValidFluidForTank(tank, FluidUtil.getFluidContained(inventory.getStackInSlot(slot)));
 		}
 		return false;
 	}

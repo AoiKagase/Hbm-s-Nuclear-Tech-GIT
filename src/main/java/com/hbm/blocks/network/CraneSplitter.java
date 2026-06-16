@@ -21,7 +21,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -121,7 +120,7 @@ public class CraneSplitter extends BlockDummyable implements IConveyorBelt, IEnt
         if(pos1){
             this.spawnMovingBox(world, pos.getX(), pos.getY(), pos.getZ(), entity.getItemStacks());
         } else {
-            this.spawnMovingBox(world, pos.getX() + rot.getFrontOffsetX(), pos.getY(), pos.getZ() + rot.getFrontOffsetZ(), entity.getItemStacks());
+            this.spawnMovingBox(world, pos.getX() + rot.getXOffset(), pos.getY(), pos.getZ() + rot.getZOffset(), entity.getItemStacks());
         }
         splitter.setPosition(!pos1);
     }
@@ -132,19 +131,18 @@ public class CraneSplitter extends BlockDummyable implements IConveyorBelt, IEnt
         EnumFacing dir = this.getTravelDirection(world, pos, itemPos);
         Vec3d snap = this.getClosestSnappingPosition(world, pos, itemPos);
         Vec3d dest = new Vec3d(
-                snap.x - dir.getFrontOffsetX() * speed,
-                snap.y - dir.getFrontOffsetY() * speed,
-                snap.z - dir.getFrontOffsetZ() * speed);
+                snap.x - dir.getXOffset() * speed,
+                snap.y - dir.getYOffset() * speed,
+                snap.z - dir.getZOffset() * speed);
         Vec3d motion = new Vec3d(
                 dest.x - itemPos.x,
                 dest.y - itemPos.y,
                 dest.z - itemPos.z);
-        double len = motion.lengthVector();
-        Vec3d ret = new Vec3d(
+        double len = motion.length();
+        return new Vec3d(
                 itemPos.x + motion.x / len * speed,
                 itemPos.y + motion.y / len * speed,
                 itemPos.z + motion.z / len * speed);
-        return ret;
     }
 
     @Override
@@ -186,20 +184,20 @@ public class CraneSplitter extends BlockDummyable implements IConveyorBelt, IEnt
         if (stack.getCount() % 2 == 0) {
             stack.setCount(stack.getCount()>>1);
             this.spawnMovingItem(world, pos.getX(), pos.getY(), pos.getZ(), stack.copy());
-            this.spawnMovingItem(world, pos.getX() + rot.getFrontOffsetX(), pos.getY(), pos.getZ() + rot.getFrontOffsetZ(), stack.copy());
+            this.spawnMovingItem(world, pos.getX() + rot.getXOffset(), pos.getY(), pos.getZ() + rot.getZOffset(), stack.copy());
         } else {
             int baseSize = stack.getCount()>>1;
             if(baseSize == 0){
                 if(pos1){
                     this.spawnMovingItem(world, pos.getX(), pos.getY(), pos.getZ(), stack.copy());
                 } else {
-                    this.spawnMovingItem(world, pos.getX() + rot.getFrontOffsetX(), pos.getY(), pos.getZ() + rot.getFrontOffsetZ(), stack.copy());
+                    this.spawnMovingItem(world, pos.getX() + rot.getXOffset(), pos.getY(), pos.getZ() + rot.getZOffset(), stack.copy());
                 }
             } else {
                 stack.setCount(baseSize + (pos1 ? 0 : 1));
                 this.spawnMovingItem(world, pos.getX(), pos.getY(), pos.getZ(), stack.copy());
                 stack.setCount(baseSize + (pos1 ? 1 : 0));
-                this.spawnMovingItem(world, pos.getX() + rot.getFrontOffsetX(), pos.getY(), pos.getZ() + rot.getFrontOffsetZ(), stack.copy());
+                this.spawnMovingItem(world, pos.getX() + rot.getXOffset(), pos.getY(), pos.getZ() + rot.getZOffset(), stack.copy());
             }
             splitter.setPosition(!pos1);
         }
@@ -230,31 +228,6 @@ public class CraneSplitter extends BlockDummyable implements IConveyorBelt, IEnt
         moving.setPosition(snap.x, snap.y, snap.z);
         moving.setItemStacks(stacks);
         worldIn.spawnEntity(moving);
-    }
-
-    @Override
-    public boolean isOpaqueCube(IBlockState state) {
-        return false;
-    }
-
-    @Override
-    public boolean isBlockNormalCube(IBlockState state) {
-        return false;
-    }
-
-    @Override
-    public boolean isNormalCube(IBlockState state) {
-        return false;
-    }
-
-    @Override
-    public boolean isNormalCube(IBlockState state, IBlockAccess world, BlockPos pos) {
-        return false;
-    }
-
-    @Override
-    public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
-        return false;
     }
 
     @Override

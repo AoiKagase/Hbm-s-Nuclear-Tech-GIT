@@ -19,7 +19,7 @@ public class HbmAnimations {
 	//animation is playing, though this will cancel the animation entirely.
 	public static final Animation[] hotbar = new Animation[10];
 
-	public static enum AnimType {
+	public enum AnimType {
 		RELOAD,		//animation for every reload cycle
 		CYCLE,		//animation for every firing cycle
 		ALT_CYCLE,	//animation for alt fire cycles
@@ -72,13 +72,13 @@ public class HbmAnimations {
 			slot = 9;
 		ItemStack stack = player.getHeldItem(hand);
 
-		if(stack == null || stack.isEmpty())
+		if(stack.isEmpty())
 			return null;
 
 		if(hotbar[slot] == null)
 			return null;
 
-		if(hotbar[slot].key.equals(stack.getItem().getUnlocalizedName())) {
+		if(hotbar[slot].key.equals(stack.getItem().getTranslationKey())) {
 			return hotbar[slot];
 		}
 

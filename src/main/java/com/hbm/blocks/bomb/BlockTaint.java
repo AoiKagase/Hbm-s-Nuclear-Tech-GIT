@@ -20,9 +20,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -35,7 +32,7 @@ public class BlockTaint extends Block {
 	public BlockTaint(Material m, String s) {
 		super(m);
 		this.setTickRandomly(true);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.controlTab);
 		this.setDefaultState(this.blockState.getBaseState().withProperty(TEXTURE, 0));
@@ -70,8 +67,7 @@ public class BlockTaint extends Block {
 
 	private static boolean checkAttachment(World world, BlockPos pos){
 		if(!world.isAirBlock(pos)){
-    		if(world.getBlockState(pos).getBlock() != ModBlocks.taint)
-    			return true;
+            return world.getBlockState(pos).getBlock() != ModBlocks.taint;
     	}
     	return false;
     }
@@ -97,19 +93,14 @@ public class BlockTaint extends Block {
 		return NULL_AABB;
 	}
 
-	@Override
-	public boolean isCollidable(){
-		return true;
-	}
-
-	@Override
+    @Override
 	public boolean isReplaceable(IBlockAccess worldIn, BlockPos pos){
 		return false;
 	}
 
 
 	@Override
-	public void onEntityCollidedWithBlock(World world, BlockPos pos, IBlockState state, Entity entity) {
+	public void onEntityCollision(World world, BlockPos pos, IBlockState state, Entity entity) {
 		int meta = world.getBlockState(pos).getBlock().getMetaFromState(state);
 		int level = 15 - meta;
 		

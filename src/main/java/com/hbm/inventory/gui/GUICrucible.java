@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -17,7 +18,6 @@ import com.hbm.tileentity.machine.TileEntityCrucible;
 import com.hbm.util.I18nUtil;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
@@ -40,8 +40,8 @@ public class GUICrucible extends GuiInfoContainer {
 		super.drawScreen(x, y, interp);
 		super.renderHoveredToolTip(x, y);
 		
-		this.drawCustomInfoStat(x, y, guiLeft + 125, guiTop + 80, 34, 7, x, y, new String[] { String.format(Locale.US, "%,d", crucible.progress) + " / " + String.format(Locale.US, "%,d", crucible.processTime) + "TU" });
-		this.drawCustomInfoStat(x, y, guiLeft + 125, guiTop + 89, 34, 7, x, y, new String[] { String.format(Locale.US, "%,d", crucible.heat) + " / " + String.format(Locale.US, "%,d", crucible.maxHeat) + "TU" });
+		this.drawCustomInfoStat(x, y, guiLeft + 125, guiTop + 80, 34, 7, x, y, new String[] { String.format(Locale.US, "%,d", crucible.progress) + " / " + String.format(Locale.US, "%,d", TileEntityCrucible.processTime) + "TU" });
+		this.drawCustomInfoStat(x, y, guiLeft + 125, guiTop + 89, 34, 7, x, y, new String[] { String.format(Locale.US, "%,d", crucible.heat) + " / " + String.format(Locale.US, "%,d", TileEntityCrucible.maxHeat) + "TU" });
 		drawStackInfo(crucible.wasteStack, x, y, 16, 16, "gui.crucible.side.smelt");
 		drawStackInfo(crucible.recipeStack, x, y, 61, 16, "gui.crucible.side.alloy");
 		
@@ -58,18 +58,18 @@ public class GUICrucible extends GuiInfoContainer {
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float p_146976_1_, int p_146976_2_, int p_146976_3_) {
 		super.drawDefaultBackground();
-		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
 		drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
 		
-		int pGauge = crucible.progress * 33 / crucible.processTime;
+		int pGauge = crucible.progress * 33 / TileEntityCrucible.processTime;
 		if(pGauge > 0) drawTexturedModalRect(guiLeft + 126, guiTop + 82, 176, 0, pGauge, 5);
-		int hGauge = crucible.heat * 33 / crucible.maxHeat;
+		int hGauge = crucible.heat * 33 / TileEntityCrucible.maxHeat;
 		if(hGauge > 0) drawTexturedModalRect(guiLeft + 126, guiTop + 91, 176, 5, hGauge, 5);
 
-		if(!crucible.recipeStack.isEmpty()) drawStack(crucible.recipeStack, crucible.recipeZCapacity, 62, 97);
-		if(!crucible.wasteStack.isEmpty()) drawStack(crucible.wasteStack, crucible.wasteZCapacity, 17, 97);
-		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);		
+		if(!crucible.recipeStack.isEmpty()) drawStack(crucible.recipeStack, TileEntityCrucible.recipeZCapacity, 62, 97);
+		if(!crucible.wasteStack.isEmpty()) drawStack(crucible.wasteStack, TileEntityCrucible.wasteZCapacity, 17, 97);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 	}
 	
 	protected void drawStackInfo(List<MaterialStack> stack, int mouseX, int mouseY, int x, int y, String side) {
@@ -81,10 +81,10 @@ public class GUICrucible extends GuiInfoContainer {
 		} else {
 			for(int i = stack.size()-1; i>=0; i--) {
 				MaterialStack sta = stack.get(i);
-				list.add("§e" + I18nUtil.resolveKey(sta.material.getUnlocalizedName()) + ": " + Mats.formatAmount(sta.amount, Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)));
+				list.add("§e" + I18nUtil.resolveKey(sta.material.getTranslationKey()) + ": " + Mats.formatAmount(sta.amount, Keyboard.isKeyDown(Keyboard.KEY_LSHIFT)));
 			}
 		}
-		String[] texts = list.toArray(new String[list.size()]);
+		String[] texts = list.toArray(new String[0]);
 		this.drawCustomInfoStat(mouseX, mouseY, guiLeft + x, guiTop + y, 36, 81, mouseX, mouseY, texts);
 	}
 	
@@ -105,13 +105,13 @@ public class GUICrucible extends GuiInfoContainer {
 			
 			int hex = sta.material.moltenColor;
 			Color color = new Color(hex);
-			GL11.glColor3f(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F);
+            GlStateManager.color(color.getRed() / 255F, color.getGreen() / 255F, color.getBlue() / 255F);
 			drawTexturedModalRect(guiLeft + x, guiTop + y - targetHeight, 176 + offset, 89 - targetHeight, 34, targetHeight - lastHeight);
 			
 			lastQuant += sta.amount;
 			lastHeight = targetHeight;
 		}
 
-		GL11.glColor3f(255, 255, 255);
+        GlStateManager.color(1.0F, 1.0F, 1.0F);
 	}
 }

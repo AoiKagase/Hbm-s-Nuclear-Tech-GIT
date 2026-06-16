@@ -24,6 +24,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntityCoreInjector extends TileEntityMachineBase implements ITickable, IFluidHandler, ITankPacketAcceptor {
 
@@ -44,12 +45,12 @@ public class TileEntityCoreInjector extends TileEntityMachineBase implements ITi
 
 			beam = 0;
 			
-			EnumFacing dir = EnumFacing.getFront(this.getBlockMetadata());
+			EnumFacing dir = EnumFacing.byIndex(this.getBlockMetadata());
 			for(int i = 1; i <= range; i++) {
 
-				int x = pos.getX() + dir.getFrontOffsetX() * i;
-				int y = pos.getY() + dir.getFrontOffsetY() * i;
-				int z = pos.getZ() + dir.getFrontOffsetZ() * i;
+				int x = pos.getX() + dir.getXOffset() * i;
+				int y = pos.getY() + dir.getYOffset() * i;
+				int z = pos.getZ() + dir.getZOffset() * i;
 				BlockPos pos1 = new BlockPos(x, y, z);
 				TileEntity te = world.getTileEntity(pos1);
 				
@@ -172,7 +173,7 @@ public class TileEntityCoreInjector extends TileEntityMachineBase implements ITi
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("tanks", FFUtils.serializeTankArray(tanks));
 		return super.writeToNBT(compound);
 	}

@@ -2,13 +2,27 @@ package com.hbm.main;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
+import com.hbm.forgefluid.FFUtils;
+import com.hbm.forgefluid.ModForgeFluids;
+
+import com.hbm.interfaces.*;
+import com.hbm.render.item.*;
+import com.hbm.tileentity.machine.TileEntityMachineReactorSmall;
+import com.hbm.util.*;
+import com.hbm.items.IDynamicModels;
+import com.hbm.items.IModelRegister;
+import com.hbm.items.machine.*;
+import com.hbm.render.tileentity.RenderWatzMultiblock;
+import net.minecraft.block.*;
+import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.block.statemap.StateMap;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemLeaves;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
@@ -23,7 +37,6 @@ import com.hbm.blocks.ILookOverlay;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.generic.TrappedBrick.Trap;
 import com.hbm.capability.HbmCapability;
-import com.hbm.capability.HbmLivingCapability.EntityHbmPropsProvider;
 import com.hbm.config.GeneralConfig;
 import com.hbm.entity.mob.EntityHunterChopper;
 import com.hbm.entity.projectile.EntityChopperMine;
@@ -38,16 +51,7 @@ import com.hbm.handler.HazmatRegistry;
 import com.hbm.handler.HbmShaderManager;
 import com.hbm.handler.HbmShaderManager2;
 import com.hbm.handler.JetpackHandler;
-import com.hbm.interfaces.IConstantRenderer;
-import com.hbm.interfaces.ICustomSelectionBox;
-import com.hbm.interfaces.IHasCustomModel;
-import com.hbm.interfaces.IHasCustomMetaModels;
-import com.hbm.interfaces.IHoldableWeapon;
-import com.hbm.interfaces.IItemHUD;
-import com.hbm.interfaces.IPostRender;
-import com.hbm.interfaces.Spaghetti;
 import com.hbm.inventory.AssemblerRecipes;
-import com.hbm.inventory.BedrockOreRegistry;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
 import com.hbm.inventory.RecipesCommon.NbtComparableStack;
 import com.hbm.inventory.gui.GUIArmorTable;
@@ -57,17 +61,10 @@ import com.hbm.items.armor.ItemArmorMod;
 import com.hbm.items.armor.JetpackBase;
 import com.hbm.items.gear.ArmorFSB;
 import com.hbm.items.gear.RedstoneSword;
-import com.hbm.items.machine.ItemAssemblyTemplate;
 import com.hbm.items.machine.ItemCassette.TrackType;
-import com.hbm.items.machine.ItemChemistryTemplate;
-import com.hbm.items.machine.ItemCrucibleTemplate;
-import com.hbm.items.machine.ItemFluidTank;
-import com.hbm.items.machine.ItemForgeFluidIdentifier;
-import com.hbm.items.machine.ItemRBMKPellet;
 import com.hbm.items.special.ItemHot;
 import com.hbm.items.special.ItemWasteLong;
 import com.hbm.items.special.ItemWasteShort;
-import com.hbm.items.special.ItemBedrockOre;
 import com.hbm.items.special.weapon.GunB92;
 import com.hbm.items.tool.ItemFluidCanister;
 import com.hbm.items.tool.ItemGuideBook;
@@ -96,27 +93,6 @@ import com.hbm.render.anim.HbmAnimations;
 import com.hbm.render.anim.HbmAnimations.Animation;
 import com.hbm.render.anim.HbmAnimations.BlenderAnimation;
 import com.hbm.render.entity.DSmokeRenderer;
-import com.hbm.render.item.AssemblyTemplateBakedModel;
-import com.hbm.render.item.AssemblyTemplateRender;
-import com.hbm.render.item.BakedModelCustom;
-import com.hbm.render.item.BakedModelNoGui;
-import com.hbm.render.item.ChemTemplateBakedModel;
-import com.hbm.render.item.ChemTemplateRender;
-import com.hbm.render.item.CrucibleTemplateBakedModel;
-import com.hbm.render.item.CrucibleTemplateRender;
-import com.hbm.render.item.FFIdentifierModel;
-import com.hbm.render.item.FFIdentifierRender;
-import com.hbm.render.item.FluidBarrelBakedModel;
-import com.hbm.render.item.FluidBarrelRender;
-import com.hbm.render.item.FluidCanisterBakedModel;
-import com.hbm.render.item.FluidCanisterRender;
-import com.hbm.render.item.FluidTankLeadBakedModel;
-import com.hbm.render.item.FluidTankLeadRender;
-import com.hbm.render.item.FluidTankBakedModel;
-import com.hbm.render.item.FluidTankRender;
-import com.hbm.render.item.ItemRenderBase;
-import com.hbm.render.item.ItemRenderLibrary;
-import com.hbm.render.item.TEISRBase;
 import com.hbm.render.item.weapon.B92BakedModel;
 import com.hbm.render.item.weapon.ItemRedstoneSwordRender;
 import com.hbm.render.item.weapon.ItemRenderGunAnim;
@@ -147,16 +123,10 @@ import com.hbm.tileentity.machine.rbmk.TileEntityRBMKBase;
 import com.hbm.inventory.ChemplantRecipes;
 import com.hbm.inventory.CrucibleRecipes;
 import com.hbm.inventory.BreederRecipes;
-import com.hbm.util.ArmorRegistry;
 import com.hbm.util.ArmorRegistry.HazardClass;
-import com.hbm.util.ContaminationUtil;
-import com.hbm.util.BobMathUtil;
-import com.hbm.util.I18nUtil;
-import com.hbm.util.ItemStackUtil;
 import com.hbm.hazard.HazardSystem;
 
 import glmath.glm.vec._2.Vec2;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -166,18 +136,13 @@ import net.minecraft.client.model.ModelPlayer;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GLAllocation;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
@@ -284,7 +249,7 @@ public class ModEventHandlerClient {
 			list[i] = e.getResourceLocation();
 			i++;
 		}
-		ModelLoader.registerItemVariants(ModItems.cell, list);
+		ModelLoader.registerItemVariants(ModItems.gas_canister, list);
 
 		for(Item item : ModItems.ALL_ITEMS) {
 			registerModel(item, 0);
@@ -293,8 +258,10 @@ public class ModEventHandlerClient {
 			registerBlockModel(block, 0);
 		}
 
+		IDynamicModels.registerModels();
+
 		registerBedrockOreModels();
-	}
+    }
 
 	public static void registerBedrockOreModels(){
 		for(int i = 0; i < 300; i++) {
@@ -322,6 +289,8 @@ public class ModEventHandlerClient {
 			return;
 
 		//Drillgon200: I hate myself for making this
+		if (item instanceof IModelRegister)
+            ((IModelRegister) item).registerModels();
 
 		if(item == ModItems.chemistry_icon) {
 			for(int i: ChemplantRecipes.recipeNames.keySet()){
@@ -383,6 +352,20 @@ public class ModEventHandlerClient {
 			for(int i = 0; i < 4; i ++){
 				ModelLoader.setCustomModelResourceLocation(item, i, new ModelResourceLocation(item.getRegistryName(), "inventory"));
 			}
+        } else if(item == Item.getItemFromBlock(ModBlocks.crashed_balefire)){
+            for(int i = 0; i < 4; i ++){
+                ModelLoader.setCustomModelResourceLocation(item, i, new ModelResourceLocation(item.getRegistryName(), "inventory"));
+            }
+        } else if(item instanceof ItemLeaves leaf) {
+            boolean isOldLeaf = leaf.getBlock() == ModBlocks.ntmLeavesOld;
+            boolean isWasteLeaf = leaf.getBlock() == ModBlocks.waste_leaves;
+            for(BlockPlanks.EnumType type : BlockPlanks.EnumType.values()) {
+                if(isWasteLeaf){
+                    ModelLoader.setCustomModelResourceLocation(leaf, type.ordinal(), new ModelResourceLocation("hbm:waste_leaves_" + type.name(), "inventory"));
+                } else if((isOldLeaf && type.ordinal() < 4) || (!isOldLeaf && type.ordinal() > 3)) {
+                    ModelLoader.setCustomModelResourceLocation(leaf, type.ordinal(), new ModelResourceLocation("minecraft:" + type.name() + "_leaves", "inventory"));
+                }
+            }
 		} else if(item instanceof IHasCustomModel) {
 			ModelLoader.setCustomModelResourceLocation(item, meta, ((IHasCustomModel) item).getResourceLocation());
 		} else if(item instanceof IHasCustomMetaModels) {
@@ -396,6 +379,8 @@ public class ModEventHandlerClient {
 
 	@SubscribeEvent
 	public void modelBaking(ModelBakeEvent evt) {
+
+		IDynamicModels.bakeModels(evt);
 
 		for(EnumCanister e : EnumCanister.values()) {
 			Object o = evt.getModelRegistry().getObject(e.getResourceLocation());
@@ -419,63 +404,53 @@ public class ModEventHandlerClient {
 		ResourceManager.init();
 		Object object1 = evt.getModelRegistry().getObject(RedstoneSword.rsModel);
 		if(object1 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object1;
-			ItemRedstoneSwordRender.INSTANCE.itemModel = model;
+            ItemRedstoneSwordRender.INSTANCE.itemModel = (IBakedModel) object1;
 			evt.getModelRegistry().putObject(RedstoneSword.rsModel, new ItemRenderRedstoneSword());
 		}
 		Object object2 = evt.getModelRegistry().getObject(ItemAssemblyTemplate.location);
 		if(object2 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object2;
-			AssemblyTemplateRender.INSTANCE.itemModel = model;
+            AssemblyTemplateRender.INSTANCE.itemModel = (IBakedModel) object2;
 			evt.getModelRegistry().putObject(ItemAssemblyTemplate.location, new AssemblyTemplateBakedModel());
 		}
 
 		Object object3 = evt.getModelRegistry().getObject(GunB92.b92Model);
 		if(object3 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object3;
-			ItemRenderGunAnim.INSTANCE.b92ItemModel = model;
+            ItemRenderGunAnim.INSTANCE.b92ItemModel = (IBakedModel) object3;
 			evt.getModelRegistry().putObject(GunB92.b92Model, new B92BakedModel());
 		}
 		Object object4 = evt.getModelRegistry().getObject(ItemFluidTank.fluidTankModel);
 		if(object4 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object4;
-			FluidTankRender.INSTANCE.itemModel = model;
+            FluidTankRender.INSTANCE.itemModel = (IBakedModel) object4;
 			evt.getModelRegistry().putObject(ItemFluidTank.fluidTankModel, new FluidTankBakedModel());
 		}
 		Object object444 = evt.getModelRegistry().getObject(ItemFluidTank.fluidTankLeadModel);
 		if(object444 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object444;
-			FluidTankLeadRender.INSTANCE.itemModel = model;
+            FluidTankLeadRender.INSTANCE.itemModel = (IBakedModel) object444;
 			evt.getModelRegistry().putObject(ItemFluidTank.fluidTankLeadModel, new FluidTankLeadBakedModel());
 		}
 		Object object5 = evt.getModelRegistry().getObject(ItemFluidTank.fluidBarrelModel);
 		if(object5 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object5;
-			FluidBarrelRender.INSTANCE.itemModel = model;
+            FluidBarrelRender.INSTANCE.itemModel = (IBakedModel) object5;
 			evt.getModelRegistry().putObject(ItemFluidTank.fluidBarrelModel, new FluidBarrelBakedModel());
 		}
 		Object object6 = evt.getModelRegistry().getObject(ItemFluidCanister.fluidCanisterModel);
 		if(object6 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object6;
-			FluidCanisterRender.INSTANCE.itemModel = model;
+            FluidCanisterRender.INSTANCE.itemModel = (IBakedModel) object6;
 			evt.getModelRegistry().putObject(ItemFluidCanister.fluidCanisterModel, new FluidCanisterBakedModel());
 		}
 		Object object7 = evt.getModelRegistry().getObject(ItemChemistryTemplate.chemModel);
 		if(object7 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object7;
-			ChemTemplateRender.INSTANCE.itemModel = model;
+            ChemTemplateRender.INSTANCE.itemModel = (IBakedModel) object7;
 			evt.getModelRegistry().putObject(ItemChemistryTemplate.chemModel, new ChemTemplateBakedModel());
 		}
 		Object object8 = evt.getModelRegistry().getObject(ItemForgeFluidIdentifier.identifierModel);
 		if(object8 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object8;
-			FFIdentifierRender.INSTANCE.itemModel = model;
+            FFIdentifierRender.INSTANCE.itemModel = (IBakedModel) object8;
 			evt.getModelRegistry().putObject(ItemForgeFluidIdentifier.identifierModel, new FFIdentifierModel());
 		}
 		Object object9 = evt.getModelRegistry().getObject(ItemCrucibleTemplate.cruciModel);
 		if(object9 instanceof IBakedModel) {
-			IBakedModel model = (IBakedModel) object9;
-			CrucibleTemplateRender.INSTANCE.itemModel = model;
+            CrucibleTemplateRender.INSTANCE.itemModel = (IBakedModel) object9;
 			evt.getModelRegistry().putObject(ItemCrucibleTemplate.cruciModel, new CrucibleTemplateBakedModel());
 		}
 
@@ -584,6 +559,7 @@ public class ModEventHandlerClient {
 		swapModels(ModItems.cc_plasma_gun, reg);
 		swapModels(ModItems.gun_egon, reg);
 		swapModels(ModItems.jshotgun, reg);
+		swapModels(ModItems.boltgun, reg);
 		swapModels(ModItems.gun_ar15, reg);
 		
 		swapModels(ModItems.meteorite_sword_seared, reg);
@@ -623,21 +599,17 @@ public class ModEventHandlerClient {
 
 	public static void swapModels(Item item, IRegistry<ModelResourceLocation, IBakedModel> reg) {
 		ModelResourceLocation loc = new ModelResourceLocation(item.getRegistryName(), "inventory");
-		IBakedModel model = reg.getObject(loc);
-		TileEntityItemStackRenderer render = item.getTileEntityItemStackRenderer();
-		if(render instanceof TEISRBase) {
-			((TEISRBase) render).itemModel = model;
-			reg.putObject(loc, new BakedModelCustom((TEISRBase) render));
+		if(item.getTileEntityItemStackRenderer() instanceof TEISRBase render) {
+            render.itemModel = reg.getObject(loc);
+			reg.putObject(loc, new BakedModelCustom(render));
 		}
 	}
 
 	public static void swapModelsNoGui(Item item, IRegistry<ModelResourceLocation, IBakedModel> reg) {
-		ModelResourceLocation loc = new ModelResourceLocation(item.getRegistryName(), "inventory");
-		IBakedModel model = reg.getObject(loc);
-		TileEntityItemStackRenderer render = item.getTileEntityItemStackRenderer();
-		if(render instanceof TEISRBase) {
-			((TEISRBase) render).itemModel = model;
-			reg.putObject(loc, new BakedModelNoGui((TEISRBase) render));
+        ModelResourceLocation loc = new ModelResourceLocation(item.getRegistryName(), "inventory");
+        if(item.getTileEntityItemStackRenderer() instanceof TEISRBase render) {
+            render.itemModel = reg.getObject(loc);
+			reg.putObject(loc, new BakedModelNoGui(render));
 		}
 	}
 	
@@ -657,8 +629,15 @@ public class ModEventHandlerClient {
 		}, ModItems.siren_track);
 	}
 
+	public static void registerSpriteFluid(TextureStitchEvent.Pre evt, String name){
+		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+name));
+	}
+
 	@SubscribeEvent
 	public void textureStitch(TextureStitchEvent.Pre evt) {
+
+		IDynamicModels.registerSprites(evt.getMap());
+
 		DSmokeRenderer.sprites[0] = evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "particle/d_smoke1"));
 		DSmokeRenderer.sprites[1] = evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "particle/d_smoke2"));
 		DSmokeRenderer.sprites[2] = evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "particle/d_smoke3"));
@@ -669,164 +648,9 @@ public class ModEventHandlerClient {
 		DSmokeRenderer.sprites[7] = evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "particle/d_smoke8"));
 		ParticleDSmokeFX.sprites = DSmokeRenderer.sprites;
 
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/steam_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/steam_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hotsteam_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hotsteam_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/superhotsteam_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/superhotsteam_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/ultrahotsteam_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/ultrahotsteam_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/coolant_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/coolant_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hotcoolant_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hotcoolant_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/heavywater_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/heavywater_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/deuterium_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/deuterium_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/tritium_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/tritium_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/oil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/oil_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hotoil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hotoil_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/crackoil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/crackoil_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hotcrackoil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hotcrackoil_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/heavyoil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/heavyoil_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/bitumen_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/bitumen_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/smear_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/smear_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/heatingoil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/heatingoil_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/reclaimed_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/reclaimed_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/petroil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/petroil_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/fracksol_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/fracksol_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/lubricant_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/lubricant_flowing"));
-
-		// Yes yes I know, I spelled 'naphtha' wrong.
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/napatha_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/napatha_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/diesel_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/diesel_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/lightoil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/lightoil_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/kerosene_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/kerosene_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/gas_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/gas_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/petroleum_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/petroleum_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/aromatics_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/aromatics_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/unsaturateds_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/unsaturateds_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/biogas_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/biogas_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/biofuel_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/biofuel_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/ethanol_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/ethanol_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/fishoil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/fishoil_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/sunfloweroil_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/sunfloweroil_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/colloid_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/colloid_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/nitan_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/nitan_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/uf6_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/uf6_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/puf6_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/puf6_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/sas3_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/sas3_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/amat_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/amat_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/aschrab_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/aschrab_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/acid_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/acid_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/sulfuric_acid_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/sulfuric_acid_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/nitric_acid_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/nitric_acid_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/solvent_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/solvent_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/radiosolvent_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/radiosolvent_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/nitroglycerin_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/nitroglycerin_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/liquid_osmiridium_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/liquid_osmiridium_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/watz_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/watz_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/cryogel_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/cryogel_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hydrogen_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/hydrogen_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/oxygen_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/oxygen_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/xenon_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/xenon_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/balefire_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/balefire_flowing"));
-
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/mercury_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/mercury_flowing"));
-		
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_dt_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_dt_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_hd_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_hd_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_ht_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_ht_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_put_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_put_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_xm_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_xm_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_bf_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/plasma_bf_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/uu_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/uu_flowing"));
-		
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/gasoline_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/gasoline_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/experience_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/experience_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/spentsteam_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/spentsteam_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/pain_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/pain_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/wastefluid_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/wastefluid_flowing"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/wastegas_still"));
-		evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/wastegas_flowing"));
+		for(String fluid : ModForgeFluids.noBlockFluidNames){
+			registerSpriteFluid(evt, fluid);
+		}
 
 		contrail = evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID + ":particle/contrail"));
 		particle_base = evt.getMap().registerSprite(new ResourceLocation(RefStrings.MODID, "particle/particle_base"));
@@ -872,23 +696,6 @@ public class ModEventHandlerClient {
 		RenderStructureMarker.fusion[5][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/fusion_core_side_alt");
 		RenderStructureMarker.fusion[6][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/block_tungsten");
 		RenderStructureMarker.fusion[6][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/block_tungsten");
-		
-		RenderStructureMarker.watz[0][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/reinforced_brick");
-		RenderStructureMarker.watz[0][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/reinforced_brick");
-		RenderStructureMarker.watz[1][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/reinforced_brick");
-		RenderStructureMarker.watz[1][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_hatch");
-		RenderStructureMarker.watz[2][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_control_top");
-		RenderStructureMarker.watz[2][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_control_side");
-		RenderStructureMarker.watz[3][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_end");
-		RenderStructureMarker.watz[3][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_end");
-		RenderStructureMarker.watz[4][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_conductor_top");
-		RenderStructureMarker.watz[4][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_conductor_side");
-		RenderStructureMarker.watz[5][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_computer");
-		RenderStructureMarker.watz[5][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_computer");
-		RenderStructureMarker.watz[6][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_cooler");
-		RenderStructureMarker.watz[6][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_cooler");
-		RenderStructureMarker.watz[7][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_element_top");
-		RenderStructureMarker.watz[7][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_element_side");
 
 		RenderStructureMarker.fwatz[0][0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/fwatz_scaffold");
 		RenderStructureMarker.fwatz[0][1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/fwatz_scaffold");
@@ -909,8 +716,14 @@ public class ModEventHandlerClient {
 		RenderMultiblock.structScaffold = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/struct_scaffold");
 
 		RenderSoyuzMultiblock.blockIcons[0] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/struct_launcher");
-		RenderSoyuzMultiblock.blockIcons[1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/concrete_smooth");
+		RenderSoyuzMultiblock.blockIcons[1] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/concrete");
 		RenderSoyuzMultiblock.blockIcons[2] = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/struct_scaffold");
+
+		RenderWatzMultiblock.casingSprite = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_casing_tooled");
+		RenderWatzMultiblock.coolerSpriteSide = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_cooler_side");
+		RenderWatzMultiblock.coolerSpriteTop = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_cooler_top");
+		RenderWatzMultiblock.elementSpriteSide = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_element_side");
+		RenderWatzMultiblock.elementSpriteTop = evt.getMap().getAtlasSprite(RefStrings.MODID + ":blocks/watz_element_top");
 	}
 
 	public static TextureAtlasSprite contrail;
@@ -1008,9 +821,8 @@ public class ModEventHandlerClient {
 		} else {
 			GL20.glUniform4f(GL20.glGetUniformLocation(HbmShaderManager.flashlightWorld, "colorMult"), 1.0F, 1.0F, 1.0F, 0.0F);
 		}
-		if(e instanceof EntityLivingBase) {
-			EntityLivingBase living = (EntityLivingBase) e;
-			if(living.deathTime > 0 || living.hurtTime > 0) {
+		if(e instanceof EntityLivingBase living) {
+            if(living.deathTime > 0 || living.hurtTime > 0) {
 				GL20.glUniform4f(GL20.glGetUniformLocation(HbmShaderManager.flashlightWorld, "colorMult"), 1.0F, 0.0F, 0.0F, 0.3F);
 			} else {
 				GL20.glUniform4f(GL20.glGetUniformLocation(HbmShaderManager.flashlightWorld, "colorMult"), 1.0F, 1.0F, 1.0F, 0.0F);
@@ -1151,12 +963,7 @@ public class ModEventHandlerClient {
 					}
 				}
 			}
-			Iterator<EntityLivingBase> itr = specialDeathEffectEntities.iterator();
-			while(itr.hasNext()){
-				Entity ent = itr.next();
-				if(ent.isDead)
-					itr.remove();
-			}
+            specialDeathEffectEntities.removeIf(ent -> ent.isDead);
 			EntityPlayer player = Minecraft.getMinecraft().player;
 			if(player != null) {
 				boolean isHooked = player.getHeldItemMainhand().getItem() == ModItems.gun_supershotgun && ItemGunShotty.hasHookedEntity(player.world, player.getHeldItemMainhand());
@@ -1201,7 +1008,7 @@ public class ModEventHandlerClient {
 			
 			ItemStack armor = player.inventory.armorItemInSlot(i);
 			
-			if(armor != null && ArmorModHandler.hasMods(armor)) {
+			if(!armor.isEmpty() && ArmorModHandler.hasMods(armor)) {
 				
 				for(ItemStack mod : ArmorModHandler.pryMods(armor)) {
 					
@@ -1212,7 +1019,7 @@ public class ModEventHandlerClient {
 			}
 			
 			//because armor that isn't ItemArmor doesn't render at all
-			if(armor != null && armor.getItem() instanceof JetpackBase) {
+			if(!armor.isEmpty() && armor.getItem() instanceof JetpackBase) {
 				((ItemArmorMod)armor.getItem()).modRender(event, armor);
 			}
 		}
@@ -1246,6 +1053,8 @@ public class ModEventHandlerClient {
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void renderWorld(RenderWorldLastEvent evt) {
+		Clock.update();
+
 		HbmShaderManager2.createInvMVP();
 		GlStateManager.enableDepth();
 		List<Entity> list = Minecraft.getMinecraft().world.loadedEntityList;
@@ -1292,7 +1101,7 @@ public class ModEventHandlerClient {
 			ssgChainPos = ssgChainPos.rotatePitch((float) Math.toRadians(-(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks)));
 			ssgChainPos = ssgChainPos.rotateYaw((float) Math.toRadians(-(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks)));
 
-			ssgChainPos = ssgChainPos.addVector(0, entity.getEyeHeight(), 0);
+			ssgChainPos = ssgChainPos.add(0, entity.getEyeHeight(), 0);
 			
 			double d0 = e.lastTickPosX + (e.posX - e.lastTickPosX) * (double) partialTicks;
 			double d1 = e.lastTickPosY + (e.posY - e.lastTickPosY) * (double) partialTicks;
@@ -1309,7 +1118,7 @@ public class ModEventHandlerClient {
 			GL11.glRotated(-pitch + 90, 0, 0, 1);
 			GL11.glScaled(0.125, 0.25, 0.125);
 			
-			double len = MathHelper.clamp(tester.lengthVector()*2, 0, 40);
+			double len = MathHelper.clamp(tester.length()*2, 0, 40);
 
 			RenderHelper.bindTexture(ResourceManager.universal);
 			GlStateManager.enableLighting();
@@ -1341,7 +1150,7 @@ public class ModEventHandlerClient {
 		
 		Vec3 vec = Vec3.createVectorHelper(x - d3, y - d4, z - d5);
 		
-		if(vec.lengthVector() < dist) {
+		if(vec.length() < dist) {
 			GL11.glPushMatrix();
 			GL11.glTranslated(vec.xCoord, vec.yCoord, vec.zCoord);
 			
@@ -1395,18 +1204,20 @@ public class ModEventHandlerClient {
     		GL11.glPopMatrix();
 		}
 		
-		
-		if(ArmorFSB.hasFSBArmor(Minecraft.getMinecraft().player) && HbmCapability.getData(Minecraft.getMinecraft().player).getEnableHUD()) {
-			ItemStack plate = Minecraft.getMinecraft().player.inventory.armorInventory.get(2);
-			ArmorFSB chestplate = (ArmorFSB)plate.getItem();
+		if(HbmCapability.getData(Minecraft.getMinecraft().player).getEnableHUD()) {
+			RenderOverhead.renderMarkers(evt.getPartialTicks());
 
-			if(chestplate.thermal)
-				RenderOverhead.renderThermalSight(evt.getPartialTicks());
+			if (ArmorFSB.hasFSBArmor(Minecraft.getMinecraft().player)) {
+				ItemStack plate = Minecraft.getMinecraft().player.inventory.armorInventory.get(2);
+				ArmorFSB chestplate = (ArmorFSB) plate.getItem();
+
+				if (chestplate.thermal)
+					RenderOverhead.renderThermalSight(evt.getPartialTicks());
+			}
 		}
 		
-		if(entity instanceof EntityPlayer){
-			EntityPlayer player = (EntityPlayer) entity;
-			net.minecraft.client.renderer.Tessellator tes = net.minecraft.client.renderer.Tessellator.getInstance();
+		if(entity instanceof EntityPlayer player){
+            net.minecraft.client.renderer.Tessellator tes = net.minecraft.client.renderer.Tessellator.getInstance();
 			BufferBuilder buf = tes.getBuffer();
 			if(player.getHeldItemMainhand().getItem() instanceof ItemSwordCutter && ItemSwordCutter.clicked){
 				if(Mouse.isButtonDown(1) && ItemSwordCutter.startPos != null){
@@ -1526,7 +1337,7 @@ public class ModEventHandlerClient {
 				start = start.rotatePitch((float) Math.toRadians(-(player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * partialTicks)));
 				start = start.rotateYaw((float) Math.toRadians(-(player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * partialTicks)));
 
-				start = start.addVector(0, player.getEyeHeight(), 0);
+				start = start.add(0, player.getEyeHeight(), 0);
 				GL11.glTranslated(start.x, start.y, start.z);
 				BeamPronter.gluonBeam(new Vec3(0, 0, 0), new Vec3(hitPos.subtract(pos).subtract(start.subtract(0, player.getEyeHeight(), 0))), 0.4F);
 				GL11.glPopMatrix();
@@ -1542,10 +1353,8 @@ public class ModEventHandlerClient {
 				ArmorFSB chestplate = (ArmorFSB)plate.getItem();
 				if(chestplate.flashlightPosition != null && plate.hasTagCompound() && plate.getTagCompound().getBoolean("flActive")){
 					Vec3d start = chestplate.flashlightPosition.rotatePitch(-(float) Math.toRadians(player.rotationPitch)).rotateYaw(-(float) Math.toRadians(player.rotationYaw)).add(player.getPositionEyes(partialTicks));
-					boolean volume = true;
-					if(player == Minecraft.getMinecraft().player && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0)
-						volume = false;
-					LightRenderer.addFlashlight(start, start.add(player.getLook(partialTicks).scale(30)), 30, 200, ResourceManager.fl_cookie, volume, true, true, true);
+					boolean volume = player != Minecraft.getMinecraft().player || Minecraft.getMinecraft().gameSettings.thirdPersonView != 0;
+                    LightRenderer.addFlashlight(start, start.add(player.getLook(partialTicks).scale(30)), 30, 200, ResourceManager.fl_cookie, volume, true, true, true);
 				}
 			}
 			
@@ -1690,11 +1499,11 @@ public class ModEventHandlerClient {
 			GlStateManager.disableBlend();
 		}
 		/// HANDLE GUN AND AMMO OVERLAYS ///
-		if(player.getHeldItem(EnumHand.MAIN_HAND) != null && player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemGunBase) {
+		if(!player.getHeldItem(EnumHand.MAIN_HAND).isEmpty() && player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemGunBase) {
 			((IItemHUD)player.getHeldItem(EnumHand.MAIN_HAND).getItem()).renderHUD(event, event.getType(), player, player.getHeldItem(EnumHand.MAIN_HAND), EnumHand.MAIN_HAND);
 		}
 
-		if(player.getHeldItem(EnumHand.OFF_HAND) != null && player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof ItemGunBase) {
+		if(!player.getHeldItem(EnumHand.OFF_HAND).isEmpty() && player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof ItemGunBase) {
 			((IItemHUD)player.getHeldItem(EnumHand.OFF_HAND).getItem()).renderHUD(event, event.getType(), player, player.getHeldItem(EnumHand.OFF_HAND), EnumHand.OFF_HAND);
 		}
 
@@ -1725,7 +1534,7 @@ public class ModEventHandlerClient {
 			World world = mc.world;
 			RayTraceResult mop = mc.objectMouseOver;
 			
-			if(mop != null && mop.typeOfHit == mop.typeOfHit.BLOCK) {
+			if(mop != null && mop.typeOfHit == Type.BLOCK) {
 				if(world.getBlockState(mop.getBlockPos()).getBlock() instanceof ILookOverlay) {
 					((ILookOverlay) world.getBlockState(mop.getBlockPos()).getBlock()).printHook(event, world, mop.getBlockPos().getX(), mop.getBlockPos().getY(), mop.getBlockPos().getZ());
 				}
@@ -1745,11 +1554,10 @@ public class ModEventHandlerClient {
 				long time = System.currentTimeMillis() - animation.startMillis;
 
 				int duration = 0;
-				if(animation instanceof BlenderAnimation){
-					BlenderAnimation banim = ((BlenderAnimation)animation);
-					//duration = (int) Math.ceil(banim.wrapper.anim.length * (1F/Math.abs(banim.wrapper.speedScale)));
+				if(animation instanceof BlenderAnimation banim){
+                    //duration = (int) Math.ceil(banim.wrapper.anim.length * (1F/Math.abs(banim.wrapper.speedScale)));
 					EnumHand hand = i < 9 ? EnumHand.MAIN_HAND : EnumHand.OFF_HAND;
-					if(!Minecraft.getMinecraft().player.getHeldItem(hand).getUnlocalizedName().equals(banim.key))
+					if(!Minecraft.getMinecraft().player.getHeldItem(hand).getTranslationKey().equals(banim.key))
 						HbmAnimations.hotbar[i] = null;
 					if(animation.animation != null){
 						if(time > animation.animation.getDuration()){
@@ -1788,11 +1596,11 @@ public class ModEventHandlerClient {
 
 		ModelPlayer renderer = evt.getRenderer().getMainModel();
 		
-		if(player.getHeldItem(EnumHand.MAIN_HAND) != null && player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IHoldableWeapon) {
+		if(!player.getHeldItem(EnumHand.MAIN_HAND).isEmpty() && player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IHoldableWeapon) {
 			renderer.rightArmPose = ArmPose.BOW_AND_ARROW;
 			// renderer.getMainModel().bipedLeftArm.rotateAngleY = 90;
 		}
-		if(player.getHeldItem(EnumHand.OFF_HAND) != null && player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof IHoldableWeapon) {
+		if(!player.getHeldItem(EnumHand.OFF_HAND).isEmpty() && player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof IHoldableWeapon) {
 			renderer.leftArmPose = ArmPose.BOW_AND_ARROW;
 		}
 		JetpackHandler.preRenderPlayer(player);
@@ -1813,15 +1621,12 @@ public class ModEventHandlerClient {
 		if(specialDeathEffectEntities.contains(event.getEntity())){
 			event.setCanceled(true);
 		}
-		if(event.getEntity() instanceof AbstractClientPlayer && event.getRenderer().getMainModel() instanceof ModelBiped){
-			AbstractClientPlayer player = (AbstractClientPlayer) event.getEntity();
+		if(event.getEntity() instanceof AbstractClientPlayer player && event.getRenderer().getMainModel() instanceof ModelBiped renderer){
 
-			ModelBiped renderer = (ModelBiped) event.getRenderer().getMainModel();
-			
-			if(player.getHeldItem(EnumHand.MAIN_HAND) != null && player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IHoldableWeapon) {
+            if(!player.getHeldItem(EnumHand.MAIN_HAND).isEmpty() && player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof IHoldableWeapon) {
 				renderer.rightArmPose = ArmPose.BOW_AND_ARROW;
 			}
-			if(player.getHeldItem(EnumHand.OFF_HAND) != null && player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof IHoldableWeapon) {
+			if(!player.getHeldItem(EnumHand.OFF_HAND).isEmpty() && player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof IHoldableWeapon) {
 				renderer.leftArmPose = ArmPose.BOW_AND_ARROW;
 			}
 		}
@@ -1865,7 +1670,7 @@ public class ModEventHandlerClient {
 
 		boolean m1 = ItemGunBase.m1;
 		boolean m2 = ItemGunBase.m2;
-		if(player.getHeldItem(EnumHand.MAIN_HAND) != null && player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemGunBase) {
+		if(!player.getHeldItem(EnumHand.MAIN_HAND).isEmpty() && player.getHeldItem(EnumHand.MAIN_HAND).getItem() instanceof ItemGunBase) {
 
 			if(event.getButton() == 0)
 				event.setCanceled(true);
@@ -1882,7 +1687,7 @@ public class ModEventHandlerClient {
 				item.startActionClient(player.getHeldItemMainhand(), player.world, player, false, EnumHand.MAIN_HAND);
 			}
 		}
-		if(player.getHeldItem(EnumHand.OFF_HAND) != null && player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof ItemGunBase) {
+		if(!player.getHeldItem(EnumHand.OFF_HAND).isEmpty() && player.getHeldItem(EnumHand.OFF_HAND).getItem() instanceof ItemGunBase) {
 
 			if(event.getButton() == 0)
 				event.setCanceled(true);
@@ -2016,7 +1821,16 @@ public class ModEventHandlerClient {
 		ItemStack stack = event.getItemStack();
 		List<String> list = event.getToolTip();
 
-		/// HAZMAT INFO ///
+        /// BREEDING ///
+        BreederRecipes.addBreedingTips(stack, event.getEntityPlayer(), list, event.getFlags());
+
+        /// Reactor Interactions ///
+        TileEntityMachineReactorSmall.addReactorInteractionTooltip(stack, list);
+
+        /// RAD SHIELDING ///
+        IRadResistantBlock.addShieldInfo(stack, list, event.getFlags());
+
+        /// HAZMAT INFO ///
 		List<HazardClass> hazInfo = ArmorRegistry.hazardClasses.get(stack.getItem());
 		
 		if(hazInfo != null) {
@@ -2034,7 +1848,7 @@ public class ModEventHandlerClient {
 
 		/// CLADDING ///
 		double rad = HazmatRegistry.getResistance(stack);
-		rad = ((int) (rad * 100)) / 100D;
+		rad = ((int) (rad * 1000)) / 1000D;
 		if(rad > 0)
 			list.add(TextFormatting.YELLOW + I18nUtil.resolveKey("trait.radResistance", rad));
 		
@@ -2054,7 +1868,7 @@ public class ModEventHandlerClient {
 				
 				ItemStack[] mods = ArmorModHandler.pryMods(stack);
 				
-				for(int i = 0; i < 8; i++) {
+				for(int i = 0; i < ArmorModHandler.MOD_SLOTS; i++) {
 					
 					if(mods[i] != null && mods[i].getItem() instanceof ItemArmorMod) {
 						
@@ -2064,16 +1878,19 @@ public class ModEventHandlerClient {
 			}
 		}
 
+		/// Fluids ///
+		FluidStack f = FluidUtil.getFluidContained(stack);
+		if(f != null){
+			FFUtils.addFluidInfo(f.getFluid(), list, event.getFlags().isAdvanced());
+		}
+
 		/// NEUTRON RADS ///
 		ContaminationUtil.addNeutronRadInfo(stack, event.getEntityPlayer(), list, event.getFlags());
 
 		/// HAZARDS ///
 		HazardSystem.addHazardInfo(stack, event.getEntityPlayer(), list, event.getFlags());
-		
-		/// BREEDING ///
-		BreederRecipes.addBreedingTips(stack, event.getEntityPlayer(), list, event.getFlags());
-		
-		//MKU
+
+        //MKU
 		if(stack.hasTagCompound()){
 			if(stack.getTagCompound().getBoolean("ntmContagion"))
 				list.add("§4§l[" + I18nUtil.resolveKey("trait.mkuinfected") + "§4§l]");
@@ -2103,7 +1920,7 @@ public class ModEventHandlerClient {
 		if(event.getFlags().isAdvanced()) {
 			List<String> names = ItemStackUtil.getOreDictNames(stack);
 			
-			if(names.size() > 0) {
+			if(!names.isEmpty()) {
 				list.add("§bOre Dict:");
 				for(String s : names) {
 					list.add("§3 - " + s);

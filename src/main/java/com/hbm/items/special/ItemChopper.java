@@ -29,7 +29,7 @@ import net.minecraft.world.World;
 public class ItemChopper extends Item {
 
 	public ItemChopper(String s) {
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 
 		ModItems.ALL_ITEMS.add(this);
@@ -47,9 +47,9 @@ public class ItemChopper extends Item {
 			
 			//IBlockState blockState = world.getBlockState(pos);
 
-			x += facing.getFrontOffsetX();
-			y += facing.getFrontOffsetY();
-			z += facing.getFrontOffsetZ();
+			x += facing.getXOffset();
+			y += facing.getYOffset();
+			z += facing.getZOffset();
 			double offset = 0.0D;
 
 			//Drillgon200: No clue what 11 is supposed to mean. I'll just leave it and hope it doesn't break anything.
@@ -118,7 +118,7 @@ public class ItemChopper extends Item {
 	}
 	
 	public Entity spawnCreature(World world, int dmg, double x, double y, double z) {
-		Entity entity = null;
+		EntityLiving entity = null;
 
 		if(this == ModItems.spawn_chopper)
 			entity = new EntityHunterChopper(world);
@@ -134,11 +134,10 @@ public class ItemChopper extends Item {
 		
 		if(entity != null) {
 
-			EntityLiving entityliving = (EntityLiving) entity;
-			entity.setLocationAndAngles(x, y, z, MathHelper.wrapDegrees(world.rand.nextFloat() * 360.0F), 0.0F);
-			entityliving.rotationYawHead = entityliving.rotationYaw;
-			entityliving.renderYawOffset = entityliving.rotationYaw;
-			entityliving.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(x, y, z)), (IEntityLivingData) null);
+            entity.setLocationAndAngles(x, y, z, MathHelper.wrapDegrees(world.rand.nextFloat() * 360.0F), 0.0F);
+			entity.rotationYawHead = entity.rotationYaw;
+			entity.renderYawOffset = entity.rotationYaw;
+			entity.onInitialSpawn(world.getDifficultyForLocation(new BlockPos(x, y, z)), (IEntityLivingData) null);
 			world.spawnEntity(entity);
 		}
 

@@ -40,6 +40,7 @@ import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.jetbrains.annotations.NotNull;
 
 public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements ITickable, IEnergyUser, IFluidHandler, ITankPacketAcceptor {
 
@@ -157,10 +158,8 @@ public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements IT
 		FluidStack f = FluidUtil.getFluidContained(stack);
 		if(f == null)
 			return false;
-		if((tank == 0 && f.getFluid() == ModForgeFluids.kerosene) || (tank == 1 && f.getFluid() == ModForgeFluids.oxygen))
-			return true;
-		return false;
-	}
+        return (tank == 0 && f.getFluid() == ModForgeFluids.KEROSENE) || (tank == 1 && f.getFluid() == ModForgeFluids.OXYGEN);
+    }
 	
 	@Override
 	public void networkUnpack(NBTTagCompound data) {
@@ -266,7 +265,7 @@ public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements IT
 			int x = inventory.getStackInSlot(1).getTagCompound().getInteger("xCoord");
 			int z = inventory.getStackInSlot(1).getTagCompound().getInteger("zCoord");
 			
-			return (int) Vec3.createVectorHelper(pos.getX() - x, 0, pos.getZ() - z).lengthVector();
+			return (int) Vec3.createVectorHelper(pos.getX() - x, 0, pos.getZ() - z).length();
 		}
 			
 		return 0;
@@ -358,7 +357,7 @@ public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements IT
 	}
 	
 	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setLong("power", power);
 		compound.setByte("mode", mode);
 		compound.setTag("inventory", inventory.serializeNBT());
@@ -375,9 +374,9 @@ public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements IT
 	public int fill(FluidStack resource, boolean doFill) {
 		if(resource == null)
 			return 0;
-		if(resource.getFluid() == ModForgeFluids.kerosene)
+		if(resource.getFluid() == ModForgeFluids.KEROSENE)
 			return tanks[0].fill(resource, doFill);
-		if(resource.getFluid() == ModForgeFluids.oxygen)
+		if(resource.getFluid() == ModForgeFluids.OXYGEN)
 			return tanks[1].fill(resource, doFill);
 		return 0;
 	}

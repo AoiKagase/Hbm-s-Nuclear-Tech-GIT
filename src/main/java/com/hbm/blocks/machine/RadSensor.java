@@ -27,7 +27,7 @@ public class RadSensor extends BlockContainer {
 
 	public RadSensor(Material materialIn, String s) {
 		super(materialIn);
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		
 		ModBlocks.ALL_BLOCKS.add(this);
@@ -70,12 +70,7 @@ public class RadSensor extends BlockContainer {
 		return true;
 	}
 
-	@Override
-	public boolean getWeakChanges(IBlockAccess world, BlockPos pos){
-		return false;
-	}
-	
-	@Override
+    @Override
 	public int getWeakPower(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
 		if(side == EnumFacing.UP)
 			return 0;

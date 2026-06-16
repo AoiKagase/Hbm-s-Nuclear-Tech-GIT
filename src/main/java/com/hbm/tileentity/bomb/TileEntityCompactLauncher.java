@@ -104,7 +104,7 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 	}
 
 	public boolean hasCustomInventoryName() {
-		return this.customName != null && this.customName.length() > 0;
+		return this.customName != null && !this.customName.isEmpty();
 	}
 
 	public void setCustomName(String name) {
@@ -176,7 +176,7 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 				for(int x = -1; x <= 1; x++) {
 					for(int z = -1; z <= 1; z++) {
 
-						if(world.isBlockIndirectlyGettingPowered(mPos.setPos(pos.getX() + x, pos.getY(), pos.getZ() + z)) > 0) {
+						if(world.getRedstonePowerFromNeighbors(mPos.setPos(pos.getX() + x, pos.getY(), pos.getZ() + z)) > 0) {
 							launch();
 							break outer;
 						}
@@ -217,11 +217,8 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 	}
 
 	public boolean canLaunch() {
-		if(power >= maxPower * 0.75 && isMissileValid() && hasDesignator() && hasFuel() && clearingTimer == 0)
-			return true;
-
-		return false;
-	}
+        return power >= maxPower * 0.75 && isMissileValid() && hasDesignator() && hasFuel() && clearingTimer == 0;
+    }
 
 	public void launch() {
 
@@ -298,9 +295,7 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 
 	protected boolean inputValidForTank(int tank, int slot) {
 		if(tanks[tank] != null) {
-			if(isValidFluidForTank(tank, FluidUtil.getFluidContained(inventory.getStackInSlot(slot)))) {
-				return true;
-			}
+            return isValidFluidForTank(tank, FluidUtil.getFluidContained(inventory.getStackInSlot(slot)));
 		}
 		return false;
 	}
@@ -420,19 +415,19 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 
 		switch((FuelType) fuselage.attributes[0]) {
 		case KEROSENE:
-			tankTypes[0] = ModForgeFluids.kerosene;
-			tankTypes[1] = ModForgeFluids.acid;
+			tankTypes[0] = ModForgeFluids.KEROSENE_REFORM;
+			tankTypes[1] = ModForgeFluids.ACID;
 			break;
 		case HYDROGEN:
-			tankTypes[0] = ModForgeFluids.hydrogen;
-			tankTypes[1] = ModForgeFluids.oxygen;
+			tankTypes[0] = ModForgeFluids.HYDROGEN;
+			tankTypes[1] = ModForgeFluids.OXYGEN;
 			break;
 		case XENON:
-			tankTypes[0] = ModForgeFluids.xenon;
+			tankTypes[0] = ModForgeFluids.XENON;
 			break;
 		case BALEFIRE:
-			tankTypes[0] = ModForgeFluids.balefire;
-			tankTypes[1] = ModForgeFluids.acid;
+			tankTypes[0] = ModForgeFluids.BALEFIRE;
+			tankTypes[1] = ModForgeFluids.ACID;
 			break;
 		default:
 			break;

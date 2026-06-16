@@ -45,7 +45,7 @@ public class GunB92 extends Item implements IHasCustomModel {
 	public GunB92(String s) {
 
 		this.maxStackSize = 1;
-		this.setUnlocalizedName(s);
+		this.setTranslationKey(s);
 		this.setRegistryName(s);
 		this.setCreativeTab(MainRegistry.weaponTab);
 		ModItems.ALL_ITEMS.add(this);
@@ -237,11 +237,10 @@ public class GunB92 extends Item implements IHasCustomModel {
 
 	@Override
 	public Multimap<String, AttributeModifier> getItemAttributeModifiers(EntityEquipmentSlot equipmentSlot) {
-		Multimap<String, AttributeModifier> multimap = super.getItemAttributeModifiers(equipmentSlot);
-		// multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new
+        // multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new
 		// AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", 3.5,
 		// 0));
-		return multimap;
+		return super.getItemAttributeModifiers(equipmentSlot);
 	}
 
 	private static int getAnim(ItemStack stack) {

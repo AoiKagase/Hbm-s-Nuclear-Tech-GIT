@@ -3,8 +3,6 @@ package com.hbm.inventory.material;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.hbm.util.Compat;
-
 public class MaterialShapes {
 	
 	public static final List<MaterialShapes> allShapes = new ArrayList();
@@ -30,7 +28,7 @@ public class MaterialShapes {
 	public static final MaterialShapes HEAVY_COMPONENT = new MaterialShapes(CASTPLATE.quantity * 256, "componentHeavy");
 	
 	
-	private int quantity;
+	private final int quantity;
 	public final String[] prefixes;
 	
 	private MaterialShapes(int quantity, String... prefixes) {
@@ -49,10 +47,14 @@ public class MaterialShapes {
 	}
 	
 	public int q(int unitsUsed, int itemsProduced) { //eg rails: INOGT.q(6, 16) since the recipe uses 6 iron ingots producing 16 individual rail blocks
-		return this.quantity * unitsUsed / itemsProduced;
+		return (this.quantity * unitsUsed) / itemsProduced;
 	}
 
 	public String name() {
 		return (prefixes != null && prefixes.length > 0) ? prefixes[0] : "unknown";
+	}
+
+	public String make(NTMMaterial mat) {
+		return this.name() + mat.names[0];
 	}
 }
