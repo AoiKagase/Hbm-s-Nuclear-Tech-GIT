@@ -57,6 +57,11 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacketReceiver, ITickable, IControllable {
 
 	public static int rbmkHeight = 4;
+	private static final int NETWORK_PACK_INTERVAL = 5;
+	private static final int IDENTICAL_NETWORK_PACK_RESEND_INTERVAL = 20;
+	private NBTTagCompound lastNetworkPack;
+	private int lastNetworkPackRange;
+	private long lastNetworkPackTick = Long.MIN_VALUE;
 	
 	public double heat = 20.0D;
 	public double jumpheight = 0.0D;
@@ -295,10 +300,36 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 	
 	public void networkPack(NBTTagCompound nbt, int range) {
 
+		if(!shouldSendNetworkPack(nbt, range))
+			return;
+
 		diag = true;
-		if(!world.isRemote)
+		try {
 			PacketDispatcher.wrapper.sendToAllAround(new NBTPacket(nbt, pos), new TargetPoint(this.world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), range));
-		diag = false;
+		} finally {
+			diag = false;
+		}
+	}
+
+	private boolean shouldSendNetworkPack(NBTTagCompound nbt, int range) {
+
+		if(world == null || world.isRemote)
+			return false;
+
+		long currentTick = world.getTotalWorldTime();
+		long ticksSinceLastPack = currentTick - lastNetworkPackTick;
+
+		if(lastNetworkPack != null && lastNetworkPackRange == range && lastNetworkPack.equals(nbt)) {
+			if(ticksSinceLastPack < IDENTICAL_NETWORK_PACK_RESEND_INTERVAL)
+				return false;
+		} else if(ticksSinceLastPack < NETWORK_PACK_INTERVAL) {
+			return false;
+		}
+
+		lastNetworkPack = nbt.copy();
+		lastNetworkPackRange = range;
+		lastNetworkPackTick = currentTick;
+		return true;
 	}
 	
 	public void networkUnpack(NBTTagCompound nbt) {
