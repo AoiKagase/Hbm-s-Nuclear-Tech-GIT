@@ -1,6 +1,7 @@
 package com.hbm.tileentity.conductor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.hbm.forgefluid.FFPipeNetworkMk2;
@@ -127,8 +128,8 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
 
 	public void onNeighborChange() {
 		rebuildCache();
-		updateConnections();
-		if(!world.isRemote)
+		boolean connectionChanged = updateConnections();
+		if(!world.isRemote && connectionChanged)
 			PacketDispatcher.wrapper.sendToAllTracking(new PipeUpdatePacket(pos), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
 	}
 
@@ -256,7 +257,9 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
         return changed;
 	}
 
-	public void updateConnections() {
+	public boolean updateConnections() {
+		EnumFacing[] oldConnections = connections.clone();
+
 		if(FFUtils.checkFluidConnectablesMk2(this.world, pos.up(), getType(), EnumFacing.UP.getOpposite()))
 			connections[0] = EnumFacing.UP;
 		else
@@ -286,6 +289,8 @@ public class TileEntityFFDuctBaseMk2 extends TileEntity implements IFluidPipeMk2
 			connections[5] = EnumFacing.WEST;
 		else
 			connections[5] = null;
+
+		return !Arrays.equals(oldConnections, connections);
 	}
 
 	@Override
