@@ -16,9 +16,13 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class TileEntityDecoBlockAlt extends TileEntity implements ITickable {
+	private static final int EFFECT_INTERVAL = 5;
 	
 	@Override
 	public void update() {
+		if(world.isRemote || world.getTotalWorldTime() % EFFECT_INTERVAL != Math.floorMod(pos.hashCode(), EFFECT_INTERVAL))
+			return;
+
 		if(world.getBlockState(pos).getBlock() != ModBlocks.statue_elb_f)
 			return;
 		int strength = 4;
@@ -56,7 +60,7 @@ public class TileEntityDecoBlockAlt extends TileEntity implements ITickable {
                 {
                 	if(entity instanceof EntityPlayer) {
                 		((EntityPlayer)entity).addPotionEffect(new PotionEffect(MobEffects.INSTANT_HEALTH, 5, 99));
-                		((EntityPlayer)entity).addPotionEffect(new PotionEffect(MobEffects.SATURATION, 5, 99));
+                		((EntityPlayer)entity).addPotionEffect(new PotionEffect(MobEffects.SATURATION, EFFECT_INTERVAL + 5, 99));
                     }
                 }
             }

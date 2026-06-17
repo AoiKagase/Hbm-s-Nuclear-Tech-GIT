@@ -23,6 +23,9 @@ public class TileEntityPlasmaStruct extends TileEntity implements ITickable {
 		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata());
 
 		if(world.isRemote) {
+			if((world.getTotalWorldTime() & 1) != 0)
+				return;
+
 			world.spawnParticle(EnumParticleTypes.REDSTONE,
 					pos.getX() + 0.5 + dir.offsetX * -11 + world.rand.nextGaussian() * 0.1,
 					pos.getY() + 2.5 + world.rand.nextGaussian() * 0.1,
