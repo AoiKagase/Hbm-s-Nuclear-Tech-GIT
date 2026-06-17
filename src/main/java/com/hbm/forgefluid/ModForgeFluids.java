@@ -136,6 +136,7 @@ public class ModForgeFluids {
 	public static Fluid NITROGLYCERIN = 		createFluid("nitroglycerin");
 	
 	public static Fluid LIQUID_OSMIRIDIUM = 	createFluid("liquid_osmiridium").setTemperature(573);
+	public static Fluid WATZ = 					createFluidFlowing("watz").setDensity(2500).setViscosity(3000).setLuminosity(5).setTemperature(2773);
 	public static Fluid CRYOGEL = 				createFluid("cryogel").setTemperature(50);
 
 	public static Fluid HYDROGEN = 				createFluid("hydrogen");
@@ -276,6 +277,7 @@ public class ModForgeFluids {
 		NITROGLYCERIN = 			registerOrGet(NITROGLYCERIN, "nitroglycerin");
 
 		LIQUID_OSMIRIDIUM = 		registerOrGet(LIQUID_OSMIRIDIUM, "liquid_osmiridium");
+		WATZ = 						registerOrGet(WATZ, "watz");
 		CRYOGEL = 					registerOrGet(CRYOGEL, "cryogel");
 
 		HYDROGEN = 					registerOrGet(HYDROGEN, "hydrogen").setGaseous(true);
@@ -438,6 +440,7 @@ public class ModForgeFluids {
 		NITROGLYCERIN = 		loadFluid("nitroglycerin");
 
 		LIQUID_OSMIRIDIUM = 	loadFluid("liquid_osmiridium");
+		WATZ = 					loadFluid("watz");
 		CRYOGEL = 				loadFluid("cryogel");
 
 		HYDROGEN = 				loadFluid("hydrogen");

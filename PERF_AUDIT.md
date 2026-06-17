@@ -12,10 +12,23 @@ Date: 2026-06-17
 
 ## Post-Change Build
 
-- Task attempted after code changes: `.\gradlew.bat build --stacktrace`
-- Result: still blocked during configuration, now on `com.gtnewhorizons.retrofuturagradle:1.4.9` resolution in `build.gradle` line 36 when run in this offline sandbox.
-- I also tested a direct Gradle 8.12 launch with a local JDK 21 and a writable project cache directory; the build still stopped before compilation because the plugin could not be resolved from the available local caches/repositories.
-- Because Gradle never reached source compilation, compile-time validation of the Java edits is still pending until the build plugin can be resolved in this environment.
+- Task attempted after build recovery and compile fixes: Gradle 8.12 `build --no-daemon --console=plain`.
+- Result: `BUILD SUCCESSFUL in 56s`.
+- Working invocation used `JAVA_HOME=C:\Program Files\OpenLogic\jdk-21.0.6.7-hotspot` and `GRADLE_USER_HOME=C:\Users\SandS\.gradle`.
+- The earlier plugin resolution failure was caused by running Gradle against the sandbox user cache instead of the populated real user Gradle cache.
+- The build emitted expected warnings about missing `buildscript.properties`, insecure `jared maven`, and Gradle 9 deprecations, but they did not block the build.
+
+## Build Recovery Notes
+
+| File | Issue | Fix | Implemented |
+| --- | --- | --- | --- |
+| `settings.gradle` | Local edits had removed `blowdryerSetup` and Foojay toolchain provisioning from the historical Gradle configuration. | Restored `com.diffplug.blowdryerSetup`, `org.gradle.toolchains.foojay-resolver-convention`, and the Buildscripts `spotless` Blowdryer setup from history. | Yes |
+| `build.gradle` | Local edits had removed the `idea-ext` plugin and the Blowdryer extension registration expected by the existing Spotless block. | Restored `org.jetbrains.gradle.plugin.idea-ext` and `project.extensions.add(com.diffplug.blowdryer.Blowdryer, ...)`. | Yes |
+| `src/main/java/com/hbm/forgefluid/ModForgeFluids.java` | `TileEntityMachineCMBFactory` referenced the historical Watz fluid, but the field was missing in the current source. | Restored `WATZ = createFluidFlowing("watz")`, its `registerOrGet`, and `loadFluid` entries from commit `8db60613`. The registry name remains `watz`. | Yes |
+| `src/main/java/com/hbm/tileentity/machine/TileEntityMachineCMBFactory.java` | Referenced non-existent `ModForgeFluids.watz`. | Updated to the restored `ModForgeFluids.WATZ`. | Yes |
+| `src/main/java/com/hbm/tileentity/machine/TileEntityMachineUF6Tank.java` | Referenced non-existent lowercase `ModForgeFluids.uf6`. | Updated to existing `ModForgeFluids.UF6`. | Yes |
+| `src/main/java/com/hbm/tileentity/machine/TileEntityMachinePuF6Tank.java` | Referenced non-existent lowercase `ModForgeFluids.puf6`. | Updated to existing `ModForgeFluids.PUF6`. | Yes |
+| `src/main/java/com/hbm/tileentity/machine/TileEntityMachineCentrifuge.java` | Used `Item` without importing `net.minecraft.item.Item`. | Added the missing import. | Yes |
 
 ## Implemented Optimizations
 
