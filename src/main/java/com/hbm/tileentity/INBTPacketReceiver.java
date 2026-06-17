@@ -12,6 +12,12 @@ public interface INBTPacketReceiver {
 	void networkUnpack(NBTTagCompound nbt);
 
 	static void networkPack(TileEntity that, NBTTagCompound data, int range) {
+		if(that.getWorld() == null || that.getWorld().isRemote)
+			return;
+
+		if(that instanceof TileEntityLoadedBase && !((TileEntityLoadedBase) that).shouldSendNetworkPack(data, range))
+			return;
+
 		BlockPos pos = that.getPos();
 		PacketDispatcher.wrapper.sendToAllAround(new NBTPacket(data, pos), new TargetPoint(that.getWorld().provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), range));
 	}

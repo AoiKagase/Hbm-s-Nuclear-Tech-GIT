@@ -26,18 +26,8 @@ public abstract class TileEntityCraneBase extends TileEntityMachineBase implemen
     // for compatibility purposes, normal meta values are still used by default
     private EnumFacing outputOverride = null;
 
-    // for extra stability in case the screwdriver action doesn't get synced to
-    // other clients
-    private EnumFacing cachedOutputOverride = null;
-
     @Override
     public void update() {
-        if(hasWorld() && world.isRemote) {
-            if(cachedOutputOverride != outputOverride) {
-                world.markBlockRangeForRenderUpdate(pos, pos);
-                cachedOutputOverride = outputOverride;
-            }
-        }
     }
 
     public EnumFacing getInputSide() {
@@ -98,9 +88,12 @@ public abstract class TileEntityCraneBase extends TileEntityMachineBase implemen
 
     protected void onBlockChanged() {
         if(!hasWorld()) return;
-        world.markBlockRangeForRenderUpdate(pos, pos);
-        world.notifyBlockUpdate(pos, getBlockType().getDefaultState(), getBlockType().getDefaultState(), 3);
-        markDirty();
+        if(world.isRemote) {
+            world.markBlockRangeForRenderUpdate(pos, pos);
+        } else {
+            world.notifyBlockUpdate(pos, getBlockType().getDefaultState(), getBlockType().getDefaultState(), 3);
+            markDirty();
+        }
     }
 
     @Override
@@ -118,10 +111,14 @@ public abstract class TileEntityCraneBase extends TileEntityMachineBase implemen
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
+        EnumFacing oldOutputOverride = outputOverride;
         if(nbt.hasKey("CraneOutputOverride", Constants.NBT.TAG_BYTE)) {
             outputOverride = EnumFacing.values()[nbt.getByte("CraneOutputOverride")];
         } else {
                 outputOverride = null;
+        }
+        if(hasWorld() && world.isRemote && oldOutputOverride != outputOverride) {
+            world.markBlockRangeForRenderUpdate(pos, pos);
         }
     }
 
