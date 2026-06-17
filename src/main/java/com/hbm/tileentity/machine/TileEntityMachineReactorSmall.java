@@ -795,22 +795,27 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 	private boolean detectRetracting;
 	private int detectCompression;
 	private FluidTank[] detectTanks = new FluidTank[] { null, null, null };
+	private boolean clientStateInitialized;
 
 	private void detectAndSendChanges() {
 		boolean mark = false;
-		if(detectHeat != coreHeat) {
+		boolean coreHeatChanged = !clientStateInitialized || detectHeat != coreHeat;
+		boolean hullHeatChanged = !clientStateInitialized || detectHullHeat != hullHeat;
+		boolean rodsChanged = !clientStateInitialized || detectRods != rods;
+		boolean retractingChanged = !clientStateInitialized || detectRetracting != retracting;
+		if(coreHeatChanged) {
 			mark = true;
 			detectHeat = coreHeat;
 		}
-		if(detectHullHeat != hullHeat) {
+		if(hullHeatChanged) {
 			mark = true;
 			detectHullHeat = hullHeat;
 		}
-		if(detectRods != rods) {
+		if(rodsChanged) {
 			mark = true;
 			detectRods = rods;
 		}
-		if(detectRetracting != retracting) {
+		if(retractingChanged) {
 			mark = true;
 			detectRetracting = retracting;
 		}
@@ -833,10 +838,15 @@ public class TileEntityMachineReactorSmall extends TileEntity implements ITickab
 			needsUpdate = true;
 			detectTanks[2] = FFUtils.copyTank(tanks[2]);
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), coreHeat, 2), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), hullHeat, 3), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), rods, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), retracting ? 1 : 0, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		if(coreHeatChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), coreHeat, 2), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		if(hullHeatChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), hullHeat, 3), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		if(rodsChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), rods, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+		if(retractingChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), retracting ? 1 : 0, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		clientStateInitialized = true;
 		if(mark)
 			markDirty();
 	}

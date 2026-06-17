@@ -270,14 +270,17 @@ public class TileEntityMachineBoiler extends TileEntityMachineBase implements IT
 	private int detectHeat;
 	private int detectBurnTime;
 	private FluidTank[] detectTanks = new FluidTank[]{null, null};
+	private boolean clientStateInitialized;
 	
 	private void detectAndSendChanges() {
 		boolean mark = false;
-		if(detectHeat != heat){
+		boolean heatChanged = !clientStateInitialized || detectHeat != heat;
+		boolean burnTimeChanged = !clientStateInitialized || detectBurnTime != burnTime;
+		if(heatChanged){
 			detectHeat = heat;
 			mark = true;
 		}
-		if(detectBurnTime != burnTime){
+		if(burnTimeChanged){
 			detectBurnTime = burnTime;
 			mark = true;
 		}
@@ -291,8 +294,11 @@ public class TileEntityMachineBoiler extends TileEntityMachineBase implements IT
 			detectTanks[1] = FFUtils.copyTank(tanks[1]);
 			mark = true;
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), heat, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), burnTime, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		if(heatChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), heat, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		if(burnTimeChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), burnTime, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		clientStateInitialized = true;
 		if(mark)
 			markDirty();
 	}

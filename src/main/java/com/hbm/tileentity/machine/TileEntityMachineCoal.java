@@ -259,25 +259,31 @@ public class TileEntityMachineCoal extends TileEntityMachineBase implements ITic
 	private long detectPower;
 	private int detectBurnTime;
 	private FluidTank detectTank = null;
+	private boolean clientStateInitialized;
 	
 	private void detectAndSendChanges() {
 		boolean mark = false;
+		boolean powerChanged = !clientStateInitialized || detectPower != power;
+		boolean burnTimeChanged = !clientStateInitialized || detectBurnTime != burnTime;
 		
-		if(detectPower != power){
+		if(powerChanged){
 			mark = true;
 			detectPower = power;
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-		if(detectBurnTime != burnTime){
+		if(powerChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		if(burnTimeChanged){
 			mark = true;
 			detectBurnTime = burnTime;
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), burnTime, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		if(burnTimeChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), burnTime, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
 		if(!FFUtils.areTanksEqual(tank, detectTank)){
 			mark = true;
 			detectTank = FFUtils.copyTank(tank);
 			needsUpdate = true;
 		}
+		clientStateInitialized = true;
 		if(mark)
 			markDirty();
 	}
