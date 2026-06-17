@@ -79,6 +79,12 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 
 	public static final int clearingDuraction = 100;
 	public int clearingTimer = 0;
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedSolid = Integer.MIN_VALUE;
+	private int lastSyncedClearingTimer = Integer.MIN_VALUE;
 	
 	private String customName;
 
@@ -86,6 +92,7 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 		inventory = new ItemStackHandler(8) {
 			@Override
 			protected void onContentsChanged(int slot) {
+				needsUpdate = true;
 				markDirty();
 				super.onContentsChanged(slot);
 			}
@@ -152,24 +159,34 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 					inventory.setStackInSlot(4, ItemStack.EMPTY);
 				}
 				solid += 250;
+				needsUpdate = true;
 			}
 
-			if(needsUpdate) {
-				needsUpdate = false;
-			}
+			boolean syncInventory = needsUpdate;
+			boolean fullSync = shouldFullSyncClient();
 			if(world.getTotalWorldTime() % 20 == 0)
 				this.updateConnections();
 
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, solid, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, clearingTimer, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] { tanks[0], tanks[1] }), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
 			MissileStruct multipart = getStruct(inventory.getStackInSlot(0));
+			if(shouldSyncClient(syncInventory)) {
+				TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20);
+				PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), point);
+				PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, solid, 0), point);
+				PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, clearingTimer, 1), point);
+				PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] { tanks[0], tanks[1] }), point);
+				lastSyncedPower = power;
+				lastSyncedSolid = solid;
+				lastSyncedClearingTimer = clearingTimer;
+				lastClientSyncTick = world.getTotalWorldTime();
+			}
 
-			if(multipart != null)
-				PacketDispatcher.wrapper.sendToAllAround(new TEMissileMultipartPacket(pos, multipart), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 200));
-			else
-				PacketDispatcher.wrapper.sendToAllAround(new TEMissileMultipartPacket(pos, new MissileStruct()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 200));
+			if(syncInventory || fullSync) {
+				if(multipart != null)
+					PacketDispatcher.wrapper.sendToAllAround(new TEMissileMultipartPacket(pos, multipart), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 200));
+				else
+					PacketDispatcher.wrapper.sendToAllAround(new TEMissileMultipartPacket(pos, new MissileStruct()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 200));
+			}
+			needsUpdate = false;
 			if(canLaunch()) {
 				MutableBlockPos mPos = new BlockPos.MutableBlockPos();
 				outer: 
@@ -198,6 +215,16 @@ public class TileEntityCompactLauncher extends TileEntityLoadedBase implements I
 				}
 			}
 		}
+	}
+
+	private boolean shouldSyncClient(boolean inventoryChanged) {
+		long time = world.getTotalWorldTime();
+		boolean changed = inventoryChanged || power != lastSyncedPower || solid != lastSyncedSolid || clearingTimer != lastSyncedClearingTimer;
+		return lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL || changed && time - lastClientSyncTick >= CLIENT_SYNC_INTERVAL;
+	}
+
+	private boolean shouldFullSyncClient() {
+		return lastClientSyncTick < 0 || world.getTotalWorldTime() - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
 	}
 
 	private void updateConnections() {

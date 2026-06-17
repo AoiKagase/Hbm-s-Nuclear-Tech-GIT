@@ -77,6 +77,13 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 
 	public static final int clearingDuraction = 100;
 	public int clearingTimer = 0;
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedSolid = Integer.MIN_VALUE;
+	private int lastSyncedPadSize = Integer.MIN_VALUE;
+	private int lastSyncedClearingTimer = Integer.MIN_VALUE;
 	
 	private String customName;
 	
@@ -84,6 +91,7 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 		inventory = new ItemStackHandler(8){
 			@Override
 			protected void onContentsChanged(int slot) {
+				needsUpdate = true;
 				markDirty();
 				super.onContentsChanged(slot);
 			}
@@ -152,22 +160,32 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 				if(inventory.getStackInSlot(4).isEmpty())
 					inventory.setStackInSlot(4, ItemStack.EMPTY);
 				solid += 250;
+				needsUpdate = true;
 			}
 			
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, solid, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, padSize.ordinal(), 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, clearingTimer, 2), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[]{tanks[0], tanks[1]}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			
+			boolean syncInventory = needsUpdate;
+			boolean fullSync = shouldFullSyncClient();
 			MissileStruct multipart = getStruct(inventory.getStackInSlot(0));
-			if(needsUpdate){
-				needsUpdate = false;
+			if(shouldSyncClient(syncInventory)) {
+				TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20);
+				PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), point);
+				PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, solid, 0), point);
+				PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, padSize.ordinal(), 1), point);
+				PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, clearingTimer, 2), point);
+				PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[]{tanks[0], tanks[1]}), point);
+				lastSyncedPower = power;
+				lastSyncedSolid = solid;
+				lastSyncedPadSize = padSize.ordinal();
+				lastSyncedClearingTimer = clearingTimer;
+				lastClientSyncTick = world.getTotalWorldTime();
 			}
-			if(multipart != null)
-				PacketDispatcher.wrapper.sendToAllAround(new TEMissileMultipartPacket(pos, multipart), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 200));
-			else
-				PacketDispatcher.wrapper.sendToAllAround(new TEMissileMultipartPacket(pos, new MissileStruct()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 200));
+			if(syncInventory || fullSync) {
+				if(multipart != null)
+					PacketDispatcher.wrapper.sendToAllAround(new TEMissileMultipartPacket(pos, multipart), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 200));
+				else
+					PacketDispatcher.wrapper.sendToAllAround(new TEMissileMultipartPacket(pos, new MissileStruct()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 200));
+			}
+			needsUpdate = false;
 
 			outer:
 			for(int x = -4; x <= 4; x++) {
@@ -194,6 +212,16 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ITick
 				}
 			}
 		}
+	}
+
+	private boolean shouldSyncClient(boolean inventoryChanged) {
+		long time = world.getTotalWorldTime();
+		boolean changed = inventoryChanged || power != lastSyncedPower || solid != lastSyncedSolid || padSize.ordinal() != lastSyncedPadSize || clearingTimer != lastSyncedClearingTimer;
+		return lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL || changed && time - lastClientSyncTick >= CLIENT_SYNC_INTERVAL;
+	}
+
+	private boolean shouldFullSyncClient() {
+		return lastClientSyncTick < 0 || world.getTotalWorldTime() - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
 	}
 
 	private void updateConnections() {
