@@ -10,12 +10,19 @@ import net.minecraft.tileentity.TileEntity;
 
 public class TileEntityCableBaseNT extends TileEntity implements ITickable, IEnergyConductor {
 	
+	private static final int NETWORK_BUILD_SPREAD_TICKS = 4;
+
 	protected IPowerNet network;
+	private boolean networkBuildScheduled;
+	private long nextNetworkBuildTick = Long.MIN_VALUE;
 
 	@Override
 	public void update() {
 		
 		if(!world.isRemote && canUpdate()) {
+
+			if(!canBuildNetworkThisTick())
+				return;
 			
 			//we got here either because the net doesn't exist or because it's not valid, so that's safe to assume
 			this.setPowerNet(null);
@@ -26,6 +33,19 @@ public class TileEntityCableBaseNT extends TileEntity implements ITickable, IEne
 				this.setPowerNet(new PowerNet().joinLink(this));
 			}
 		}
+	}
+
+	private boolean canBuildNetworkThisTick() {
+
+		long currentTick = world.getTotalWorldTime();
+
+		if(!networkBuildScheduled) {
+			int delay = (getIdentity() & Integer.MAX_VALUE) % NETWORK_BUILD_SPREAD_TICKS;
+			nextNetworkBuildTick = currentTick + delay;
+			networkBuildScheduled = true;
+		}
+
+		return currentTick >= nextNetworkBuildTick;
 	}
 	
 	protected void connect() {
@@ -84,6 +104,7 @@ public class TileEntityCableBaseNT extends TileEntity implements ITickable, IEne
 	@Override
 	public void setPowerNet(IPowerNet network) {
 		this.network = network;
+		this.networkBuildScheduled = false;
 	}
 
 	@Override
