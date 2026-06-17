@@ -47,6 +47,12 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 	int age = 0;
 	int consumption = 100;
 	int speed = 100;
+	private long detectPower;
+	private int detectProgress;
+	private int detectMaxProgress;
+	private boolean detectIsProgressing;
+	private int detectRecipe = Integer.MIN_VALUE;
+	private boolean pendingMeterSync;
 
 	@SideOnly(Side.CLIENT)
 	public int recipe;
@@ -104,7 +110,8 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 	public void update() {
 		if (!world.isRemote) {
 
-			this.updateConnections();
+			if((world.getTotalWorldTime() + pos.toLong()) % 20 == 0)
+				this.updateConnections();
 
 			this.consumption = 100;
 			this.speed = 100;
@@ -247,16 +254,28 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 				}
 			}
 
-			NBTTagCompound data = new NBTTagCompound();
-			data.setLong("power", power);
-			data.setInteger("progress", progress);
-			data.setInteger("maxProgress", maxProgress);
-			data.setBoolean("isProgressing", isProgressing);
-			data.setInteger("recipe",
-					!inventory.getStackInSlot(4).isEmpty()
-							? ItemAssemblyTemplate.getRecipeIndex(inventory.getStackInSlot(4))
-							: -1);
-			this.networkPack(data, 150);
+			int recipeId = !inventory.getStackInSlot(4).isEmpty()
+					? ItemAssemblyTemplate.getRecipeIndex(inventory.getStackInSlot(4))
+					: -1;
+			if(detectPower != power || detectProgress != progress)
+				pendingMeterSync = true;
+			boolean sync = detectIsProgressing != isProgressing || detectMaxProgress != maxProgress || detectRecipe != recipeId
+					|| (pendingMeterSync && world.getTotalWorldTime() % 5 == 0);
+			detectPower = power;
+			detectProgress = progress;
+			detectMaxProgress = maxProgress;
+			detectIsProgressing = isProgressing;
+			detectRecipe = recipeId;
+			if(sync) {
+				NBTTagCompound data = new NBTTagCompound();
+				data.setLong("power", power);
+				data.setInteger("progress", progress);
+				data.setInteger("maxProgress", maxProgress);
+				data.setBoolean("isProgressing", isProgressing);
+				data.setInteger("recipe", recipeId);
+				this.networkPack(data, 150);
+				pendingMeterSync = false;
+			}
 		} else {
 
 			float volume = this.getVolume(2);

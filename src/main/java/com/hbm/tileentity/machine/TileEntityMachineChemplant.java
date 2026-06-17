@@ -72,6 +72,8 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 	private long detectPower;
 	private boolean detectIsProgressing;
 	private FluidTank[] detectTanks = new FluidTank[]{null, null, null, null};
+	private IFluidHandler fluidHandler;
+	private boolean pendingPowerSync;
 
 	public TileEntityMachineChemplant() {
 		super(21);
@@ -90,6 +92,7 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 		tanks[2] = new FluidTank(24000);
 		tanks[3] = new FluidTank(24000);
 		tankTypes = new Fluid[]{null, null, null, null};
+		fluidHandler = new ChemplantFluidHandler(tanks, tankTypes);
 	}
 
 	public void OnContentsChanged(int slot) {
@@ -251,7 +254,8 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 				fillFluidInit(tanks[3]);
 			}
 
-			this.updateConnections();
+			if((world.getTotalWorldTime() + pos.toLong()) % 20 == 0)
+				this.updateConnections();
 
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 
@@ -897,7 +901,7 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 
 	@Override
 	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY ? CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(new ChemplantFluidHandler(tanks, tankTypes)) :
+		return capability == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY ? CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY.cast(fluidHandler) :
 				super.getCapability(capability, facing);
 	}
 
@@ -939,42 +943,59 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 
 	private void detectAndSendChanges() {
 
-		PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
+		if(isProgressing && (!detectIsProgressing || world.getTotalWorldTime() % 20 == 0))
+			PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
 
 
 		boolean mark = false;
+		boolean syncState = false;
+		boolean syncPower = false;
+		boolean syncTanks = false;
 
 		if(detectIsProgressing != isProgressing) {
 			mark = true;
+			syncState = true;
 			detectIsProgressing = isProgressing;
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new TEChemplantPacket(pos.getX(), pos.getY(), pos.getZ(), isProgressing), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
 		if(detectPower != power) {
 			mark = true;
+			pendingPowerSync = true;
 			detectPower = power;
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
 		if(!FFUtils.areTanksEqual(detectTanks[0], tanks[0])) {
 			detectTanks[0] = FFUtils.copyTank(tanks[0]);
 			mark = true;
 			needsUpdate = true;
+			syncTanks = true;
 		}
 		if(!FFUtils.areTanksEqual(detectTanks[1], tanks[1])) {
 			detectTanks[1] = FFUtils.copyTank(tanks[1]);
 			mark = true;
 			needsUpdate = true;
+			syncTanks = true;
 		}
 		if(!FFUtils.areTanksEqual(detectTanks[2], tanks[2])) {
 			detectTanks[2] = FFUtils.copyTank(tanks[2]);
 			mark = true;
 			needsUpdate = true;
+			syncTanks = true;
 		}
 		if(!FFUtils.areTanksEqual(detectTanks[3], tanks[3])) {
 			detectTanks[3] = FFUtils.copyTank(tanks[3]);
 			mark = true;
 			needsUpdate = true;
+			syncTanks = true;
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[]{tanks[0], tanks[1], tanks[2], tanks[3]}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+		if(syncState)
+			PacketDispatcher.wrapper.sendToAllAround(new TEChemplantPacket(pos.getX(), pos.getY(), pos.getZ(), isProgressing), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+		if(pendingPowerSync && world.getTotalWorldTime() % 5 == 0)
+			syncPower = true;
+		if(syncPower) {
+			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+			pendingPowerSync = false;
+		}
+		if(syncTanks)
+			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[]{tanks[0], tanks[1], tanks[2], tanks[3]}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
 
 		if(mark)
 			markDirty();

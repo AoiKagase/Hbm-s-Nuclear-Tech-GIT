@@ -1,7 +1,5 @@
 package com.hbm.tileentity.machine;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.hbm.blocks.ModBlocks;
@@ -50,6 +48,7 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 	public FluidTank tank;
 
     private final UpgradeManager upgradeManager = new UpgradeManager();
+	private boolean wasProgressing;
 
     //private static final int[] slots_top = new int[] {3};
 	//private static final int[] slots_bottom = new int[] {5, 6, 7, 8};
@@ -140,17 +139,16 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
         this.progress = 0;
 		tank.drain(amount, true);
 		
-		List<GasCentOutput> random = new ArrayList<GasCentOutput>();
-
-        for (GasCentOutput gasCentOutput : out) {
-            for (int j = 0; j < gasCentOutput.weight; j++) {
-                random.add(gasCentOutput);
-            }
-        }
-		
-		Collections.shuffle(random);
-		
-		GasCentOutput result = random.get(world.rand.nextInt(random.size()));
+		int totalWeight = useB ? recipe.totalWeightB : recipe.totalWeightA;
+		int selectedWeight = world.rand.nextInt(totalWeight);
+		GasCentOutput result = out.get(0);
+		for(GasCentOutput gasCentOutput : out) {
+			selectedWeight -= gasCentOutput.weight;
+			if(selectedWeight < 0) {
+				result = gasCentOutput;
+				break;
+			}
+		}
 
 		int slot = result.slot + 4;
 		
@@ -182,7 +180,8 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
             consumption *= (overLevel * 3 + 1);
             consumption /= (1 + powerLevel);
 
-			this.updateConnectionsExcept(world, pos, Library.POS_Y);
+			if((world.getTotalWorldTime() + pos.toLong()) % 20 == 0)
+				this.updateConnectionsExcept(world, pos, Library.POS_Y);
 
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 			
@@ -212,7 +211,8 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
                 if(this.progress >= this.processTime) {
 					process();
 				}
-                PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
+                if(!wasProgressing || world.getTotalWorldTime() % 20 == 0)
+					PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
 
 			} else {
 				isProgressing = false;
@@ -220,6 +220,7 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 			}
 
             detectAndSendChanges();
+			wasProgressing = isProgressing;
 		}
 	}
 
@@ -236,34 +237,47 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 	private int detectProgress;
 	private boolean detectIsProgressing;
 	private FluidTank detectTank;
+	private boolean pendingMeterSync;
 	
 	private void detectAndSendChanges(){
 		boolean mark = false;
+		boolean sync = false;
+		boolean periodicSync = world.getTotalWorldTime() % 5 == 0;
 		if(detectPower != power){
 			detectPower = power;
 			mark = true;
+			pendingMeterSync = true;
 		}
 		if(detectProgress != progress){
 			detectProgress = progress;
 			mark = true;
+			pendingMeterSync = true;
 		}
 		if(detectIsProgressing != isProgressing){
 			detectIsProgressing = isProgressing;
 			mark = true;
+			sync = true;
 		}
 		if(!FFUtils.areTanksEqual(tank, detectTank)){
 			detectTank = FFUtils.copyTank(tank);
 			needsUpdate = true;
 			mark = true;
+			sync = true;
 		}
 
-        NBTTagCompound data = new NBTTagCompound();
-        tank.writeToNBT(data);
-        data.setBoolean("ip", isProgressing);
-        data.setInteger("pr", progress);
-        data.setInteger("t", processTime);
-        data.setLong("p", power);
-        this.networkPack(data, 150);
+		if(periodicSync && pendingMeterSync)
+			sync = true;
+
+		if(sync) {
+			NBTTagCompound data = new NBTTagCompound();
+			tank.writeToNBT(data);
+			data.setBoolean("ip", isProgressing);
+			data.setInteger("pr", progress);
+			data.setInteger("t", processTime);
+			data.setLong("p", power);
+			this.networkPack(data, 150);
+			pendingMeterSync = false;
+		}
         if(mark)
 			markDirty();
 	}
