@@ -49,6 +49,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase implements IEnergyUser, IControllable, IControlReceiver, ITickable {
+	private static final int NETWORK_PACK_INTERVAL = 5;
+	private long lastNetworkPackTick = -1;
 
 	@Override
 	public boolean hasPermission(EntityPlayer player){
@@ -225,6 +227,9 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 	}
 
 	public void networkPack(){
+		if(!shouldSendNetworkPackThisTick())
+			return;
+
 		NBTTagCompound data = new NBTTagCompound();
 		if(this.tPos != null) {
 			data.setDouble("tX", this.tPos.x);
@@ -239,6 +244,18 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		data.setBoolean("targetMachines", this.targetMachines);
 		data.setInteger("stattrak", this.stattrak);
 		this.networkPack(data, 250);
+	}
+
+	private boolean shouldSendNetworkPackThisTick() {
+		if(world == null || world.isRemote)
+			return false;
+
+		long time = world.getTotalWorldTime();
+		if(lastNetworkPackTick >= 0 && time - lastNetworkPackTick < NETWORK_PACK_INTERVAL)
+			return false;
+
+		lastNetworkPackTick = time;
+		return true;
 	}
 	
 	@Override
