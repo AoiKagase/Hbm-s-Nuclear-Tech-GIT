@@ -11,14 +11,12 @@ import com.hbm.capability.HbmCapability;
 import com.hbm.capability.HbmCapability.IHBMData;
 import com.hbm.handler.HbmKeybinds.EnumKeybind;
 import com.hbm.items.machine.ItemRBMKRod;
-import com.hbm.packet.NBTPacket;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.inventory.control_panel.IControllable;
 import com.hbm.inventory.control_panel.ControlEventSystem;
 import com.hbm.inventory.control_panel.ControlEvent;
 import com.hbm.inventory.control_panel.DataValue;
 import com.hbm.inventory.control_panel.DataValueFloat;
-import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.INBTPacketReceiver;
 import com.hbm.tileentity.machine.rbmk.IRBMKLoadable;
 import com.hbm.tileentity.TileEntityMachineBase;
@@ -34,7 +32,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.fml.common.Optional;
@@ -244,7 +241,7 @@ public class TileEntityRBMKCraneConsole extends TileEntityMachineBase implements
 				nbt.setDouble("loadedEnrichment", loadedEnrichment);
 				nbt.setBoolean("goesDown", goesDown);
 			}
-			PacketDispatcher.wrapper.sendToAllAround(new NBTPacket(nbt, pos), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 250));
+			this.networkPack(nbt, 250);
 		}
 	}
 

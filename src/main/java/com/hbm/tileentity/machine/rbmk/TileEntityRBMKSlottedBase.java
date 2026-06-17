@@ -1,14 +1,10 @@
 package com.hbm.tileentity.machine.rbmk;
 
-import com.hbm.packet.NBTPacket;
-import com.hbm.packet.PacketDispatcher;
-
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.FluidTank;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
@@ -50,8 +46,7 @@ public abstract class TileEntityRBMKSlottedBase extends TileEntityRBMKActiveBase
 	}
 
 	public void networkPack(NBTTagCompound nbt, int range) {
-		if(!world.isRemote)
-			PacketDispatcher.wrapper.sendToAllAround(new NBTPacket(nbt, pos), new TargetPoint(this.world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), range));
+		super.networkPack(nbt, range);
 	}
 
 	public void networkUnpack(NBTTagCompound nbt) {

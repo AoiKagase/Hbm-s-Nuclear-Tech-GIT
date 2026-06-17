@@ -3,16 +3,16 @@ package com.hbm.tileentity.network;
 import com.hbm.render.amlfrom1710.Vec3;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.tileentity.INBTPacketReceiver;
+import com.hbm.tileentity.TileEntityLoadedBase;
 import com.hbm.packet.NBTPacket;
 import com.hbm.packet.PacketDispatcher;
 
 import net.minecraft.util.ITickable;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 
-public class TileEntityRadioTorchBase extends TileEntity implements ITickable, INBTPacketReceiver, IControlReceiver {
+public class TileEntityRadioTorchBase extends TileEntityLoadedBase implements ITickable, INBTPacketReceiver, IControlReceiver {
 
 	/** channel we're broadcasting on/listening to */
 	public String channel = "";
@@ -85,7 +85,7 @@ public class TileEntityRadioTorchBase extends TileEntity implements ITickable, I
 	}
 
 	public void networkPack(NBTTagCompound nbt, int range) {
-		if(!world.isRemote)
+		if(shouldSendNetworkPack(nbt, range))
 			PacketDispatcher.wrapper.sendToAllAround(new NBTPacket(nbt, pos), new TargetPoint(this.world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), range));
 	}
 	
