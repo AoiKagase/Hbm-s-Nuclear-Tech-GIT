@@ -292,9 +292,12 @@ public class RadiationSystemNT {
 					updateRadSaveData(world);
 				}
 
-                List<Object> oList = new ArrayList<Object>(world.loadedEntityList);
+                int entityCount = world.loadedEntityList.size();
 
-				for(Object e : oList) {
+                // Use a bounded index scan so entities spawned by radiation transformations are
+                // not processed again in the same pass, without allocating a snapshot list.
+                for(int i = 0; i < entityCount && i < world.loadedEntityList.size(); i++) {
+                    Object e = world.loadedEntityList.get(i);
 					if(e instanceof EntityLivingBase entity) {
 
 						// effect for radiation
