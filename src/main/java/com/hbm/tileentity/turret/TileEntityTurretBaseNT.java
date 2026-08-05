@@ -50,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase implements IEnergyUser, IControllable, IControlReceiver, ITickable {
 	private static final int NETWORK_PACK_INTERVAL = 5;
+	private static final int CONNECTION_UPDATE_INTERVAL = 20;
 	private long lastNetworkPackTick = -1;
 
 	@Override
@@ -144,7 +145,8 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		this.aligned = false;
 		
 		if(!world.isRemote) {
-			this.updateConnections();
+			if(world.getTotalWorldTime() % CONNECTION_UPDATE_INTERVAL == 0)
+				this.updateConnections();
 			//Target is dead - start searching
 			if(this.target != null && !target.isEntityAlive()) {
 				this.target = null;
