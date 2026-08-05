@@ -112,7 +112,7 @@ public class TileEntityMachineEPress extends TileEntityMachineBase implements IT
 				int speed = 25;
 				
 				if(!inventory.getStackInSlot(1).isEmpty() && !inventory.getStackInSlot(2).isEmpty()) {
-					ItemStack stack = PressRecipes.getPressResult(inventory.getStackInSlot(2).copy(), inventory.getStackInSlot(1).copy());
+					ItemStack stack = getCachedPressResult();
 					if(stack != null &&
 							(inventory.getStackInSlot(3).isEmpty() ||
 							(inventory.getStackInSlot(3).getItem() == stack.getItem() &&
@@ -179,6 +179,33 @@ public class TileEntityMachineEPress extends TileEntityMachineBase implements IT
 	private int renderSyncStampItem = Integer.MIN_VALUE;
 	private int renderSyncStampMeta = Integer.MIN_VALUE;
 	private int renderSyncProgress = Integer.MIN_VALUE;
+	private boolean recipeCacheInitialized;
+	private Item cachedRecipeInputItem;
+	private int cachedRecipeInputMeta;
+	private Item cachedRecipeStampItem;
+	private int cachedRecipeStampMeta;
+	private ItemStack cachedRecipeResult;
+
+	private ItemStack getCachedPressResult() {
+		ItemStack input = inventory.getStackInSlot(2);
+		ItemStack stamp = inventory.getStackInSlot(1);
+		Item inputItem = input.isEmpty() ? null : input.getItem();
+		int inputMeta = input.isEmpty() ? 0 : input.getItemDamage();
+		Item stampItem = stamp.isEmpty() ? null : stamp.getItem();
+		int stampMeta = stamp.isEmpty() ? 0 : stamp.getItemDamage();
+		if (recipeCacheInitialized && cachedRecipeInputItem == inputItem && cachedRecipeInputMeta == inputMeta
+				&& cachedRecipeStampItem == stampItem && cachedRecipeStampMeta == stampMeta) {
+			return cachedRecipeResult;
+		}
+
+		recipeCacheInitialized = true;
+		cachedRecipeInputItem = inputItem;
+		cachedRecipeInputMeta = inputMeta;
+		cachedRecipeStampItem = stampItem;
+		cachedRecipeStampMeta = stampMeta;
+		cachedRecipeResult = inputItem == null || stampItem == null ? null : PressRecipes.getPressResult(input, stamp);
+		return cachedRecipeResult;
+	}
 
 	private boolean shouldSendRenderSync() {
 		ItemStack itemStack = inventory.getStackInSlot(2);
