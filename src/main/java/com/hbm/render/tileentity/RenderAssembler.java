@@ -7,29 +7,51 @@ import com.hbm.tileentity.machine.TileEntityMachineAssembler;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import net.minecraftforge.client.ForgeHooksClient;
 
 public class RenderAssembler extends TileEntitySpecialRenderer<TileEntityMachineAssembler> {
+
+	private int cachedRecipe = Integer.MIN_VALUE;
+	private World cachedWorld;
+	private RenderItem cachedRenderItem;
+	private ItemStack cachedStack = ItemStack.EMPTY;
+	private IBakedModel cachedModel;
+
+	private void updateCachedRecipeModel(int recipe, World world) {
+		RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+		if (cachedRecipe == recipe && cachedWorld == world && cachedRenderItem == renderItem)
+			return;
+
+		cachedRecipe = recipe;
+		cachedWorld = world;
+		cachedRenderItem = renderItem;
+		cachedStack = ItemStack.EMPTY;
+		cachedModel = null;
+		try {
+			cachedStack = AssemblerRecipes.recipeList.get(recipe).toStack();
+			cachedModel = renderItem.getItemModelWithOverrides(cachedStack, world, null);
+			cachedModel = ForgeHooksClient.handleCameraTransforms(cachedModel, TransformType.FIXED, false);
+		} catch (Exception ex) {
+			// Keep the renderer valid when a synced recipe is not available yet.
+		}
+	}
 	
 	@Override
 	public boolean isGlobalRenderer(TileEntityMachineAssembler te) {
 		return true;
 	}
 	
-    @Override
+	@Override
 	public void render(TileEntityMachineAssembler assembler, double x, double y, double z, float partialTicks, int destroyStage, float alpha)
     {
-    	Vec3d start = new Vec3d(assembler.getPos().getX()+0.05, assembler.getPos().getY()+1.5, assembler.getPos().getZ()+3.1);
-    	//RenderHelper.renderFlashLight(start, start.add(-20, 0, 0), 20, 1, ResourceManager.fl_cookie, partialTicks);
-    	//FlashlightRenderer.addFlashlight(start, start.add(-20, 0, 0), 20, 20, ResourceManager.fl_cookie, true, true);
-    	//LightRenderer.addPointLight(start, new Vec3d(1, 0.4, 0.1), 10);
         GL11.glPushMatrix();
         GL11.glTranslated(x + 0.5D, y, z + 0.5D);
        // GL11.glPushMatrix();
@@ -60,8 +82,9 @@ public class RenderAssembler extends TileEntitySpecialRenderer<TileEntityMachine
 			GL11.glPushMatrix();
 				GL11.glTranslated(-1, 0.875, 0);
 
-	        	try {
-					ItemStack stack = AssemblerRecipes.recipeList.get(assembler.recipe).toStack();
+				updateCachedRecipeModel(assembler.recipe, assembler.getWorld());
+				if (cachedModel != null) {
+					ItemStack stack = cachedStack;
 
 					GL11.glTranslated(1, 0, 1);
 					if(!(stack.getItem() instanceof ItemBlock)) {
@@ -72,12 +95,10 @@ public class RenderAssembler extends TileEntitySpecialRenderer<TileEntityMachine
 						GL11.glTranslated(0, -0.875, -2);
 					}
 
-					IBakedModel model = Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(stack, assembler.getWorld(), null);
-					model = ForgeHooksClient.handleCameraTransforms(model, TransformType.FIXED, false);
 					Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 					GL11.glTranslatef(0.0F, 1.0F - 0.0625F * 165/100, 0.0F);
-					Minecraft.getMinecraft().getRenderItem().renderItem(stack, model);
-	        	} catch(Exception ex) { }
+					cachedRenderItem.renderItem(stack, cachedModel);
+				}
 
 			GL11.glPopMatrix();
         }
