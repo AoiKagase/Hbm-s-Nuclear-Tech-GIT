@@ -1,6 +1,7 @@
 package com.hbm.render.tileentity;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -12,8 +13,37 @@ import com.hbm.main.ResourceManager;
 import com.hbm.tileentity.machine.TileEntityMachineArcWelder;
 
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 public class RenderArcWelder extends TileEntitySpecialRenderer<TileEntityMachineArcWelder> {
+
+	private ItemStack cachedDisplay = ItemStack.EMPTY;
+	private boolean cachedDisplayPresent;
+	private IBakedModel cachedDisplayModel;
+	private World cachedWorld;
+	private RenderItem cachedRenderItem;
+
+	private void updateCachedDisplay(ItemStack display, World world) {
+		RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+		boolean present = display != null && !display.isEmpty();
+		if (cachedWorld == world && cachedRenderItem == renderItem && cachedDisplayPresent == present
+				&& (!present || (cachedDisplay.getCount() == display.getCount()
+						&& ItemStack.areItemStacksEqual(cachedDisplay, display)))) {
+			return;
+		}
+
+		cachedWorld = world;
+		cachedRenderItem = renderItem;
+		cachedDisplayPresent = present;
+		cachedDisplay = present ? display.copy() : ItemStack.EMPTY;
+		cachedDisplayModel = null;
+		if (present) {
+			cachedDisplayModel = renderItem.getItemModelWithOverrides(cachedDisplay, world, null);
+			cachedDisplayModel = ForgeHooksClient.handleCameraTransforms(cachedDisplayModel,
+					ItemCameraTransforms.TransformType.FIXED, false);
+		}
+	}
 
 	@Override
 	public void render(TileEntityMachineArcWelder welder, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
@@ -34,7 +64,8 @@ public class RenderArcWelder extends TileEntitySpecialRenderer<TileEntityMachine
 		bindTexture(ResourceManager.arc_welder_tex);
 		ResourceManager.arc_welder.renderAll();
 
-		if(welder.display != null) {
+		updateCachedDisplay(welder.display, welder.getWorld());
+		if(cachedDisplayModel != null) {
 			GL11.glPushMatrix();
 			GL11.glTranslated(0, 1.125D, 0D);
 			GL11.glEnable(GL11.GL_LIGHTING);
@@ -42,10 +73,8 @@ public class RenderArcWelder extends TileEntitySpecialRenderer<TileEntityMachine
 			GL11.glRotatef(-90, 1F, 0F, 0F);
 			GL11.glRotatef(180, 0F, 1F, 0F);
 
-			IBakedModel model = Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(welder.display, welder.getWorld(), null);
-			model = ForgeHooksClient.handleCameraTransforms(model, ItemCameraTransforms.TransformType.FIXED, false);
 			Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-			Minecraft.getMinecraft().getRenderItem().renderItem(welder.display, model);
+			cachedRenderItem.renderItem(cachedDisplay, cachedDisplayModel);
 			GL11.glPopMatrix();
 		}
 		
