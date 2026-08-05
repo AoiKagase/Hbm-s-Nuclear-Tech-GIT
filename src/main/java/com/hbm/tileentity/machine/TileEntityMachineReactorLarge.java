@@ -92,7 +92,7 @@ public class TileEntityMachineReactorLarge extends TileEntity implements ITickab
 	private int lastSyncedWater = Integer.MIN_VALUE;
 	private int lastSyncedCoolant = Integer.MIN_VALUE;
 	private int lastSyncedSteam = Integer.MIN_VALUE;
-	private int lastSyncedSteamType = Integer.MIN_VALUE;
+	private Fluid lastSyncedSteamType = null;
 	private int lastSyncedSize = Integer.MIN_VALUE;
 	private int lastSyncedRods = Integer.MIN_VALUE;
 	private int lastSyncedCoreHeat = Integer.MIN_VALUE;
@@ -576,7 +576,7 @@ public class TileEntityMachineReactorLarge extends TileEntity implements ITickab
 
 	private void syncClientState() {
 		long time = world.getTotalWorldTime();
-		int steamType = getSteamTypeId();
+		Fluid steamType = tankTypes[2];
 		boolean fluidsChanged = tanks[0].getFluidAmount() != lastSyncedWater || tanks[1].getFluidAmount() != lastSyncedCoolant || tanks[2].getFluidAmount() != lastSyncedSteam;
 		boolean steamTypeChanged = steamType != lastSyncedSteamType;
 		boolean sizeChanged = size != lastSyncedSize;
@@ -611,10 +611,6 @@ public class TileEntityMachineReactorLarge extends TileEntity implements ITickab
 		lastSyncedWaste = waste;
 		lastSyncedMaxWaste = maxWaste;
 		lastSyncedFuelType = type.getID();
-	}
-
-	private int getSteamTypeId() {
-		return tankTypes[2] == null ? -1 : FluidRegistry.getFluidID(tankTypes[2]);
 	}
 	
 	protected boolean inputValidForTank(int tank, int slot){
