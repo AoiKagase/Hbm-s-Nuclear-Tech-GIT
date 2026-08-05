@@ -69,7 +69,7 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		power = nbt.getLong("powerTime");
-		progress = nbt.getShort("CookTime");
+		progress = nbt.hasKey("cookTime") ? nbt.getShort("cookTime") : nbt.getShort("CookTime");
 		tank.readFromNBT(nbt);
 		if(nbt.hasKey("inventory"))
 			inventory.deserializeNBT(nbt.getCompoundTag("inventory"));

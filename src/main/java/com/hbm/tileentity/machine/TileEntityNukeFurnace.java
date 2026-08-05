@@ -83,7 +83,7 @@ public class TileEntityNukeFurnace extends TileEntity implements ITickable {
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		dualPower = compound.getShort("powerTime");
-		dualCookTime = compound.getShort("CookTime");
+		dualCookTime = compound.hasKey("cookTime") ? compound.getShort("cookTime") : compound.getShort("CookTime");
 		if(compound.hasKey("inventory"))
 			inventory.deserializeNBT(compound.getCompoundTag("inventory"));
 		super.readFromNBT(compound);

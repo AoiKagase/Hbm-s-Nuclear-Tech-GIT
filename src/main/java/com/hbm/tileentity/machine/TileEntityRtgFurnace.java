@@ -60,7 +60,7 @@ public class TileEntityRtgFurnace extends TileEntityMachineBase implements ITick
 	
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
-		dualCookTime = compound.getShort("CookTime");
+		dualCookTime = compound.hasKey("cookTime") ? compound.getShort("cookTime") : compound.getShort("CookTime");
 		if(compound.hasKey("inventory"))
 			this.inventory.deserializeNBT(compound.getCompoundTag("inventory"));
 		super.readFromNBT(compound);

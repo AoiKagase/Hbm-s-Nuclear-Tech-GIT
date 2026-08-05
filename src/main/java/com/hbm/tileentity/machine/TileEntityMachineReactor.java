@@ -66,7 +66,7 @@ public class TileEntityMachineReactor extends TileEntityMachineBase implements I
 
 		charge = nbt.getShort("powerTime");
 		heat = nbt.getShort("heat");
-		progress = nbt.getShort("CookTime");
+		progress = nbt.hasKey("cookTime") ? nbt.getShort("cookTime") : nbt.getShort("CookTime");
 	}
 
 	@Override
