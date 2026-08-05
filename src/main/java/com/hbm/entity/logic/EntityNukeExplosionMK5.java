@@ -44,6 +44,7 @@ public class EntityNukeExplosionMK5 extends EntityChunky {
 	EntityFalloutRain falloutRain;
 
 	public static final double shockSpeed = 2; //in blocks/t
+	private static final int SOUND_UPDATE_INTERVAL = 20;
 
 
 	public EntityNukeExplosionMK5(World world) {
@@ -81,7 +82,7 @@ public class EntityNukeExplosionMK5 extends EntityChunky {
 			ContaminationUtil.radiate(world, this.posX, this.posY, this.posZ, Math.min(1000, radius * 2), rads, 0F, fire, blast, this.ticksExisted * shockSpeed);
 		}
 		//make some noise
-		if(!mute) {
+		if(!mute && (ticksExisted == 1 || ticksExisted % SOUND_UPDATE_INTERVAL == 0)) {
 			if(this.radius > 30){
 				this.world.playSound(null, this.posX, this.posY, this.posZ, SoundEvents.ENTITY_LIGHTNING_THUNDER, SoundCategory.AMBIENT, Math.min(1, ticksExisted/200F) * this.radius * 0.05F, 0.8F + this.rand.nextFloat() * 0.2F);
 			}else{
