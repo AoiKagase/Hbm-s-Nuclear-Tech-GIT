@@ -26,6 +26,7 @@ public class TileEntityGeysir extends TileEntity implements ITickable {
 	int timer;
 
 	public static final byte range = 32;
+	private static final int EFFECT_INTERVAL = 2;
 	
 	@Override
 	public void update() {
@@ -44,7 +45,7 @@ public class TileEntityGeysir extends TileEntity implements ITickable {
 					BlockGeysir.setState(state.withProperty(BlockGeysir.ACTIVE, false), world, pos);
 			}
 			
-			if(active) {
+			if(active && world.getTotalWorldTime() % EFFECT_INTERVAL == 0) {
 				perform();
 			}
 		}
