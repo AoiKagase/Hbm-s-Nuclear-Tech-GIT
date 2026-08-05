@@ -277,6 +277,7 @@ public class TileEntityMachineStrandCaster extends TileEntityFoundryCastingBase 
         int limit = this.getCapacity();
         if (stack.amount + this.amount <= limit) {
             this.amount += stack.amount;
+            lastProgressTick = world.getTotalWorldTime();
             return null;
         }
 
@@ -285,7 +286,9 @@ public class TileEntityMachineStrandCaster extends TileEntityFoundryCastingBase 
 
         stack.amount -= required;
 
-        lastProgressTick = world.getTotalWorldTime();
+        if (required > 0) {
+            lastProgressTick = world.getTotalWorldTime();
+        }
 
         return stack;
     }
