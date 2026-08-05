@@ -86,6 +86,22 @@ public class TileEntityMachineReactorLarge extends TileEntity implements ITickab
 	private int height = 0;
 	private int depth = 0;
 	public int size = 1;
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
+	private long lastClientSyncTick = -1;
+	private int lastSyncedWater = Integer.MIN_VALUE;
+	private int lastSyncedCoolant = Integer.MIN_VALUE;
+	private int lastSyncedSteam = Integer.MIN_VALUE;
+	private int lastSyncedSteamType = Integer.MIN_VALUE;
+	private int lastSyncedSize = Integer.MIN_VALUE;
+	private int lastSyncedRods = Integer.MIN_VALUE;
+	private int lastSyncedCoreHeat = Integer.MIN_VALUE;
+	private int lastSyncedHullHeat = Integer.MIN_VALUE;
+	private int lastSyncedFuel = Integer.MIN_VALUE;
+	private int lastSyncedMaxFuel = Integer.MIN_VALUE;
+	private int lastSyncedWaste = Integer.MIN_VALUE;
+	private int lastSyncedMaxWaste = Integer.MIN_VALUE;
+	private int lastSyncedFuelType = Integer.MIN_VALUE;
 	
 	public TileEntityMachineReactorLarge() {
 		inventory = new ItemStackHandler(8){
@@ -403,7 +419,6 @@ public class TileEntityMachineReactorLarge extends TileEntity implements ITickab
 	@Override
 	public void update() {
 		if(!world.isRemote) {
-            PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, tanks[0], tanks[1], tanks[2]), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
             if(checkBody()) {
 
 				age++;
@@ -416,9 +431,6 @@ public class TileEntityMachineReactorLarge extends TileEntity implements ITickab
                 fillFluidInit(tanks[2]);
 			}
 
-			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, size, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTypePacketTest(pos.getX(), pos.getY(), pos.getZ(), new Fluid[]{tankTypes[2]}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-		
 			maxWaste = maxFuel = fuelBase * getSize();
 			
 			if(waste > maxWaste)
@@ -558,8 +570,51 @@ public class TileEntityMachineReactorLarge extends TileEntity implements ITickab
 			if(world.getBlockState(mPos.setPos(x + 2, y, z)).getBlock() == ModBlocks.reactor_inserter && world.getBlockState(mPos.setPos(x + 2, y, z)).getValue(BlockHorizontal.FACING) == EnumFacing.EAST)
 				tryInsertFrom(mPos.setPos(x + 3, y, z));
 
-			PacketDispatcher.wrapper.sendToAllAround(new LargeReactorPacket(pos, rods, coreHeat, hullHeat, fuel, maxFuel, waste, maxWaste, type.getID()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
+			syncClientState();
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		int steamType = getSteamTypeId();
+		boolean fluidsChanged = tanks[0].getFluidAmount() != lastSyncedWater || tanks[1].getFluidAmount() != lastSyncedCoolant || tanks[2].getFluidAmount() != lastSyncedSteam;
+		boolean steamTypeChanged = steamType != lastSyncedSteamType;
+		boolean sizeChanged = size != lastSyncedSize;
+		boolean reactorChanged = rods != lastSyncedRods || coreHeat != lastSyncedCoreHeat || hullHeat != lastSyncedHullHeat || fuel != lastSyncedFuel || maxFuel != lastSyncedMaxFuel || waste != lastSyncedWaste || maxWaste != lastSyncedMaxWaste || type.getID() != lastSyncedFuelType;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+			return;
+		if(!fullSync && !fluidsChanged && !steamTypeChanged && !sizeChanged && !reactorChanged)
+			return;
+
+		TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15);
+		if(fullSync || fluidsChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, tanks[0], tanks[1], tanks[2]), point);
+		if(fullSync || sizeChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, size, 0), point);
+		if(fullSync || steamTypeChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new FluidTypePacketTest(pos.getX(), pos.getY(), pos.getZ(), new Fluid[]{tankTypes[2]}), point);
+		if(fullSync || reactorChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new LargeReactorPacket(pos, rods, coreHeat, hullHeat, fuel, maxFuel, waste, maxWaste, type.getID()), point);
+
+		lastClientSyncTick = time;
+		lastSyncedWater = tanks[0].getFluidAmount();
+		lastSyncedCoolant = tanks[1].getFluidAmount();
+		lastSyncedSteam = tanks[2].getFluidAmount();
+		lastSyncedSteamType = steamType;
+		lastSyncedSize = size;
+		lastSyncedRods = rods;
+		lastSyncedCoreHeat = coreHeat;
+		lastSyncedHullHeat = hullHeat;
+		lastSyncedFuel = fuel;
+		lastSyncedMaxFuel = maxFuel;
+		lastSyncedWaste = waste;
+		lastSyncedMaxWaste = maxWaste;
+		lastSyncedFuelType = type.getID();
+	}
+
+	private int getSteamTypeId() {
+		return tankTypes[2] == null ? -1 : FluidRegistry.getFluidID(tankTypes[2]);
 	}
 	
 	protected boolean inputValidForTank(int tank, int slot){
