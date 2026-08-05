@@ -35,6 +35,11 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 	public int pingTimer = 0;
 	public int lastPower;
 	final static int maxTimer = 40;
+	private static final int SCAN_INTERVAL = 5;
+	private static final int NETWORK_UPDATE_INTERVAL = 5;
+	private int scanTimer = 0;
+	private int networkTimer = 0;
+	private boolean networkUpdatePending = true;
 
 	public boolean scanMissiles = true;
 	public boolean scanPlayers = false;
@@ -63,23 +68,37 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 		if(!world.isRemote) {
 
 			this.updateConnectionsExcept(world, pos, ForgeDirection.UP);
-			
-			nearbyMissiles.clear();
-
 
 			if(power > 0) {
-				allocateMissiles();
+				if(scanTimer <= 0) {
+					allocateMissiles();
+					scanTimer = SCAN_INTERVAL - 1;
+				} else {
+					scanTimer--;
+				}
 
 				power -= 500;
 
 				if(power < 0)
 					power = 0;
+
+				if(power == 0) {
+					nearbyMissiles.clear();
+					entList.clear();
+					scanTimer = 0;
+				}
+			} else {
+				nearbyMissiles.clear();
+				entList.clear();
+				scanTimer = 0;
 			}
 			
 			if(lastPower != getRedPower())
 				world.notifyNeighborsOfStateChange(pos, getBlockType(), true);
 
-			sendMissileData();
+			boolean sendNetworkUpdate = networkUpdatePending || networkTimer <= 0;
+			if(sendNetworkUpdate)
+				sendMissileData();
 			lastPower = getRedPower();
 			
 			if(world.getBlockState(pos.down()).getBlock() != ModBlocks.muffler) {
@@ -92,7 +111,13 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 				}
 			}
 			
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+			if(sendNetworkUpdate) {
+				PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+				networkUpdatePending = false;
+				networkTimer = NETWORK_UPDATE_INTERVAL - 1;
+			} else {
+				networkTimer--;
+			}
 		} else {
 
 			prevRotation = rotation;
@@ -117,6 +142,9 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 		case 2: this.smartMode = !this.smartMode; break;
 		case 3: this.redMode = !this.redMode; break;
 		}
+
+		this.scanTimer = 0;
+		this.networkUpdatePending = true;
 	}
 
 	public boolean isEntityApproaching(Entity e){
@@ -182,7 +210,9 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 
                 for (Entity e : entList) {
 
-                    double dist = Math.sqrt(Math.pow(e.posX - pos.getX(), 2) + Math.pow(e.posZ - pos.getZ(), 2));
+					double dx = e.posX - pos.getX();
+					double dz = e.posZ - pos.getZ();
+					double dist = Math.sqrt(dx * dx + dz * dz);
                     int p = 15 - (int) Math.floor(dist / maxRange * 15);
 
                     if (p > power)
@@ -222,11 +252,12 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 		data.setInteger("count", this.nearbyMissiles.size());
 
 		for(int i = 0; i < this.nearbyMissiles.size(); i++) {
-			data.setInteger("x" + i, this.nearbyMissiles.get(i)[0]);
-			data.setInteger("y" + i, this.nearbyMissiles.get(i)[1]);
-            data.setInteger("z" + i, this.nearbyMissiles.get(i)[2]);
-            data.setInteger("v" + i, this.nearbyMissiles.get(i)[3]);
-            data.setInteger("type" + i, this.nearbyMissiles.get(i)[4]);
+			int[] missile = this.nearbyMissiles.get(i);
+			data.setInteger("x" + i, missile[0]);
+			data.setInteger("y" + i, missile[1]);
+            data.setInteger("z" + i, missile[2]);
+            data.setInteger("v" + i, missile[3]);
+            data.setInteger("type" + i, missile[4]);
 		}
 
 		this.networkPack(data, 15);
@@ -263,6 +294,7 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 		scanPlayers = compound.getBoolean("scanPlayers");
 		smartMode = compound.getBoolean("smartMode");
 		redMode = compound.getBoolean("redMode");
+		networkUpdatePending = true;
 		super.readFromNBT(compound);
 	}
 	
@@ -282,8 +314,9 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 
 	@Override
 	public void setPower(long i) {
-		if(power != i)
+		if(power != i) {
 			markDirty();
+		}
 		power = i;
 	}
 
