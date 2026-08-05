@@ -49,6 +49,11 @@ public class TileEntityCoreEmitter extends TileEntityMachineBase implements ITic
 	public int prevWatts = -1;
 			
 	public static final int range = 50;
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
+	private int lastSyncedBeam = Integer.MIN_VALUE;
+	private long lastSyncedPrev = Long.MIN_VALUE;
+	private long lastClientSyncTick = -1;
 	
 	public TileEntityCoreEmitter() {
 		super(0);
@@ -162,13 +167,34 @@ public class TileEntityCoreEmitter extends TileEntityMachineBase implements ITic
 			
 			this.markDirty();
 			
-			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, beam, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 250));
-			if(watts != prevWatts) PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, watts, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 250));
-			PacketDispatcher.wrapper.sendToAllTracking(new AuxLongPacket(pos, prev, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 250));
-			prevWatts = watts;
+			syncClientState();
 			
 			//this.networkPack(data, 250);
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		boolean changed = beam != lastSyncedBeam || prev != lastSyncedPrev || watts != prevWatts;
+		if(lastClientSyncTick >= 0 && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+			return;
+
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && !changed)
+			return;
+
+		TargetPoint target = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 250);
+		if(fullSync || beam != lastSyncedBeam)
+			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, beam, 0), target);
+		if(fullSync || watts != prevWatts)
+			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, watts, 1), target);
+		if(fullSync || prev != lastSyncedPrev)
+			PacketDispatcher.wrapper.sendToAllTracking(new AuxLongPacket(pos, prev, 0), target);
+
+		lastSyncedBeam = beam;
+		lastSyncedPrev = prev;
+		prevWatts = watts;
+		lastClientSyncTick = time;
 	}
 
     @Override
