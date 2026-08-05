@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 public class RenderFirebox extends TileEntitySpecialRenderer<TileEntityHeaterFirebox>{
 	@Override
 	public boolean isGlobalRenderer(TileEntityHeaterFirebox te) {
-		return true;
+		return false;
 	}
 	@Override
 	public void render(TileEntityHeaterFirebox tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
