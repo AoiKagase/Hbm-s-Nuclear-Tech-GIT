@@ -95,9 +95,8 @@ public class TileEntityMachineCatalyticReformer extends TileEntityMachineBase im
         ItemStack itemStackDrain = inventory.getStackInSlot(0);
         if (itemStackDrain.getItem() instanceof IBatteryItem itemDrain) {
             if (itemDrain.getCharge(itemStackDrain) == 0) {
-                inventory.getStackInSlot(1);
-                if (inventory.getStackInSlot(1).isEmpty()) {
-                    inventory.setStackInSlot(1, itemStackDrain);
+				if (inventory.getStackInSlot(9).isEmpty()) {
+					inventory.setStackInSlot(9, itemStackDrain);
                     inventory.setStackInSlot(0, ItemStack.EMPTY);
                 }
             }
