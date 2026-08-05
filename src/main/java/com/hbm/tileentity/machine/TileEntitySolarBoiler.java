@@ -27,6 +27,10 @@ import java.util.List;
 
 public class TileEntitySolarBoiler extends TileEntity implements INBTPacketReceiver, ITickable, IFluidHandler {
 
+    private static final int BURN_INTERVAL = 5;
+    private static final int CLIENT_SYNC_INTERVAL = 5;
+    private long lastClientSyncTick = -1;
+
     public FluidTank[] tanks;
     public Fluid[] types = new Fluid[2];
     public int heat;
@@ -69,12 +73,22 @@ public class TileEntitySolarBoiler extends TileEntity implements INBTPacketRecei
             heat += heatInput;
             heat *= 0.999;
             if(heat > maxHeat) heat = maxHeat;
-            networkPack();
+            long time = world.getTotalWorldTime();
+            if(shouldSyncClientState(time))
+                networkPack();
             heatInput = 0;
             fillFluidInit(tanks[1]);
 
-            burn();
+            if(time % BURN_INTERVAL == 0)
+                burn();
         }
+    }
+
+    private boolean shouldSyncClientState(long time) {
+        if(lastClientSyncTick >= 0 && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+            return false;
+        lastClientSyncTick = time;
+        return true;
     }
 
     public void burn(){
