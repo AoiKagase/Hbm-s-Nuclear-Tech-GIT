@@ -30,6 +30,8 @@ public class EntityMissileAntiBallistic extends EntityMissileBaseAdvanced {
     public static final int activationTimer = 40;
     public static final double baseSpeed = 1.5D;
     private static final int maxSpeed = 10;
+    private static final int targetScanInterval = 5;
+    private int targetScanCooldown;
 
 	public EntityMissileAntiBallistic(World world) {
 		super(world);
@@ -43,7 +45,14 @@ public class EntityMissileAntiBallistic extends EntityMissileBaseAdvanced {
             this.motionY = baseSpeed;
         } else {
             Entity prevTracking = this.tracking;
-            if (this.tracking == null || this.tracking.isDead) this.targetMissile();
+            if (this.tracking == null || this.tracking.isDead) {
+                if (this.targetScanCooldown <= 0) {
+                    this.targetMissile();
+                    this.targetScanCooldown = targetScanInterval - 1;
+                } else {
+                    this.targetScanCooldown--;
+                }
+            }
             if (world.isRemote && prevTracking == null && this.tracking != null) {
                 ExplosionLarge.spawnShock(world, posX, posY, posZ, 24, 3F);
             }
