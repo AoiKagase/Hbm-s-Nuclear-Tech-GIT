@@ -21,6 +21,7 @@ import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.packet.LoopedSoundPacket;
 import com.hbm.util.InventoryUtil;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyUser;
 import api.hbm.block.IDrillInteraction;
 import api.hbm.block.IMiningDrill;
@@ -622,6 +623,13 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 
 	public int getProgressScaled(int i) {
 		return (int) (breakProgress * i);
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot == 0) return stack.getItem() instanceof IBatteryItem || stack.getItem() == ModItems.battery_creative;
+		return slot >= 1 && slot <= 8 && stack.getItem() instanceof ItemMachineUpgrade;
 	}
 
     @Override

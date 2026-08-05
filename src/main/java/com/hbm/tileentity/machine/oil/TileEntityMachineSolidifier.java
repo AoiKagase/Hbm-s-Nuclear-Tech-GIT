@@ -1,11 +1,13 @@
 package com.hbm.tileentity.machine.oil;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyUser;
 import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.inventory.SolidificationRecipes;
 import com.hbm.inventory.UpgradeManager;
 import com.hbm.inventory.container.ContainerSolidifier;
 import com.hbm.inventory.gui.GUISolidifier;
+import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemMachineUpgrade;
 import com.hbm.lib.DirPos;
 import com.hbm.lib.Library;
@@ -105,6 +107,13 @@ public class TileEntityMachineSolidifier extends TileEntityMachineBase implement
                 new DirPos(pos.getX(), pos.getY() + 1, pos.getZ() + 2, Library.POS_Z),
                 new DirPos(pos.getX(), pos.getY() + 1, pos.getZ() - 2, Library.NEG_Z)
         };
+    }
+
+    @Override
+    public boolean isItemValidForSlot(int slot, ItemStack stack) {
+        if(stack.isEmpty()) return false;
+        if(slot == 1) return stack.getItem() instanceof IBatteryItem || stack.getItem() == ModItems.battery_creative;
+        return (slot == 2 || slot == 3) && stack.getItem() instanceof ItemMachineUpgrade;
     }
 
     @Override

@@ -22,6 +22,7 @@ import com.hbm.lib.ForgeDirection;
 import com.hbm.render.amlfrom1710.Vec3;
 import com.hbm.tileentity.TileEntityMachineBase;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyUser;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -783,6 +784,23 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 	@Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e){
 		return new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot == 0) return stack.getItem() == ModItems.turret_chip;
+		if(slot == 10) return stack.getItem() instanceof IBatteryItem
+				|| stack.getItem() == ModItems.battery_creative;
+		if(slot < 1 || slot > 9) return false;
+
+		List<Integer> ammoList = getAmmoList();
+		if(ammoList == null) return false;
+		for(Integer id : ammoList) {
+			BulletConfiguration config = BulletConfigSyncingUtil.pullConfig(id);
+			if(config != null && config.ammo == stack.getItem()) return true;
+		}
+		return false;
 	}
 
     public boolean hasPower() {

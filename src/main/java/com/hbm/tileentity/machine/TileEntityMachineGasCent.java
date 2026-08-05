@@ -15,6 +15,7 @@ import com.hbm.packet.LoopedSoundPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityMachineBase;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyUser;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -304,6 +305,14 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
 		if(stack == null)
 			return false;
 		return GasCentrifugeRecipes.recipes.containsKey(stack.getFluid());
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot == 0) return stack.getItem() instanceof IBatteryItem || stack.getItem() == ModItems.battery_creative;
+		if(slot == 1 || slot == 2) return stack.getItem() instanceof ItemMachineUpgrade;
+		return slot == 3 && isValidFluid(FluidUtil.getFluidContained(stack));
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine.oil;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyGenerator;
 import com.hbm.entity.particle.EntityGasFlameFX;
 import com.hbm.explosion.ExplosionThermo;
@@ -13,6 +14,7 @@ import com.hbm.inventory.container.ContainerMachineGasFlare;
 import com.hbm.inventory.gui.GUIMachineGasFlare;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemForgeFluidIdentifier;
+import com.hbm.items.machine.ItemMachineUpgrade;
 import com.hbm.items.machine.ItemMachineUpgrade.UpgradeType;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
@@ -186,6 +188,20 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 	@Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e) {
 		return new int[] {0, 1, 2, 3, 4, 5};
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot == 0) return stack.getItem() instanceof IBatteryItem
+				|| stack.getItem() == ModItems.battery_creative;
+		if(slot == 1) return FFUtils.checkRestrictions(stack, this::isValidFluid);
+		if(slot == 3) return stack.getItem() == ModItems.forge_fluid_identifier;
+		if((slot == 4 || slot == 5) && stack.getItem() instanceof ItemMachineUpgrade) {
+			UpgradeType type = ((ItemMachineUpgrade) stack.getItem()).type;
+			return type == UpgradeType.SPEED || type == UpgradeType.EFFECT;
+		}
+		return false;
 	}
 
 	void setupTanks() {

@@ -8,12 +8,15 @@ import com.hbm.lib.Library;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.inventory.FluidCombustionRecipes;
 import com.hbm.inventory.FluidCombustionRecipes.FuelGrade;
+import com.hbm.items.ModItems;
 import com.hbm.packet.FluidTankPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityMachineBase;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyGenerator;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
@@ -78,6 +81,13 @@ public class TileEntityMachineDiesel extends TileEntityMachineBase implements IT
 		super.readFromNBT(compound);
 	}
 	
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot == 0) return isValidFluid(FluidUtil.getFluidContained(stack));
+		return slot == 2 && (stack.getItem() instanceof IBatteryItem || stack.getItem() == ModItems.battery_creative);
+	}
+
 	@Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e) {
 		int p_94128_1_ = e.ordinal();

@@ -22,6 +22,7 @@ import com.hbm.packet.FluidTankPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityMachineBase;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyUser;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.item.Item;
@@ -39,6 +40,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
@@ -113,6 +115,35 @@ public class TileEntityMachineCyclotron extends TileEntityMachineBase
 		if (side == 5) // East
 			return new int[] { 3, 4, 5 }; // B
 		return new int[] {};
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot >= 0 && slot <= 2) return isItemATarget(stack.getItem());
+		if(slot >= 3 && slot <= 5) return isValidRecipeInput(stack);
+		if(slot == 9) return FFUtils.isEmtpyFluidTank(stack);
+		if(slot == 11) {
+			FluidStack fluid = FluidUtil.getFluidContained(stack);
+			return fluid != null && fluid.getFluid() == ModForgeFluids.COOLANT;
+		}
+		if(slot == 13) return stack.getItem() instanceof IBatteryItem
+				|| stack.getItem() == ModItems.battery_creative;
+		return (slot == 14 || slot == 15) && stack.getItem() instanceof ItemMachineUpgrade;
+	}
+
+	private boolean isValidRecipeInput(ItemStack stack) {
+		Item[] targets = new Item[] {
+				ModItems.part_lithium,
+				ModItems.part_beryllium,
+				ModItems.part_carbon,
+				ModItems.part_copper,
+				ModItems.part_plutonium
+		};
+		for(Item target : targets) {
+			if(CyclotronRecipes.getOutput(stack, new ItemStack(target)) != null) return true;
+		}
+		return false;
 	}
 
 	private void findContainers() {

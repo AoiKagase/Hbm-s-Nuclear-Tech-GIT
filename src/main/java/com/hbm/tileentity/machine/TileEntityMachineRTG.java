@@ -136,6 +136,11 @@ public class TileEntityMachineRTG extends TileEntityMachineBase implements ITick
     }
 
     @Override
+    public boolean isItemValidForSlot(int slot, ItemStack stack) {
+        return !stack.isEmpty() && stack.getItem() instanceof ItemRTGPellet;
+    }
+
+    @Override
     public boolean canExtractItem(int slot, ItemStack itemStack, int amount) {
         return !(itemStack.getItem() instanceof ItemRTGPellet);
     }

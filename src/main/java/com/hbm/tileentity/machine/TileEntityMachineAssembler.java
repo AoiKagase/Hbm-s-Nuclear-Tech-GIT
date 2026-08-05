@@ -11,12 +11,14 @@ import com.hbm.inventory.AssemblerRecipes;
 import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemAssemblyTemplate;
+import com.hbm.items.machine.ItemMachineUpgrade;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
 import com.hbm.main.MainRegistry;
 import com.hbm.sound.AudioWrapper;
 import com.hbm.tileentity.TileEntityMachineBase;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyUser;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -731,9 +733,11 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack stack) {
-		if (i == 4)
-			return stack != null && stack.getItem() instanceof ItemAssemblyTemplate;
-		return true;
+		if(stack.isEmpty()) return false;
+		if(i == 0) return stack.getItem() instanceof IBatteryItem || stack.getItem() == ModItems.battery_creative;
+		if(i >= 1 && i <= 3) return stack.getItem() instanceof ItemMachineUpgrade;
+		if(i == 4) return stack.getItem() instanceof ItemAssemblyTemplate;
+		return i >= 6 && i <= 17;
 	}
 
 	@Override

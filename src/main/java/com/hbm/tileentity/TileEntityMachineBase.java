@@ -131,11 +131,11 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	@Override
 	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
 		if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && inventory != null){
-			if(facing == null)
-				return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(inventory);
-			return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(new ItemStackHandlerWrapper(inventory, getAccessibleSlotsFromSide(facing)){
+			int[] accessibleSlots = facing == null ? getAllSlots() : getAccessibleSlotsFromSide(facing);
+			return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(new ItemStackHandlerWrapper(inventory, accessibleSlots){
 				@Override
 				public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+					if(!isSlotAccessible(slot)) return ItemStack.EMPTY;
 					if(canExtractItem(slot, inventory.getStackInSlot(slot), amount))
 						return super.extractItem(slot, amount, simulate);
 					return ItemStack.EMPTY;
@@ -143,13 +143,32 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 				
 				@Override
 				public @NotNull ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+					if(!isSlotAccessible(slot)) return stack;
 					if(canInsertItem(slot, stack, stack.getCount()))
 						return super.insertItem(slot, stack, simulate);
 					return stack;
 				}
+
+				@Override
+				public void setStackInSlot(int slot, ItemStack stack) {
+					if(!isSlotAccessible(slot)) return;
+					ItemStack current = inventory.getStackInSlot(slot);
+					if(!current.isEmpty() && !canExtractItem(slot, current, current.getCount()))
+						return;
+					if(!stack.isEmpty() && !canInsertItem(slot, stack, stack.getCount()))
+						return;
+					super.setStackInSlot(slot, stack);
+				}
 			});
 		}
 		return super.getCapability(capability, facing);
+	}
+
+	private int[] getAllSlots() {
+		int[] slots = new int[inventory.getSlots()];
+		for(int i = 0; i < slots.length; i++)
+			slots[i] = i;
+		return slots;
 	}
 	
 	@Override

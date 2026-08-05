@@ -2,6 +2,7 @@ package com.hbm.tileentity.turret;
 
 import java.util.List;
 
+import api.hbm.energy.IBatteryItem;
 import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.handler.BulletConfigSyncingUtil;
@@ -22,6 +23,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
@@ -137,6 +139,21 @@ public class TileEntityTurretFritz extends TileEntityTurretBaseNT implements IFl
 	@Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e){
 		return new int[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot == 0) return stack.getItem() == ModItems.turret_chip;
+		if(slot == 10) return stack.getItem() instanceof IBatteryItem
+				|| stack.getItem() == ModItems.battery_creative;
+		if(slot < 1 || slot > 8) return false;
+		if(stack.getItem() == ModItems.ammo_fuel) return true;
+		if(slot == 5) {
+			FluidStack fluid = FluidUtil.getFluidContained(stack);
+			return fluid != null && FluidFlameRecipes.hasFuelRecipe(fluid.getFluid());
+		}
+		return false;
 	}
 
 	@Override

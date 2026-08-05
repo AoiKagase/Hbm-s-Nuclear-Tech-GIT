@@ -4,6 +4,7 @@ import com.hbm.forgefluid.FFUtils;
 import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.inventory.RefineryRecipes;
+import com.hbm.items.ModItems;
 import com.hbm.lib.Library;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.packet.AuxElectricityPacket;
@@ -11,6 +12,7 @@ import com.hbm.packet.FluidTankPacket;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.util.Tuple.Pair;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyUser;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -253,6 +255,19 @@ public class TileEntityMachineRefinery extends TileEntityMachineBase implements 
 	@Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e){
 		return new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot == 0) return stack.getItem() instanceof IBatteryItem
+				|| stack.getItem() == ModItems.battery_creative;
+		if(slot == 1) {
+			FluidStack fluid = FluidUtil.getFluidContained(stack);
+			return fluid != null && RefineryRecipes.getRecipe(fluid.getFluid()) != null;
+		}
+		return (slot == 3 || slot == 5 || slot == 7 || slot == 9)
+				&& FFUtils.isEmtpyFluidTank(stack);
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import com.hbm.packet.PacketDispatcher;
 import com.hbm.tileentity.TileEntityMachineBase;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
@@ -19,6 +20,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
@@ -65,6 +67,13 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase
 	@Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e) {
 		return slots;
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot == 2) return FluidUtil.getFluidContained(stack) != null;
+		return slot == 4 && FFUtils.isEmtpyFluidTank(stack);
 	}
 
 	@Override

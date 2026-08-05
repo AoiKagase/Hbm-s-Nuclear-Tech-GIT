@@ -245,6 +245,11 @@ public class TileEntityMachineSatDock extends TileEntityMachineBase implements I
 	}
 	
 	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		return slot == 15 && !stack.isEmpty() && stack.getItem() instanceof ISatChip;
+	}
+
+	@Override
 	public int[] getAccessibleSlotsFromSide(EnumFacing e){
 		return access;
 	}

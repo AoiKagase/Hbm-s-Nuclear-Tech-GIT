@@ -31,17 +31,15 @@ public class ItemStackHandlerWrapper implements IItemHandlerModifiable {
 
 	@Override
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-		for(int i : validSlots)
-			if(i == slot)
-				return handle.insertItem(slot, stack, simulate);
+		if(isSlotAccessible(slot))
+			return handle.insertItem(slot, stack, simulate);
 		return stack;
 	}
 
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		for(int i : validSlots)
-			if(i == slot)
-				return handle.extractItem(slot, amount, simulate);
+		if(isSlotAccessible(slot))
+			return handle.extractItem(slot, amount, simulate);
 		return ItemStack.EMPTY;
 	}
 
@@ -52,7 +50,15 @@ public class ItemStackHandlerWrapper implements IItemHandlerModifiable {
 
 	@Override
 	public void setStackInSlot(int slot, ItemStack stack) {
-		handle.setStackInSlot(slot, stack);
+		if(isSlotAccessible(slot))
+			handle.setStackInSlot(slot, stack);
+	}
+
+	protected boolean isSlotAccessible(int slot) {
+		for(int validSlot : validSlots)
+			if(validSlot == slot)
+				return true;
+		return false;
 	}
 
 }
