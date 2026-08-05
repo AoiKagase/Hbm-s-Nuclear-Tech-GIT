@@ -1,7 +1,12 @@
 package com.hbm.render;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.opengl.GL11;
@@ -16,6 +21,7 @@ import com.hbm.render.amlfrom1710.WavefrontObject;
 public class WavefrontObjDisplayList implements IModelCustom {
 
 	public List<Pair<String, Integer>> nameToCallList = new ArrayList<>();
+	private final Map<String, List<Integer>> callListsByName = new HashMap<>();
 	
 	public WavefrontObjDisplayList(WavefrontObject obj) {
 		Tessellator tes = Tessellator.instance;
@@ -27,6 +33,7 @@ public class WavefrontObjDisplayList implements IModelCustom {
 			tes.draw();
 			GL11.glEndList();
 			nameToCallList.add(Pair.of(g.name, list));
+			callListsByName.computeIfAbsent(g.name.toLowerCase(Locale.ROOT), key -> new ArrayList<>()).add(list);
 		}
 		
 	}
@@ -38,14 +45,14 @@ public class WavefrontObjDisplayList implements IModelCustom {
 			g.render();
 			GL11.glEndList();
 			nameToCallList.add(Pair.of(g.name, list));
+			callListsByName.computeIfAbsent(g.name.toLowerCase(Locale.ROOT), key -> new ArrayList<>()).add(list);
 		}
 	}
 
 	public int getListForName(String name){
-		for(Pair<String, Integer> p : nameToCallList){
-			if(p.getLeft().equalsIgnoreCase(name)){
-				return p.getRight();
-			}
+		List<Integer> matchingLists = callListsByName.get(name.toLowerCase(Locale.ROOT));
+		if(matchingLists != null && !matchingLists.isEmpty()) {
+			return matchingLists.get(0);
 		}
 		return 0;
 	}
@@ -63,36 +70,35 @@ public class WavefrontObjDisplayList implements IModelCustom {
 
 	@Override
 	public void renderOnly(String... groupNames) {
-		for(Pair<String, Integer> p : nameToCallList){
-			for(String name : groupNames){
-				if(p.getLeft().equalsIgnoreCase(name)){
-					GL11.glCallList(p.getRight());
-					break;
-				}
-			}
+		Set<String> requested = new HashSet<>();
+		for(String name : groupNames) {
+			requested.add(name.toLowerCase(Locale.ROOT));
 		}
-	}
-
-	@Override
-	public void renderPart(String partName) {
-		for(Pair<String, Integer> p : nameToCallList){
-			if(p.getLeft().equalsIgnoreCase(partName)){
+		for(Pair<String, Integer> p : nameToCallList) {
+			if(requested.contains(p.getLeft().toLowerCase(Locale.ROOT))) {
 				GL11.glCallList(p.getRight());
 			}
 		}
 	}
 
 	@Override
-	public void renderAllExcept(String... excludedGroupNames) {
-		for(Pair<String, Integer> p : nameToCallList){
-			boolean skip = false;
-			for(String name : excludedGroupNames){
-				if(p.getLeft().equalsIgnoreCase(name)){
-					skip = true;
-					break;
-				}
+	public void renderPart(String partName) {
+		List<Integer> matchingLists = callListsByName.get(partName.toLowerCase(Locale.ROOT));
+		if(matchingLists != null) {
+			for(Integer list : matchingLists) {
+				GL11.glCallList(list);
 			}
-			if(!skip){
+		}
+	}
+
+	@Override
+	public void renderAllExcept(String... excludedGroupNames) {
+		Set<String> excluded = new HashSet<>();
+		for(String name : excludedGroupNames) {
+			excluded.add(name.toLowerCase(Locale.ROOT));
+		}
+		for(Pair<String, Integer> p : nameToCallList){
+			if(!excluded.contains(p.getLeft().toLowerCase(Locale.ROOT))){
 				GL11.glCallList(p.getRight());
 			}
 		}

@@ -9,7 +9,12 @@ import org.lwjgl.opengl.GL15;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class WavefrontObjVBO implements IModelCustom {
     class VBOBufferData {
@@ -23,6 +28,7 @@ public class WavefrontObjVBO implements IModelCustom {
     }
 
     List<VBOBufferData> groups = new ArrayList<VBOBufferData>();
+    private final Map<String, List<VBOBufferData>> groupsByName = new HashMap<String, List<VBOBufferData>>();
 
     static int VERTEX_SIZE = 3;
     static int UV_SIZE = 3;
@@ -72,6 +78,7 @@ public class WavefrontObjVBO implements IModelCustom {
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
 
             groups.add(data);
+            groupsByName.computeIfAbsent(data.name.toLowerCase(Locale.ROOT), key -> new ArrayList<VBOBufferData>()).add(data);
         }
     }
 
@@ -112,19 +119,22 @@ public class WavefrontObjVBO implements IModelCustom {
 
     @Override
     public void renderOnly(String... groupNames) {
+        Set<String> requested = new HashSet<>();
+        for(String name : groupNames) {
+            requested.add(name.toLowerCase(Locale.ROOT));
+        }
         for(VBOBufferData data : groups) {
-            for(String name : groupNames) {
-                if(data.name.equalsIgnoreCase(name)) {
-                    renderVBO(data);
-                }
+            if(requested.contains(data.name.toLowerCase(Locale.ROOT))) {
+                renderVBO(data);
             }
         }
     }
 
     @Override
     public void renderPart(String partName) {
-        for(VBOBufferData data : groups) {
-            if(data.name.equalsIgnoreCase(partName)) {
+        List<VBOBufferData> matchingGroups = groupsByName.get(partName.toLowerCase(Locale.ROOT));
+        if(matchingGroups != null) {
+            for(VBOBufferData data : matchingGroups) {
                 renderVBO(data);
             }
         }
