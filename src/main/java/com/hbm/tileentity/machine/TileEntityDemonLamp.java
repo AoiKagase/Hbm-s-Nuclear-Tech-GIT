@@ -77,12 +77,12 @@ public class TileEntityDemonLamp extends TileEntity implements ITickable {
 
 	@Override
 	public AxisAlignedBB getRenderBoundingBox(){
-		return TileEntity.INFINITE_EXTENT_AABB;
+		return new AxisAlignedBB(pos).expand(15, 0, 15);
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
 	public double getMaxRenderDistanceSquared(){
-		return 65536.0D;
+		return 4096.0D;
 	}
 }
