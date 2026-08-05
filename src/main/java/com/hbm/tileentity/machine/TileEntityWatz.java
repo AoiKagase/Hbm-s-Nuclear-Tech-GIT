@@ -57,6 +57,9 @@ import java.util.Random;
 
 public class TileEntityWatz extends TileEntityMachineBase implements  ITickable, IFluidHandler, ITankPacketAcceptor, IControlReceiver, IGUIProvider {
 	
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private long lastClientSyncTick = -1;
+	
 	public FluidTank[] tanks;
 	public int heat;
 	public double fluxLastBase;		//flux created by the previous passive emission, only used for display
@@ -133,7 +136,8 @@ public class TileEntityWatz extends TileEntityMachineBase implements  ITickable,
 			/* send sync packets (order doesn't matter) */
 			for(TileEntityWatz segment : segments) {
 				segment.isOn = turnedOn;
-				segment.sendPacket(sharedTanks);
+				if(segment.shouldSyncClientState(world.getTotalWorldTime()))
+					segment.sendPacket(sharedTanks);
 				segment.heat *= 0.99; //cool 1% per tick
 			}
 
@@ -178,6 +182,13 @@ public class TileEntityWatz extends TileEntityMachineBase implements  ITickable,
                 }
 			}
 		}
+	}
+
+	private boolean shouldSyncClientState(long time) {
+		if(lastClientSyncTick >= 0 && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+			return false;
+		lastClientSyncTick = time;
+		return true;
 	}
 	
 	/** basic sanity checking, usually wouldn't do anything except when NBT loading borks */
