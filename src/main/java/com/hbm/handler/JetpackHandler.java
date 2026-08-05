@@ -74,6 +74,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public class JetpackHandler {
 
 	public static final String JETPACK_NBT = "hbmJetpackAdvanced";
+	private static final int JETPACK_SYNC_INTERVAL = 20;
 	
 	public static Method r_setSize;
 	public static Field r_ticksElytraFlying;
@@ -297,7 +298,10 @@ public class JetpackHandler {
 					setTank(player, tank);
 				}
 				if(player.motionY > -0.5) player.fallDistance = 0;
-				PacketDispatcher.wrapper.sendToAllTracking(new JetpackSyncPacket(player), player);
+				if(info.dirty || player.ticksExisted % JETPACK_SYNC_INTERVAL == 0) {
+					PacketDispatcher.wrapper.sendToAllTracking(new JetpackSyncPacket(player), player);
+					info.dirty = false;
+				}
 			}
 		}
 	}
