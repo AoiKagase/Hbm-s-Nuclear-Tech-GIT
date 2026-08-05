@@ -158,29 +158,23 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 				consumption = 2;
 			isProgressing = false;
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
-			if (needsProcess && (AssemblerRecipes.getOutputFromTempate(inventory.getStackInSlot(4)) != ItemStack.EMPTY
+			ItemStack recipeOutput = AssemblerRecipes.getOutputFromTempate(inventory.getStackInSlot(4));
+			if (needsProcess && (!recipeOutput.isEmpty()
 					&& AssemblerRecipes.getRecipeFromTempate(inventory.getStackInSlot(4)) != null)) {
 				this.maxProgress = (ItemAssemblyTemplate.getProcessTime(inventory.getStackInSlot(4)) * speed) / 100;
 				if (removeItems(AssemblerRecipes.getRecipeFromTempate(inventory.getStackInSlot(4)),
 						cloneItemStackProper(inventory))) {
 					if (power >= consumption) {
-						if (inventory.getStackInSlot(5).isEmpty() || (!inventory.getStackInSlot(5).isEmpty()
-								&& inventory.getStackInSlot(5).getItem() == AssemblerRecipes
-										.getOutputFromTempate(inventory.getStackInSlot(4)).copy().getItem())
-								&& inventory.getStackInSlot(5).getCount()
-										+ AssemblerRecipes.getOutputFromTempate(inventory.getStackInSlot(4)).copy()
-												.getCount() <= inventory.getStackInSlot(5).getMaxStackSize()) {
+						if (canAcceptOutput(recipeOutput)) {
 							progress++;
 							isProgressing = true;
 
 							if (progress >= maxProgress) {
 								progress = 0;
 								if (inventory.getStackInSlot(5).isEmpty()) {
-									inventory.setStackInSlot(5,
-											AssemblerRecipes.getOutputFromTempate(inventory.getStackInSlot(4)).copy());
+									inventory.setStackInSlot(5, recipeOutput.copy());
 								} else {
-									inventory.getStackInSlot(5).grow(AssemblerRecipes
-											.getOutputFromTempate(inventory.getStackInSlot(4)).copy().getCount());
+									inventory.getStackInSlot(5).grow(recipeOutput.getCount());
 								}
 
 								removeItems(AssemblerRecipes.getRecipeFromTempate(inventory.getStackInSlot(4)),
@@ -297,6 +291,17 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 			}
 
 		}
+	}
+
+	private boolean canAcceptOutput(ItemStack output) {
+		ItemStack existing = inventory.getStackInSlot(5);
+		if(existing.isEmpty()) {
+			return output.getCount() <= Math.min(inventory.getSlotLimit(5), output.getMaxStackSize());
+		}
+
+		return ItemStack.areItemsEqual(existing, output)
+				&& ItemStack.areItemStackTagsEqual(existing, output)
+				&& existing.getCount() + output.getCount() <= Math.min(inventory.getSlotLimit(5), existing.getMaxStackSize());
 	}
 
 	private void updateConnections() {

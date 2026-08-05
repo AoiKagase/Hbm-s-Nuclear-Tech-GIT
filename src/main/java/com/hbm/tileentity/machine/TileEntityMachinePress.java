@@ -128,7 +128,8 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 							&& inventory.getStackInSlot(2) != ItemStack.EMPTY) {
 						ItemStack stack = getCachedPressResult();
 						if (stack != null && (inventory.getStackInSlot(3) == ItemStack.EMPTY
-								|| (inventory.getStackInSlot(3).getItem() == stack.getItem()
+								|| (ItemStack.areItemsEqual(inventory.getStackInSlot(3), stack)
+										&& ItemStack.areItemStackTagsEqual(inventory.getStackInSlot(3), stack)
 										&& inventory.getStackInSlot(3).getCount() + stack.getCount() <= inventory
 												.getStackInSlot(3).getMaxStackSize()))) {
 							if (progress >= maxProgress) {
