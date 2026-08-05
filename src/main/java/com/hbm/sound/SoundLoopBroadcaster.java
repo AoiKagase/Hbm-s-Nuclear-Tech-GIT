@@ -21,13 +21,16 @@ public class SoundLoopBroadcaster extends SoundLoopMachine {
 	@Override
 	public void update() {
 		super.update();
-        if(this.donePlaying) return;
+		if(this.donePlaying) return;
 		EntityPlayerSP player = Minecraft.getMinecraft().player;
-		float f = 0;
 		
 		if(player != null) {
-			f = (float)Math.sqrt(Math.pow(xPosF - player.posX, 2) + Math.pow(yPosF - player.posY, 2) + Math.pow(zPosF - player.posZ, 2));
-			volume = func(f, intendedVolume);
+			double dx = xPosF - player.posX;
+			double dy = yPosF - player.posY;
+			double dz = zPosF - player.posZ;
+			double distanceSquared = dx * dx + dy * dy + dz * dz;
+			double rangeSquared = intendedVolume * intendedVolume;
+			volume = distanceSquared >= rangeSquared ? 0 : func((float)Math.sqrt(distanceSquared), intendedVolume);
 			
 			if(!(player.world.getTileEntity(new BlockPos((int)xPosF, (int)yPosF, (int)zPosF)) instanceof TileEntityBroadcaster)) {
 				this.stop();

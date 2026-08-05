@@ -26,11 +26,14 @@ public class SoundLoopSiren extends SoundLoopMachine {
 		super.update();
 		if(this.donePlaying) return;
 		EntityPlayerSP player = Minecraft.getMinecraft().player;
-		float f = 0;
 		
 		if(player != null) {
-			f = (float)Math.sqrt(Math.pow(xPosF - player.posX, 2) + Math.pow(yPosF - player.posY, 2) + Math.pow(zPosF - player.posZ, 2));
-			volume = func(f, intendedVolume);
+			double dx = xPosF - player.posX;
+			double dy = yPosF - player.posY;
+			double dz = zPosF - player.posZ;
+			double distanceSquared = dx * dx + dy * dy + dz * dz;
+			double rangeSquared = intendedVolume * intendedVolume;
+			volume = distanceSquared >= rangeSquared ? 0 : func((float)Math.sqrt(distanceSquared), intendedVolume);
 		} else {
 			volume = intendedVolume;
 		}
