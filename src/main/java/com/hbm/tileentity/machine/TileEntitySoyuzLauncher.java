@@ -256,7 +256,7 @@ public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements IT
 	
 	public boolean canLaunch() {
 		
-		return hasRocket() && hasFuel() && hasRocket() && hasPower() && designator() != 1 && orbital() != 1 && satellite() != 1;
+		return hasRocket() && hasFuel() && hasOxy() && hasPower() && designator() != 1 && orbital() != 1 && satellite() != 1;
 	}
 	
 	public boolean hasFuel() {
