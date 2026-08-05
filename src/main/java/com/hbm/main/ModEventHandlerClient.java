@@ -141,7 +141,11 @@ import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.chunk.RenderChunk;
+import net.minecraft.client.renderer.culling.ClippingHelperImpl;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.culling.ICamera;
 import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -1065,15 +1069,23 @@ public class ModEventHandlerClient {
 		double d3 = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * (double) partialTicks;
 		double d4 = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * (double) partialTicks;
 		double d5 = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * (double) partialTicks;
+		double maxRenderDistance = Minecraft.getMinecraft().gameSettings.renderDistanceChunks * 16D + 32D;
+		double maxRenderDistanceSq = maxRenderDistance * maxRenderDistance;
+		ClippingHelperImpl.getInstance();
+		ICamera camera = new Frustum();
+		camera.setPosition(d3, d4, d5);
+		RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
 		for(Entity e : list) {
-			if(e instanceof IConstantRenderer) {
+			if(e instanceof IConstantRenderer && e.getDistanceSq(d3, d4, d5) <= maxRenderDistanceSq
+					&& camera.isBoundingBoxInFrustum(e.getEntityBoundingBox())) {
 				double d0 = e.lastTickPosX + (e.posX - e.lastTickPosX) * (double) partialTicks;
 				double d1 = e.lastTickPosY + (e.posY - e.lastTickPosY) * (double) partialTicks;
 				double d2 = e.lastTickPosZ + (e.posZ - e.lastTickPosZ) * (double) partialTicks;
 				float f = e.prevRotationYaw + (e.rotationYaw - e.prevRotationYaw) * partialTicks;
 
-				Render<Entity> r = Minecraft.getMinecraft().getRenderManager().getEntityRenderObject(e);
-				r.doRender(e, d0 - d3, d1 - d4, d2 - d5, f, partialTicks);
+				Render<Entity> r = renderManager.getEntityRenderObject(e);
+				if(r != null)
+					r.doRender(e, d0 - d3, d1 - d4, d2 - d5, f, partialTicks);
 			}
 		}
 		ClientProxy.renderingConstant = false;
