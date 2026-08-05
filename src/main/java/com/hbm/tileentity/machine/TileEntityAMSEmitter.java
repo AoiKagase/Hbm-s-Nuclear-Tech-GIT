@@ -33,6 +33,8 @@ import net.minecraftforge.items.ItemStackHandler;
 import scala.util.Random;
 
 public class TileEntityAMSEmitter extends TileEntity implements ITickable, IFluidHandler, ITankPacketAcceptor {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 
 	public ItemStackHandler inventory;
 
@@ -56,6 +58,11 @@ public class TileEntityAMSEmitter extends TileEntity implements ITickable, IFlui
 	//private static final int[] slots_side = new int[] { 0 };
 	
 	private String customName;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedLocked = Integer.MIN_VALUE;
+	private int lastSyncedEfficiency = Integer.MIN_VALUE;
+	private int lastSyncedTank = Integer.MIN_VALUE;
 	
 	public TileEntityAMSEmitter() {
 		inventory = new ItemStackHandler(4){
@@ -247,11 +254,35 @@ public class TileEntityAMSEmitter extends TileEntity implements ITickable, IFlui
 			tankType = ModForgeFluids.CRYOGEL;
 			tank.fill(new FluidStack(ModForgeFluids.CRYOGEL, tank.getCapacity()), true);
 			needsUpdate = true;
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, locked ? 1 : 0, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, efficiency, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[]{tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
+			syncClientState();
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		int lockedValue = locked ? 1 : 0;
+		boolean powerChanged = power != lastSyncedPower;
+		boolean lockedChanged = lockedValue != lastSyncedLocked;
+		boolean efficiencyChanged = efficiency != lastSyncedEfficiency;
+		boolean tankChanged = tank.getFluidAmount() != lastSyncedTank;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && (time - lastClientSyncTick < CLIENT_SYNC_INTERVAL || !(powerChanged || lockedChanged || efficiencyChanged || tankChanged)))
+			return;
+
+		TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15);
+		if(fullSync || powerChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), point);
+		if(fullSync || lockedChanged)
+			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, lockedValue, 0), point);
+		if(fullSync || efficiencyChanged)
+			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, efficiency, 1), point);
+		if(fullSync || tankChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[]{tank}), point);
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedLocked = lockedValue;
+		lastSyncedEfficiency = efficiency;
+		lastSyncedTank = tank.getFluidAmount();
 	}
 	
 	private float gauss(float a, float x) {

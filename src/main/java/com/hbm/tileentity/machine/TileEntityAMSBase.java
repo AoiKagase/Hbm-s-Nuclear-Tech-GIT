@@ -36,6 +36,9 @@ import net.minecraftforge.items.ItemStackHandler;
 import scala.util.Random;
 
 public class TileEntityAMSBase extends TileEntity implements ITickable, IFluidHandler, ITankPacketAcceptor {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
+	private static final int RADIATION_INTERVAL = 5;
 
 	public ItemStackHandler inventory;
 
@@ -63,6 +66,13 @@ public class TileEntityAMSBase extends TileEntity implements ITickable, IFluidHa
 	//private static final int[] slots_side = new int[] { 0 };
 	
 	private String customName;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedLocked = Integer.MIN_VALUE;
+	private int lastSyncedColor = Integer.MIN_VALUE;
+	private int lastSyncedEfficiency = Integer.MIN_VALUE;
+	private int lastSyncedField = Integer.MIN_VALUE;
+	private int[] lastSyncedTanks = new int[] { Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE };
 	
 	public TileEntityAMSBase() {
 		inventory = new ItemStackHandler(16){
@@ -257,7 +267,8 @@ public class TileEntityAMSBase extends TileEntity implements ITickable, IFluidHa
 						tanks[2].drain((int)(fuelBase * fuelMod), true);
 						tanks[3].drain((int)(fuelBase * fuelMod), true);
 						
-						radiation();
+						if(world.getTotalWorldTime() % RADIATION_INTERVAL == 0)
+							radiation();
 
 						if(heat > maxHeat) {
 							explode();
@@ -290,13 +301,46 @@ public class TileEntityAMSBase extends TileEntity implements ITickable, IFluidHa
 				warning = 3;
 			}
 
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, locked ? 1 : 0, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, color, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, efficiency, 2), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, field, 3), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllTracking(new FluidTankPacket(pos, new FluidTank[] {tanks[0], tanks[1], tanks[2], tanks[3]}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
+			syncClientState();
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		int lockedValue = locked ? 1 : 0;
+		boolean powerChanged = power != lastSyncedPower;
+		boolean lockedChanged = lockedValue != lastSyncedLocked;
+		boolean colorChanged = color != lastSyncedColor;
+		boolean efficiencyChanged = efficiency != lastSyncedEfficiency;
+		boolean fieldChanged = field != lastSyncedField;
+		boolean tanksChanged = false;
+		for(int i = 0; i < tanks.length && i < lastSyncedTanks.length; i++)
+			tanksChanged |= tanks[i].getFluidAmount() != lastSyncedTanks[i];
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && (time - lastClientSyncTick < CLIENT_SYNC_INTERVAL || !(powerChanged || lockedChanged || colorChanged || efficiencyChanged || fieldChanged || tanksChanged)))
+			return;
+
+		TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15);
+		if(fullSync || powerChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), point);
+		if(fullSync || lockedChanged)
+			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, lockedValue, 0), point);
+		if(fullSync || colorChanged)
+			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, color, 1), point);
+		if(fullSync || efficiencyChanged)
+			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, efficiency, 2), point);
+		if(fullSync || fieldChanged)
+			PacketDispatcher.wrapper.sendToAllTracking(new AuxGaugePacket(pos, field, 3), point);
+		if(fullSync || tanksChanged)
+			PacketDispatcher.wrapper.sendToAllTracking(new FluidTankPacket(pos, new FluidTank[] {tanks[0], tanks[1], tanks[2], tanks[3]}), point);
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedLocked = lockedValue;
+		lastSyncedColor = color;
+		lastSyncedEfficiency = efficiency;
+		lastSyncedField = field;
+		for(int i = 0; i < tanks.length && i < lastSyncedTanks.length; i++)
+			lastSyncedTanks[i] = tanks[i].getFluidAmount();
 	}
 	
 	private void radiation() {
