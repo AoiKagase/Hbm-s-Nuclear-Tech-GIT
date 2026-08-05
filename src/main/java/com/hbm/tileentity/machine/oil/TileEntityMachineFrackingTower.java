@@ -138,8 +138,8 @@ public class TileEntityMachineFrackingTower extends TileEntityOilDrillBase {
                                     this.tanks[0].fill(new FluidStack(tankTypes[0], oilCollected), true);
                                     this.tanks[1].fill(new FluidStack(tankTypes[1], gasCollected), true);
                                 } else {
-                                    int oilCollected = MachineConfig.oilPerBedrockDepositBlockMinFrackingTower + ((MachineConfig.oilPerBedrockDepositBlockMaxExtraFrackingTower > 0) ? world.rand.nextInt(MachineConfig.oilPerDepositBlockMaxExtraFrackingTower) : 0);
-                                    int gasCollected = MachineConfig.gasPerBedrockDepositBlockMinFrackingTower + ((MachineConfig.gasPerBedrockDepositBlockMaxExtraFrackingTower > 0) ? world.rand.nextInt(MachineConfig.gasPerDepositBlockMaxExtraFrackingTower) : 0);
+                                    int oilCollected = MachineConfig.oilPerBedrockDepositBlockMinFrackingTower + ((MachineConfig.oilPerBedrockDepositBlockMaxExtraFrackingTower > 0) ? world.rand.nextInt(MachineConfig.oilPerBedrockDepositBlockMaxExtraFrackingTower) : 0);
+                                    int gasCollected = MachineConfig.gasPerBedrockDepositBlockMinFrackingTower + ((MachineConfig.gasPerBedrockDepositBlockMaxExtraFrackingTower > 0) ? world.rand.nextInt(MachineConfig.gasPerBedrockDepositBlockMaxExtraFrackingTower) : 0);
 
                                     this.tanks[0].fill(new FluidStack(tankTypes[0], oilCollected), true);
                                     this.tanks[1].fill(new FluidStack(tankTypes[1], gasCollected), true);
