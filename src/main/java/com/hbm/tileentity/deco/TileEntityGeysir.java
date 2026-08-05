@@ -7,8 +7,8 @@ import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.generic.BlockGeysir;
 import com.hbm.entity.particle.EntityGasFlameFX;
 import com.hbm.entity.particle.EntityOrangeFX;
-import com.hbm.entity.projectile.EntityShrapnel;
 import com.hbm.entity.projectile.EntityWaterSplash;
+import com.hbm.entity.projectile.EntityShrapnel;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -24,6 +24,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 public class TileEntityGeysir extends TileEntity implements ITickable {
 
 	int timer;
+	private AxisAlignedBB effectBounds;
 
 	public static final byte range = 32;
 	private static final int EFFECT_INTERVAL = 2;
@@ -53,7 +54,7 @@ public class TileEntityGeysir extends TileEntity implements ITickable {
 
 	private void water() {
 		
-		int particleCount = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5).grow(range, range, range)).size();
+		int particleCount = world.getEntitiesWithinAABB(EntityWaterSplash.class, getEffectBounds()).size();
 		if(particleCount < 25){
 			EntityWaterSplash fx = new EntityWaterSplash(world, pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5);
 
@@ -67,7 +68,7 @@ public class TileEntityGeysir extends TileEntity implements ITickable {
 	
 	private void chlorine() {
 		
-		int particleCount = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5).grow(range, range, range)).size();
+		int particleCount = world.getEntitiesWithinAABB(EntityOrangeFX.class, getEffectBounds()).size();
 		if(particleCount < 25){
 			for(int i = 0; i < 3; i++) {
 				EntityOrangeFX fx = new EntityOrangeFX(world, pos.getX() + 0.5, pos.getY() + 1.5, pos.getZ() + 0.5, 0.0, 0.0, 0.0);
@@ -83,15 +84,21 @@ public class TileEntityGeysir extends TileEntity implements ITickable {
 	
 	private void vapor() {
 
-		List<Entity> entities = this.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos.getX() - 0.5, pos.getY() + 0.5, pos.getZ() - 0.5, pos.getX() + 1.5, pos.getY() + 2, pos.getZ() + 1.5));
+		List<EntityLivingBase> entities = this.world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos.getX() - 0.5, pos.getY() + 0.5, pos.getZ() - 0.5, pos.getX() + 1.5, pos.getY() + 2, pos.getZ() + 1.5));
 		
 		if (!entities.isEmpty()) {
-			for (Entity e : entities) {
-
-				if(e instanceof EntityLivingBase)
-				((EntityLivingBase)e).addPotionEffect(new PotionEffect(MobEffects.REGENERATION, 20, 0));
+			for (EntityLivingBase e : entities) {
+				e.addPotionEffect(new PotionEffect(MobEffects.REGENERATION, 20, 0));
 			}
 		}
+	}
+
+	private AxisAlignedBB getEffectBounds() {
+		if(effectBounds == null) {
+			effectBounds = new AxisAlignedBB(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5).grow(range, range, range);
+		}
+
+		return effectBounds;
 	}
 	
 	private void fire() {
