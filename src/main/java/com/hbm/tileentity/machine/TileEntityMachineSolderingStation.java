@@ -102,8 +102,8 @@ public class TileEntityMachineSolderingStation extends TileEntityMachineBase imp
 			long intendedMaxPower;
 
 			upgradeManager.eval(inventory, 8, 9);
-			int redLevel = upgradeManager.getLevel(UpgradeType.SPEED);
-			int blueLevel = upgradeManager.getLevel(UpgradeType.POWER);
+			int redLevel = Math.min(upgradeManager.getLevel(UpgradeType.SPEED), 3);
+			int blueLevel = Math.min(upgradeManager.getLevel(UpgradeType.POWER), 3);
 
 			if(recipe != null) {
 				this.display = recipe.output.copy();
