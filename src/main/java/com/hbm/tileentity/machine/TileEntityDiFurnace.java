@@ -151,19 +151,17 @@ public class TileEntityDiFurnace extends TileEntityMachineBase implements ITicka
 			return false;
 		}
 		
-		if(inventory.getStackInSlot(3).isEmpty())
-		{
-			return true;
+		ItemStack output = inventory.getStackInSlot(3);
+		int outputLimit = Math.min(inventory.getSlotLimit(3), itemStack.getMaxStackSize());
+		if(output.isEmpty()) {
+			return itemStack.getCount() <= outputLimit;
 		}
-		if(!inventory.getStackInSlot(3).isItemEqual(itemStack)) {
+		if(!output.isItemEqual(itemStack)) {
 			return false;
 		}
-		
-		if(inventory.getStackInSlot(3).getCount() < inventory.getSlotLimit(3) && inventory.getStackInSlot(3).getCount() < inventory.getStackInSlot(3).getMaxStackSize()) {
-			return true;
-		}else{
-			return inventory.getStackInSlot(3).getCount() < itemStack.getMaxStackSize();
-		}
+
+		outputLimit = Math.min(outputLimit, output.getMaxStackSize());
+		return output.getCount() + itemStack.getCount() <= outputLimit;
 	}
 	
 	private void processItem() {
