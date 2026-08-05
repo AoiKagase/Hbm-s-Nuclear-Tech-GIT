@@ -3,6 +3,7 @@ package com.hbm.packet;
 import com.hbm.items.machine.ItemCassette.SoundType;
 import com.hbm.items.machine.ItemCassette.TrackType;
 import com.hbm.sound.SoundLoopSiren;
+import com.hbm.sound.SoundLoopMachine;
 import com.hbm.tileentity.machine.TileEntityMachineSiren;
 
 import io.netty.buffer.ByteBuf;
@@ -66,11 +67,7 @@ public class TESirenPacket implements IMessage {
 
 			if (te instanceof TileEntityMachineSiren) {
 				
-				SoundLoopSiren sound = null;
-				for(int i = 0; i < SoundLoopSiren.list.size(); i++)  {
-					if(SoundLoopSiren.list.get(i).getTE() == te)
-						sound = SoundLoopSiren.list.get(i);
-				}
+				SoundLoopSiren sound = SoundLoopMachine.getActive(te, SoundLoopSiren.class);
 				
 				if(m.active) {
 					
@@ -105,7 +102,6 @@ public class TESirenPacket implements IMessage {
 					if(sound != null) {
 						//Stop sound
 						sound.stop();
-						SoundLoopSiren.list.remove(sound);
 					}
 				}
 			}

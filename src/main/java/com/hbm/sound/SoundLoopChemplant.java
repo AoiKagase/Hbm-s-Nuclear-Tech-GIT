@@ -1,8 +1,5 @@
 package com.hbm.sound;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.hbm.tileentity.machine.TileEntityMachineCentrifuge;
 import com.hbm.tileentity.machine.TileEntityMachineChemplant;
 import com.hbm.tileentity.machine.TileEntityMachineChemfac;
@@ -13,11 +10,8 @@ import net.minecraft.util.SoundEvent;
 
 public class SoundLoopChemplant extends SoundLoopMachine {
 	
-	public static List<SoundLoopChemplant> list = new ArrayList<SoundLoopChemplant>();
-
 	public SoundLoopChemplant(SoundEvent path, TileEntity te) {
 		super(path, te, 3);
-		list.add(this);
 	}
 
     public static boolean isProcessing(TileEntity te){

@@ -1,8 +1,5 @@
 package com.hbm.sound;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.hbm.items.machine.ItemCassette.SoundType;
 import com.hbm.tileentity.machine.TileEntityMachineSiren;
 
@@ -14,13 +11,11 @@ import net.minecraft.util.SoundEvent;
 
 public class SoundLoopSiren extends SoundLoopMachine {
 
-	public static List<SoundLoopSiren> list = new ArrayList<SoundLoopSiren>();
 	public float intendedVolume;
 	public SoundType type;
 
 	public SoundLoopSiren(SoundEvent path, TileEntity te, SoundType type) {
 		super(path, te, 1);
-		list.add(this);
 		intendedVolume = 10.0F;
 		this.attenuationType = ISound.AttenuationType.NONE;
 		this.type = type;
@@ -43,7 +38,7 @@ public class SoundLoopSiren extends SoundLoopMachine {
 		if(te instanceof TileEntityMachineSiren) {
 			this.setRepeat(type.name().equals(SoundType.LOOP.name()));
 		} else {
-			this.donePlaying = true;
+			this.stop();
 		}
 	}
 	

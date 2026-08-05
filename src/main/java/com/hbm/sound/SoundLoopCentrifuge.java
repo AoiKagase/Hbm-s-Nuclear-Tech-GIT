@@ -1,8 +1,5 @@
 package com.hbm.sound;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.hbm.tileentity.TileEntityLoadedBase;
 import com.hbm.tileentity.machine.TileEntityMachineCentrifuge;
 import com.hbm.tileentity.machine.TileEntityMachineGasCent;
@@ -13,11 +10,8 @@ import net.minecraft.util.SoundEvent;
 
 public class SoundLoopCentrifuge extends SoundLoopMachine {
 
-	public static List<SoundLoopCentrifuge> list = new ArrayList<SoundLoopCentrifuge>();
-	
 	public SoundLoopCentrifuge(SoundEvent path, TileEntity te) {
 		super(path, te, 1);
-		list.add(this);
 	}
 
     public static boolean isProcessing(TileEntity te){

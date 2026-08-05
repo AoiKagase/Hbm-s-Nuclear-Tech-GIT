@@ -1,8 +1,5 @@
 package com.hbm.sound;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.hbm.tileentity.machine.TileEntityBroadcaster;
 
 import net.minecraft.client.Minecraft;
@@ -14,12 +11,10 @@ import net.minecraft.util.math.BlockPos;
 
 public class SoundLoopBroadcaster extends SoundLoopMachine {
 	
-	public static List<SoundLoopBroadcaster> list = new ArrayList<SoundLoopBroadcaster>();
 	public float intendedVolume = 25.0F;
 
 	public SoundLoopBroadcaster(SoundEvent path, TileEntity te) {
 		super(path, te, 1);
-		list.add(this);
 		this.attenuationType = ISound.AttenuationType.NONE;
 	}
 
@@ -35,7 +30,7 @@ public class SoundLoopBroadcaster extends SoundLoopMachine {
 			volume = func(f, intendedVolume);
 			
 			if(!(player.world.getTileEntity(new BlockPos((int)xPosF, (int)yPosF, (int)zPosF)) instanceof TileEntityBroadcaster)) {
-				this.donePlaying = true;
+				this.stop();
 				volume = 0;
 			}
 		} else {
