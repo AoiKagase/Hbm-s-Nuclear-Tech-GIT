@@ -32,7 +32,9 @@ public class TileEntityChungus extends TileEntityLoadedBase implements ITickable
 	public long powerProduction = 0;
 	public long power;
 	public static final long maxPower = 100000000000L;
+	private static final int NETWORK_UPDATE_INTERVAL = 5;
 	private int turnTimer;
+	private int networkTimer;
 	public float rotor;
 	public float lastRotor;
 	
@@ -78,7 +80,12 @@ public class TileEntityChungus extends TileEntityLoadedBase implements ITickable
 			if(cycles > 0)
 				turnTimer = 25;
 			
-			networkPack();
+			if(networkTimer <= 0) {
+				networkPack();
+				networkTimer = NETWORK_UPDATE_INTERVAL - 1;
+			} else {
+				networkTimer--;
+			}
 			this.fillFluidInit(tanks[1]);
 			ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
 			this.sendPower(world, pos.add(-dir.offsetX * 11, 0, -dir.offsetZ * 11), dir.getOpposite());

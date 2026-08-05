@@ -32,6 +32,8 @@ public class TileEntityHeatBoiler extends TileEntity implements INBTPacketReceiv
     public int heat;
     public static int maxHeat = 12_800_000; //the heat required to turn 64k of water into steam
     public static final double diffusion = 0.1D;
+    private static final int NETWORK_UPDATE_INTERVAL = 5;
+    private int networkTimer;
 
     public TileEntityHeatBoiler() {
         super();
@@ -66,7 +68,12 @@ public class TileEntityHeatBoiler extends TileEntity implements INBTPacketReceiv
             
             fillFluidInit(tanks[1]);
 
-            networkPack();
+            if(networkTimer <= 0) {
+                networkPack();
+                networkTimer = NETWORK_UPDATE_INTERVAL - 1;
+            } else {
+                networkTimer--;
+            }
         }
     }
 
