@@ -9,6 +9,7 @@ import com.hbm.packet.TEPressPacket;
 import com.hbm.tileentity.TileEntityMachineBase;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntityFurnace;
@@ -251,6 +252,42 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 	private int detectBurnTime;
 	private int detectMaxBurn;
 	private boolean detectIsRetracting;
+	private int renderSyncTicks = 20;
+	private int renderSyncItem = Integer.MIN_VALUE;
+	private int renderSyncMeta = Integer.MIN_VALUE;
+	private int renderSyncStampItem = Integer.MIN_VALUE;
+	private int renderSyncStampMeta = Integer.MIN_VALUE;
+	private int renderSyncProgress = Integer.MIN_VALUE;
+
+	private boolean shouldSendRenderSync() {
+		ItemStack itemStack = inventory.getStackInSlot(2);
+		ItemStack stampStack = inventory.getStackInSlot(1);
+		int itemId = getRenderItemId(itemStack);
+		int itemMeta = getRenderItemMeta(itemStack);
+		int stampId = getRenderItemId(stampStack);
+		int stampMetaValue = getRenderItemMeta(stampStack);
+		boolean changed = renderSyncItem != itemId || renderSyncMeta != itemMeta
+				|| renderSyncStampItem != stampId || renderSyncStampMeta != stampMetaValue
+				|| renderSyncProgress != progress;
+		if (!changed && renderSyncTicks++ < 20)
+			return false;
+
+		renderSyncItem = itemId;
+		renderSyncMeta = itemMeta;
+		renderSyncStampItem = stampId;
+		renderSyncStampMeta = stampMetaValue;
+		renderSyncProgress = progress;
+		renderSyncTicks = 0;
+		return true;
+	}
+
+	private static int getRenderItemId(ItemStack stack) {
+		return stack.isEmpty() ? 0 : Item.getIdFromItem(stack.getItem());
+	}
+
+	private static int getRenderItemMeta(ItemStack stack) {
+		return stack.isEmpty() ? 0 : stack.getItemDamage();
+	}
 
 	private void detectAndSendChanges() {
 
@@ -277,10 +314,11 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 		}
 		if (mark)
 			markDirty();
-		PacketDispatcher.wrapper.sendToAllAround(
-				new TEPressPacket(this.pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(2),
-						inventory.getStackInSlot(1), progress),
-				new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+		if (shouldSendRenderSync())
+			PacketDispatcher.wrapper.sendToAllAround(
+					new TEPressPacket(this.pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(2),
+							inventory.getStackInSlot(1), progress),
+						new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
 	}
 
 }
