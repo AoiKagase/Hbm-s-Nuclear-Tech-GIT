@@ -65,7 +65,6 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 	public boolean needsTankTypeUpdate = false;
 	public FluidTank[] tanks;
 	public Fluid[] tankTypes;
-	public ItemStack previousTemplate = ItemStack.EMPTY;
 	//Drillgon200: Yeah I don't even know what I was doing originally
 	public ItemStack previousTemplate2 = ItemStack.EMPTY;
 	int consumption = 100;
@@ -473,8 +472,6 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 
 	private void setContainers() {
 		if(!(inventory.getStackInSlot(4).isEmpty() || (!inventory.getStackInSlot(4).isEmpty() && !(inventory.getStackInSlot(4).getItem() instanceof ItemChemistryTemplate)))) {
-            needsTankTypeUpdate = previousTemplate.isEmpty() || !ItemStack.areItemStacksEqual(previousTemplate, inventory.getStackInSlot(4));
-			previousTemplate = inventory.getStackInSlot(4).copy();
 			FluidStack[] fluidInputs = ChemplantRecipes.getFluidInputFromTempate(inventory.getStackInSlot(4));
 			FluidStack[] fluidOutputs = ChemplantRecipes.getFluidOutputFromTempate(inventory.getStackInSlot(4));
 
@@ -488,36 +485,6 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 				tankTypes[2] = fluidOutputs[0] == null ? null : fluidOutputs[0].getFluid();
 				if(fluidOutputs.length == 2){
 					tankTypes[3] = fluidOutputs[1] == null ? null : fluidOutputs[1].getFluid();
-				}
-			}
-
-			if(fluidInputs != null){
-				if((fluidInputs[0] != null && tanks[0].getFluid() == null) || tanks[0].getFluid() != null && tanks[0].getFluid().getFluid() != tankTypes[0]) {
-					tanks[0].setFluid(null);
-					if(needsTankTypeUpdate) {
-						needsTankTypeUpdate = false;
-					}
-				}
-				if(fluidInputs.length == 2){
-					if((fluidInputs[1] != null && tanks[1].getFluid() == null) || tanks[1].getFluid() != null && tanks[1].getFluid().getFluid() != tankTypes[1]) {
-						tanks[1].setFluid(null);
-						if(needsTankTypeUpdate) {
-							needsTankTypeUpdate = false;
-						}
-					}
-				}
-			}
-			if(fluidOutputs != null){
-				if((fluidOutputs[0] != null && tanks[2].getFluid() == null) || tanks[2].getFluid() != null && tanks[2].getFluid().getFluid() != tankTypes[2]) {
-					tanks[2].setFluid(null);
-				}
-				if(fluidOutputs.length == 2){
-					if((fluidOutputs[1] != null && tanks[3].getFluid() == null) || tanks[3].getFluid() != null && tanks[3].getFluid().getFluid() != tankTypes[3]) {
-						tanks[3].setFluid(null);
-						if(needsTankTypeUpdate) {
-							needsTankTypeUpdate = false;
-						}
-					}
 				}
 			}
 		}
@@ -547,11 +514,16 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 		if(Library.isArrayEmpty(fluids))
 			return true;
 		if(fluids.length == 2){
-            return (fluids[0] == null || fluids[0].amount <= tanks[0].getFluidAmount()) && (fluids[1] == null || fluids[1].amount <= tanks[1].getFluidAmount());
+			return hasFluidStored(0, fluids[0]) && hasFluidStored(1, fluids[1]);
 		}else{
-            return fluids[0] == null || fluids[0].amount <= tanks[0].getFluidAmount();
+			return hasFluidStored(0, fluids[0]);
 		}
-    }
+	}
+
+	private boolean hasFluidStored(int tankIndex, FluidStack required) {
+		FluidStack stored = tanks[tankIndex].getFluid();
+		return required == null || stored != null && required.isFluidEqual(stored) && required.amount <= stored.amount;
+	}
 
 	public boolean hasSpaceForFluids(FluidStack[] fluids) {
 		if(Library.isArrayEmpty(fluids))
