@@ -38,7 +38,6 @@ import scala.util.Random;
 public class TileEntityAMSBase extends TileEntity implements ITickable, IFluidHandler, ITankPacketAcceptor {
 	private static final int CLIENT_SYNC_INTERVAL = 5;
 	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
-	private static final int RADIATION_INTERVAL = 5;
 
 	public ItemStackHandler inventory;
 
@@ -267,8 +266,7 @@ public class TileEntityAMSBase extends TileEntity implements ITickable, IFluidHa
 						tanks[2].drain((int)(fuelBase * fuelMod), true);
 						tanks[3].drain((int)(fuelBase * fuelMod), true);
 						
-						if(world.getTotalWorldTime() % RADIATION_INTERVAL == 0)
-							radiation();
+						radiation();
 
 						if(heat > maxHeat) {
 							explode();

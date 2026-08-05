@@ -70,15 +70,15 @@ public class TileEntityTesla extends TileEntityMachineBase implements ITickable,
 				return;
 
 			this.targets.clear();
-			int powerCost = POWER_PER_ZAP_TICK * ZAP_INTERVAL;
-			if(power >= powerCost) {
-				power -= powerCost;
+			int zapTicks = (int)Math.min((long)ZAP_INTERVAL, power / POWER_PER_ZAP_TICK);
+			if(zapTicks > 0) {
+				power -= (long)POWER_PER_ZAP_TICK * zapTicks;
 
 				double dx = pos.getX() + 0.5;
 				double dy = pos.getY() + offset;
 				double dz = pos.getZ() + 0.5;
 				
-				this.targets = zap(world, dx, dy, dz, range, null, ZAP_INTERVAL);
+				this.targets = zap(world, dx, dy, dz, range, null, zapTicks);
 			}
 			
 			if(!targets.isEmpty() || hadTargets)
@@ -112,19 +112,19 @@ public class TileEntityTesla extends TileEntityMachineBase implements ITickable,
 			
 			if(e instanceof EntityTaintCrab) {
 				ret.add(new double[] {e.posX, e.posY + 1.25, e.posZ});
-				e.heal(15F);
+				e.heal(15F * damageMultiplier);
 				continue;
 			}
 			
 			if(e instanceof EntityTeslaCrab) {
 				ret.add(new double[] {e.posX, e.posY + 1, e.posZ});
-				e.heal(10F);
+				e.heal(10F * damageMultiplier);
 				continue;
 			}
 			
 			if(e instanceof EntityCyberCrab) {
 				ret.add(new double[] {e.posX, e.posY + e.height / 2, e.posZ});
-				e.heal(0.1F);
+				e.heal(0.1F * damageMultiplier);
 				continue;
 			}
 			

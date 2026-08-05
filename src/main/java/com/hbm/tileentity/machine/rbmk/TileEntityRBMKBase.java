@@ -317,13 +317,15 @@ public abstract class TileEntityRBMKBase extends TileEntity implements INBTPacke
 			return false;
 
 		long currentTick = world.getTotalWorldTime();
-		long ticksSinceLastPack = currentTick - lastNetworkPackTick;
+		if(lastNetworkPack != null) {
+			long ticksSinceLastPack = currentTick - lastNetworkPackTick;
 
-		if(lastNetworkPack != null && lastNetworkPackRange == range && lastNetworkPack.equals(nbt)) {
-			if(ticksSinceLastPack < IDENTICAL_NETWORK_PACK_RESEND_INTERVAL)
+			if(lastNetworkPackRange == range && lastNetworkPack.equals(nbt)) {
+				if(ticksSinceLastPack < IDENTICAL_NETWORK_PACK_RESEND_INTERVAL)
+					return false;
+			} else if(ticksSinceLastPack < NETWORK_PACK_INTERVAL) {
 				return false;
-		} else if(ticksSinceLastPack < NETWORK_PACK_INTERVAL) {
-			return false;
+			}
 		}
 
 		lastNetworkPack = nbt.copy();
