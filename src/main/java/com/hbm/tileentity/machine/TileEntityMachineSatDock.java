@@ -33,6 +33,9 @@ import java.util.Random;
 public class TileEntityMachineSatDock extends TileEntityMachineBase implements ITickable {
 
 	private static final int[] access = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
+	private static final int SATELLITE_CHECK_INTERVAL = 20;
+	private static final int ROCKET_CHECK_INTERVAL = 5;
+	private static final int EJECT_INTERVAL = 10;
 
 	public TileEntityMachineSatDock(){
 		super(16);
@@ -64,9 +67,7 @@ public class TileEntityMachineSatDock extends TileEntityMachineBase implements I
 				world.getPerWorldStorage().setData("satellites", new SatelliteSavedData());
 				data = (SatelliteSavedData)world.getPerWorldStorage().getOrLoadData(SatelliteSavedData.class, "satellites");
 			}
-			data.markDirty();
-
-			if(data != null && !inventory.getStackInSlot(15).isEmpty()) {
+			if(data != null && !inventory.getStackInSlot(15).isEmpty() && world.getTotalWorldTime() % SATELLITE_CHECK_INTERVAL == 0) {
 				int freq = ISatChip.getFreqS(inventory.getStackInSlot(15));
 
 				Satellite sat = data.getSatFromFreq(freq);
@@ -102,27 +103,31 @@ public class TileEntityMachineSatDock extends TileEntityMachineBase implements I
 				}
 			}
 
-			List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(null, new AxisAlignedBB(pos.getX() - 0.25 + 0.5, pos.getY() + 0.75, pos.getZ() - 0.25 + 0.5, pos.getX() + 0.25 + 0.5, pos.getY() + 2, pos.getZ() + 0.25 + 0.5));
+			if(world.getTotalWorldTime() % ROCKET_CHECK_INTERVAL == 0) {
+				List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(null, new AxisAlignedBB(pos.getX() - 0.25 + 0.5, pos.getY() + 0.75, pos.getZ() - 0.25 + 0.5, pos.getX() + 0.25 + 0.5, pos.getY() + 2, pos.getZ() + 0.25 + 0.5));
 
-			for(Entity e : list) {
+				for(Entity e : list) {
 
-				if(e instanceof EntityMinerRocket rocket) {
+					if(e instanceof EntityMinerRocket rocket) {
 
-                    if(rocket.getDataManager().get(EntityMinerRocket.TIMER) == 1 && rocket.timer == 50) {
-						byte type = rocket.getRocketType();
-						if(type == 0){
-							unloadCargo();
-						} else if(type == 1){
-							unloadGeraldCargo();
+	                    if(rocket.getDataManager().get(EntityMinerRocket.TIMER) == 1 && rocket.timer >= 50 && rocket.timer < 50 + ROCKET_CHECK_INTERVAL) {
+							byte type = rocket.getRocketType();
+							if(type == 0){
+								unloadCargo();
+							} else if(type == 1){
+								unloadGeraldCargo();
+							}
 						}
 					}
 				}
 			}
 
-			ejectInto(pos.getX() + 2, pos.getY(), pos.getZ());
-			ejectInto(pos.getX() - 2, pos.getY(), pos.getZ());
-			ejectInto(pos.getX(), pos.getY(), pos.getZ() + 2);
-			ejectInto(pos.getX(), pos.getY(), pos.getZ() - 2);
+			if(world.getTotalWorldTime() % EJECT_INTERVAL == 0) {
+				ejectInto(pos.getX() + 2, pos.getY(), pos.getZ());
+				ejectInto(pos.getX() - 2, pos.getY(), pos.getZ());
+				ejectInto(pos.getX(), pos.getY(), pos.getZ() + 2);
+				ejectInto(pos.getX(), pos.getY(), pos.getZ() - 2);
+			}
 		}
 	}
 
