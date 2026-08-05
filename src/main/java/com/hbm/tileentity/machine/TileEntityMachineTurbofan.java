@@ -60,6 +60,13 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 	public int momentum = 0;
 	
 	public boolean needsUpdate = false;
+	private static final int ENTITY_EFFECT_INTERVAL = 2;
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedFluidAmount = Integer.MIN_VALUE;
+	private boolean lastSyncedRunning;
 
 	//private static final int[] slots_top = new int[] { 0 };
 	//private static final int[] slots_bottom = new int[] { 0, 0 };
@@ -196,56 +203,8 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 				}
 				
 				
-				//Intake pull
-				double minX = pos.getX() + 0.5 + dir.offsetX * 3.5 - rot.offsetX * 1.5;
-				double maxX = pos.getX() + 0.5 + dir.offsetX * 12.5 + rot.offsetX * 1.5;
-				double minZ = pos.getZ() + 0.5 + dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
-				double maxZ = pos.getZ() + 0.5 + dir.offsetZ * 12.5 + rot.offsetZ * 1.5;
-				
-				List<Entity> listIntake = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
-				
-				for(Entity e : listIntake) {
-					e.addVelocity(-dir.offsetX * 0.3 * (afterburner+1), 0, -dir.offsetZ * 0.3 * (afterburner+1));
-				}
-				
-				//Intake kill
-				minX = pos.getX() + 0.5 + dir.offsetX * 3.5 - rot.offsetX * 1.5;
-				maxX = pos.getX() + 0.5 + dir.offsetX * 3.75 + rot.offsetX * 1.5;
-				minZ = pos.getZ() + 0.5 + dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
-				maxZ = pos.getZ() + 0.5 + dir.offsetZ * 3.75 + rot.offsetZ * 1.5;
-				
-				List<Entity> listKill = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
-			
-				for(Entity e : listKill) {
-					e.attackEntityFrom(ModDamageSource.turbofan, 1000);
-					e.setInWeb();
-					if(!e.isEntityAlive() && e instanceof EntityLivingBase) {
-						NBTTagCompound vdat = new NBTTagCompound();
-						vdat.setString("type", "giblets");
-						vdat.setInteger("ent", e.getEntityId());
-						PacketDispatcher.wrapper.sendToAllAround(new AuxParticlePacketNT(vdat, e.posX, e.posY + e.height * 0.5, e.posZ), new TargetPoint(e.dimension, e.posX, e.posY + e.height * 0.5, e.posZ, 150));
-						
-						world.playSound(null, e.posX, e.posY, e.posZ, SoundEvents.ENTITY_ZOMBIE_BREAK_DOOR_WOOD, SoundCategory.HOSTILE, 2.0F, 0.95F + world.rand.nextFloat() * 0.2F);
-						
-					}
-				}
-
-				//Exhaust push
-				minX = pos.getX() + 0.5 - dir.offsetX * 3.5 - rot.offsetX * 1.5;
-				maxX = pos.getX() + 0.5 - dir.offsetX * 19.5 + rot.offsetX * 1.5;
-				minZ = pos.getZ() + 0.5 - dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
-				maxZ = pos.getZ() + 0.5 - dir.offsetZ * 19.5 + rot.offsetZ * 1.5;
-				
-				List<Entity> listExhaust = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
-				
-				for(Entity e : listExhaust) {
-					
-					if(this.afterburner > 0) {
-						e.setFire(5);
-						e.attackEntityFrom(DamageSource.IN_FIRE, 3F*afterburner);
-					}
-					e.addVelocity(-dir.offsetX * 0.5 * (afterburner+1), 0, -dir.offsetZ * 0.5 * (afterburner+1));
-				}
+				if(world.getTotalWorldTime() % ENTITY_EFFECT_INTERVAL == 0)
+					applyTurbofanEntityEffects(dir, rot);
 			}
 			if(prevFluidAmount != tank.getFluidAmount() || prevPower != power){
 				markDirty();
@@ -327,11 +286,78 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 			}
 		}
 		
-		if(!world.isRemote) {
-			PacketDispatcher.wrapper.sendToAllAround(new TETurbofanPacket(pos.getX(), pos.getY(), pos.getZ(), isRunning), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] {tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		if(!world.isRemote)
+			syncClientState();
+	}
+
+	private void applyTurbofanEntityEffects(ForgeDirection dir, ForgeDirection rot) {
+		//Intake pull
+		double minX = pos.getX() + 0.5 + dir.offsetX * 3.5 - rot.offsetX * 1.5;
+		double maxX = pos.getX() + 0.5 + dir.offsetX * 12.5 + rot.offsetX * 1.5;
+		double minZ = pos.getZ() + 0.5 + dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
+		double maxZ = pos.getZ() + 0.5 + dir.offsetZ * 12.5 + rot.offsetZ * 1.5;
+		
+		List<Entity> listIntake = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
+		
+		for(Entity e : listIntake) {
+			e.addVelocity(-dir.offsetX * 0.6 * (afterburner+1), 0, -dir.offsetZ * 0.6 * (afterburner+1));
 		}
+		
+		//Intake kill
+		minX = pos.getX() + 0.5 + dir.offsetX * 3.5 - rot.offsetX * 1.5;
+		maxX = pos.getX() + 0.5 + dir.offsetX * 3.75 + rot.offsetX * 1.5;
+		minZ = pos.getZ() + 0.5 + dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
+		maxZ = pos.getZ() + 0.5 + dir.offsetZ * 3.75 + rot.offsetZ * 1.5;
+		
+		List<Entity> listKill = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
+	
+		for(Entity e : listKill) {
+			e.attackEntityFrom(ModDamageSource.turbofan, 1000);
+			e.setInWeb();
+			if(!e.isEntityAlive() && e instanceof EntityLivingBase) {
+				NBTTagCompound vdat = new NBTTagCompound();
+				vdat.setString("type", "giblets");
+				vdat.setInteger("ent", e.getEntityId());
+				PacketDispatcher.wrapper.sendToAllAround(new AuxParticlePacketNT(vdat, e.posX, e.posY + e.height * 0.5, e.posZ), new TargetPoint(e.dimension, e.posX, e.posY + e.height * 0.5, e.posZ, 150));
+				
+				world.playSound(null, e.posX, e.posY, e.posZ, SoundEvents.ENTITY_ZOMBIE_BREAK_DOOR_WOOD, SoundCategory.HOSTILE, 2.0F, 0.95F + world.rand.nextFloat() * 0.2F);
+				
+			}
+		}
+
+		//Exhaust push
+		minX = pos.getX() + 0.5 - dir.offsetX * 3.5 - rot.offsetX * 1.5;
+		maxX = pos.getX() + 0.5 - dir.offsetX * 19.5 + rot.offsetX * 1.5;
+		minZ = pos.getZ() + 0.5 - dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
+		maxZ = pos.getZ() + 0.5 - dir.offsetZ * 19.5 + rot.offsetZ * 1.5;
+		
+		List<Entity> listExhaust = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
+		
+		for(Entity e : listExhaust) {
+			
+			if(this.afterburner > 0) {
+				e.setFire(5);
+				e.attackEntityFrom(DamageSource.IN_FIRE, 6F*afterburner);
+			}
+			e.addVelocity(-dir.offsetX * (afterburner+1), 0, -dir.offsetZ * (afterburner+1));
+		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		boolean changed = power != lastSyncedPower || tank.getFluidAmount() != lastSyncedFluidAmount || isRunning != lastSyncedRunning || needsUpdate;
+		if(lastClientSyncTick >= 0 && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+			return;
+		if(lastClientSyncTick >= 0 && !changed && time - lastClientSyncTick < CLIENT_FULL_SYNC_INTERVAL)
+			return;
+
+		PacketDispatcher.wrapper.sendToAllAround(new TETurbofanPacket(pos.getX(), pos.getY(), pos.getZ(), isRunning), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 50));
+		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] {tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedFluidAmount = tank.getFluidAmount();
+		lastSyncedRunning = isRunning;
 	}
 
 	public AudioWrapper createAudioLoop() {
