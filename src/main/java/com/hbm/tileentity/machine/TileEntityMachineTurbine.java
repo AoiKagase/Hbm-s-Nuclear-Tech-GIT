@@ -33,6 +33,8 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 public class TileEntityMachineTurbine extends TileEntityLoadedBase implements ITickable, IEnergyGenerator, ITankPacketAcceptor, IFluidHandler {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 
 	public ItemStackHandler inventory;
 
@@ -100,9 +102,6 @@ public class TileEntityMachineTurbine extends TileEntityLoadedBase implements IT
 					inventory.setStackInSlot(0, ItemStack.EMPTY);
 				}
 			}
-
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[] { tanks[0], tanks[1] }), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTypePacketTest(pos.getX(), pos.getY(), pos.getZ(), tankTypes), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
 
 			power = Library.chargeItemsFromTE(inventory, 4, power, maxPower);
 
@@ -280,14 +279,16 @@ public class TileEntityMachineTurbine extends TileEntityLoadedBase implements IT
 	private long detectPower;
 	private FluidTank[] detectTanks = new FluidTank[] { null, null };
 	private Fluid[] detectFluids = new Fluid[] { null, null };
+	private long lastClientSyncTick = -1;
 
 	private void detectAndSendChanges() {
 
 		boolean mark = false;
-		
-		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-		
-		if(detectPower != power) {
+		boolean powerChanged = detectPower != power;
+		boolean tankChanged = !FFUtils.areTanksEqual(detectTanks[0], tanks[0]) || !FFUtils.areTanksEqual(detectTanks[1], tanks[1]);
+		boolean fluidChanged = detectFluids[0] != tankTypes[0] || detectFluids[1] != tankTypes[1];
+
+		if(powerChanged) {
 			mark = true;
 			detectPower = power;
 		}
@@ -307,8 +308,25 @@ public class TileEntityMachineTurbine extends TileEntityLoadedBase implements IT
 			mark = true;
 			detectFluids[1] = tankTypes[1];
 		}
+		syncClientState(powerChanged, tankChanged, fluidChanged);
 		if(mark)
 			markDirty();
+	}
+
+	private void syncClientState(boolean powerChanged, boolean tankChanged, boolean fluidChanged) {
+		long time = world.getTotalWorldTime();
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && (time - lastClientSyncTick < CLIENT_SYNC_INTERVAL || !(powerChanged || tankChanged || fluidChanged)))
+			return;
+
+		TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10);
+		if(fullSync || powerChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), point);
+		if(fullSync || tankChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[] { tanks[0], tanks[1] }), point);
+		if(fullSync || fluidChanged)
+			PacketDispatcher.wrapper.sendToAllAround(new FluidTypePacketTest(pos.getX(), pos.getY(), pos.getZ(), tankTypes), point);
+		lastClientSyncTick = time;
 	}
 
 	@Override

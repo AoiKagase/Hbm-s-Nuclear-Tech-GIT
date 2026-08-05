@@ -22,6 +22,12 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class TileEntityMachineOilWell extends TileEntityOilDrillBase {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedOil = Integer.MIN_VALUE;
+	private int lastSyncedGas = Integer.MIN_VALUE;
 
 	// private static final int[] slots_top = new int[] {1};
 	// private static final int[] slots_bottom = new int[] {2, 0};
@@ -43,7 +49,8 @@ public class TileEntityMachineOilWell extends TileEntityOilDrillBase {
 		if(age2 >= 20)
 			age2 -= 20;
 		if(!world.isRemote) {
-			this.updateConnections();
+			if(world.getTotalWorldTime() % 20 == 0)
+				this.updateConnections();
 			int tank0Amount = tanks[0].getFluidAmount();
 			int tank1Amount = tanks[1].getFluidAmount();
 			if(age2 == 9 || age2 == 19) {
@@ -137,12 +144,27 @@ public class TileEntityMachineOilWell extends TileEntityOilDrillBase {
 				}
 			}
 
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] { tanks[0], tanks[1] }), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+			syncClientState();
 			if(tank0Amount != tanks[0].getFluidAmount() || tank1Amount != tanks[1].getFluidAmount()){
 				markDirty();
 			}
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		boolean changed = power != lastSyncedPower || tanks[0].getFluidAmount() != lastSyncedOil || tanks[1].getFluidAmount() != lastSyncedGas || needsUpdate;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && (time - lastClientSyncTick < CLIENT_SYNC_INTERVAL || !changed))
+			return;
+
+		TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10);
+		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), point);
+		PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] { tanks[0], tanks[1] }), point);
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedOil = tanks[0].getFluidAmount();
+		lastSyncedGas = tanks[1].getFluidAmount();
 	}
 
 	protected void updateConnections() {

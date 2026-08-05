@@ -43,6 +43,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.jetbrains.annotations.NotNull;
 
 public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements ITickable, IEnergyUser, IFluidHandler, ITankPacketAcceptor {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 
 	public long power;
 	public static final long maxPower = 1000000;
@@ -55,6 +57,9 @@ public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements IT
 	public byte rocketType = -1;
 	
 	private AudioWrapper audio;
+	private long lastClientSyncTick = -1;
+	private int lastSyncedFuel = Integer.MIN_VALUE;
+	private int lastSyncedOxidizer = Integer.MIN_VALUE;
 	
 	public MissileStruct load;
 
@@ -82,7 +87,7 @@ public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements IT
 			if(isValidFluidForTank(6, 1))
 				FFUtils.fillFromFluidContainer(inventory, tanks[1], 6, 7);
 
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, tanks), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+			syncTankState();
 			
 			power = Library.chargeTEFromItems(inventory, 8, power, maxPower);
 			
@@ -144,6 +149,19 @@ public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements IT
 				MainRegistry.proxy.effectNT(data);
 			}
 		}
+	}
+
+	private void syncTankState() {
+		long time = world.getTotalWorldTime();
+		boolean changed = tanks[0].getFluidAmount() != lastSyncedFuel || tanks[1].getFluidAmount() != lastSyncedOxidizer;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && (time - lastClientSyncTick < CLIENT_SYNC_INTERVAL || !changed))
+			return;
+
+		PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, tanks), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+		lastClientSyncTick = time;
+		lastSyncedFuel = tanks[0].getFluidAmount();
+		lastSyncedOxidizer = tanks[1].getFluidAmount();
 	}
 
 	private void updateConnections(){

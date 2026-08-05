@@ -27,12 +27,17 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import org.jetbrains.annotations.NotNull;
 
 public class TileEntityStorageDrum extends TileEntityMachineBase implements ITickable, IFluidHandler, ITankPacketAcceptor {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 
 	public FluidTank[] tanks;
 	private static final int[] slots_arr = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };
 	public int age = 0;
 
 	private static final float decayRate = 0.9965402628F; //10s Halflife
+	private long lastClientSyncTick = -1;
+	private int lastSyncedLiquid = Integer.MIN_VALUE;
+	private int lastSyncedGas = Integer.MIN_VALUE;
 
 	public TileEntityStorageDrum() {
 		super(24, 1);
@@ -108,12 +113,25 @@ public class TileEntityStorageDrum extends TileEntityMachineBase implements ITic
 				fillFluidInit(tanks[1]);
 			}
 
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, tanks), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+			syncClientState();
 			
 			if(rad > 0) {
 				ContaminationUtil.radiate(world, pos.getZ(), pos.getY(), pos.getX(), 32, rad);
 			}
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		boolean changed = tanks[0].getFluidAmount() != lastSyncedLiquid || tanks[1].getFluidAmount() != lastSyncedGas;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && (time - lastClientSyncTick < CLIENT_SYNC_INTERVAL || !changed))
+			return;
+
+		PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, tanks), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		lastClientSyncTick = time;
+		lastSyncedLiquid = tanks[0].getFluidAmount();
+		lastSyncedGas = tanks[1].getFluidAmount();
 	}
 
 	@Override
