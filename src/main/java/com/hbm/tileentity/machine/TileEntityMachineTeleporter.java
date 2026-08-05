@@ -29,6 +29,10 @@ public class TileEntityMachineTeleporter extends TileEntityLoadedBase implements
 	public byte packageTimer = 0;
 	public static final int consumption = 100000000;
 	public static final int maxPower = 1000000000;
+	private static final int POWER_SYNC_INTERVAL = 5;
+	private int powerSyncTimer;
+	private boolean powerSyncPending = true;
+	private AxisAlignedBB teleportBounds;
 
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
@@ -64,16 +68,25 @@ public class TileEntityMachineTeleporter extends TileEntityLoadedBase implements
 		packageTimer++;
 		if(!this.world.isRemote) {
 			this.updateStandardConnections(world, pos);
-			List<Entity> entities = this.world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos.getX() - 0.25, pos.getY(), pos.getZ() - 0.25, pos.getX() + 0.75, pos.getY() + 2, pos.getZ() + 0.75));
-			if(!entities.isEmpty())
-				for(Entity e : entities) {
-					if(e.ticksExisted >= 10) {
-						teleport(e);
-						b0 = true;
+			if(power >= consumption) {
+				List<Entity> entities = this.world.getEntitiesWithinAABB(Entity.class, getTeleportBounds());
+				if(!entities.isEmpty())
+					for(Entity e : entities) {
+						if(e.ticksExisted >= 10) {
+							teleport(e);
+							b0 = true;
+						}
 					}
-				}
+			}
 
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+			boolean sendPowerUpdate = powerSyncPending || powerSyncTimer <= 0;
+			if(sendPowerUpdate) {
+				PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+				powerSyncPending = false;
+				powerSyncTimer = POWER_SYNC_INTERVAL - 1;
+			} else {
+				powerSyncTimer--;
+			}
 			networkPack();
 			prevLinked = linked;
 		}
@@ -124,6 +137,15 @@ public class TileEntityMachineTeleporter extends TileEntityLoadedBase implements
 		}
 		
 		this.power -= consumption;
+		this.powerSyncPending = true;
+	}
+
+	private AxisAlignedBB getTeleportBounds() {
+		if(teleportBounds == null) {
+			teleportBounds = new AxisAlignedBB(pos.getX() - 0.25, pos.getY(), pos.getZ() - 0.25, pos.getX() + 0.75, pos.getY() + 2, pos.getZ() + 0.75);
+		}
+
+		return teleportBounds;
 	}
 
 	@Override
