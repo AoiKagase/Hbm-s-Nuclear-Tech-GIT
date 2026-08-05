@@ -127,13 +127,16 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase
 
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return TileEntity.INFINITE_EXTENT_AABB;
+		if(getBlockMetadata() == 2 || getBlockMetadata() == 3) {
+			return new AxisAlignedBB(pos).expand(1, 0, 2);
+		}
+		return new AxisAlignedBB(pos).expand(2, 0, 1);
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
 	public double getMaxRenderDistanceSquared() {
-		return 65536.0D;
+		return 4096.0D;
 	}
 
 	private FluidTank detectTank;
