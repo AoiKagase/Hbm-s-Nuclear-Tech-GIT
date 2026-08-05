@@ -167,9 +167,10 @@ public class TileEntityMachineArcWelder extends TileEntityMachineBase implements
 
 		if(this.power < this.consumption) return false;
 
-		if(recipe.fluid != null && tank.getFluid() != null) {
-			if(this.tank.getFluid().getFluid() != recipe.fluid.getFluid()) return false;
-			if(this.tank.getFluidAmount() < recipe.fluid.amount) return false;
+		if(recipe.fluid != null) {
+			if(tank.getFluid() == null) return false;
+			if(tank.getFluid().getFluid() != recipe.fluid.getFluid()) return false;
+			if(tank.getFluidAmount() < recipe.fluid.amount) return false;
 		}
 
 		if(!inventory.getStackInSlot(3).isEmpty()) {
