@@ -44,6 +44,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 
 public class EntityEffectHandler {
+	private static final int EXT_PROP_SYNC_INTERVAL = 20;
+
 	public static void onUpdate(EntityLivingBase entity) {
 
 		if(!entity.world.isRemote) {
@@ -53,7 +55,7 @@ public class EntityEffectHandler {
 				HbmLivingProps.setRadEnv(entity, 0);
 			}
 			
-			if(entity instanceof EntityPlayerMP) {
+			if(entity instanceof EntityPlayerMP && entity.ticksExisted % EXT_PROP_SYNC_INTERVAL == 0) {
 				NBTTagCompound data = new NBTTagCompound();
 				IEntityHbmProps props = HbmLivingProps.getData(entity);
 				props.saveNBTData(data);
