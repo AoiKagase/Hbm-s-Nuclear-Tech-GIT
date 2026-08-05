@@ -91,7 +91,7 @@ public class BombConfig {
 		riggedStarRange = propRS1.getInt();
 		Property propRS2 = config.get(CATEGORY_NUKES, "3.15_riggedStarFuse", 1200);
 		propRS2.setComment("Time in ticks before the Rigged Star Blaster Energy Cell explodes after being dropped - default 60s");
-		riggedStarTicks = propRS2.getInt();
+		riggedStarTicks = CommonConfig.setDef(propRS2.getInt(), 60 * 20);
 
 		Property propTNT = config.get(CATEGORY_NUKES, "4.00_maxCustomTNTRadius", 150);
 		propTNT.setComment("Maximum TNT radius of custom nukes - default 150m");

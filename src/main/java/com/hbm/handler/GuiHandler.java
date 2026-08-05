@@ -107,6 +107,7 @@ import com.hbm.tileentity.machine.rbmk.TileEntityRBMKOutgasser;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKRod;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKStorage;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKHeater;
+import com.hbm.tileentity.turret.TileEntityTurretBrandon;
 import com.hbm.tileentity.turret.TileEntityTurretChekhov;
 import com.hbm.tileentity.turret.TileEntityTurretFriendly;
 import com.hbm.tileentity.turret.TileEntityTurretFritz;
@@ -658,6 +659,11 @@ public class GuiHandler implements IGuiHandler {
 		case ModBlocks.guiID_fritz:
 			if(entity instanceof TileEntityTurretFritz) {
 				return new ContainerTurretBase(player.inventory, (TileEntityTurretFritz) entity);
+			}
+			return null;
+		case ModBlocks.guiID_brandon:
+			if(entity instanceof TileEntityTurretBrandon) {
+				return new ContainerTurretBase(player.inventory, (TileEntityTurretBrandon) entity);
 			}
 			return null;
 		case ModBlocks.guiID_rbmk_rod:
@@ -1252,6 +1258,11 @@ public class GuiHandler implements IGuiHandler {
 		case ModBlocks.guiID_fritz:
 			if(entity instanceof TileEntityTurretFritz) {
 				return new GUITurretFritz(player.inventory, (TileEntityTurretFritz) entity);
+			}
+			return null;
+		case ModBlocks.guiID_brandon:
+			if(entity instanceof TileEntityTurretBrandon) {
+				return new GUITurretBrandon(player.inventory, (TileEntityTurretBrandon) entity);
 			}
 			return null;
 		case ModBlocks.guiID_rbmk_rod:

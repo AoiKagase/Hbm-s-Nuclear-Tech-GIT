@@ -48,5 +48,13 @@ public class MobConfig {
 		elementalAmount = CommonConfig.createConfigInt(config, CATEGORY, "12.E03_elementalAmount", "How many elementals are spawned each raid", 10);
 		elementalDistance = CommonConfig.createConfigInt(config, CATEGORY, "12.E04_elementalAttackDistance", "How far away elementals will spawn from the targeted player", 32);
 
+		maskmanDelay = CommonConfig.setDef(maskmanDelay, 3 * 60 * 60 * 20);
+		maskmanChance = CommonConfig.setDef(maskmanChance, 3);
+		raidDelay = CommonConfig.setDef(raidDelay, 30 * 60 * 60);
+		raidChance = CommonConfig.setDef(raidChance, 3);
+		raidAttackDelay = CommonConfig.setDef(raidAttackDelay, 40);
+		elementalDelay = CommonConfig.setDef(elementalDelay, 30 * 60 * 60);
+		elementalChance = CommonConfig.setDef(elementalChance, 2);
+
 	}
 }

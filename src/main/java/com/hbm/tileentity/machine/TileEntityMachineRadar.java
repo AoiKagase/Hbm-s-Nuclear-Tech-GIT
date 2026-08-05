@@ -228,8 +228,8 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 
                 for (int[] nearbyMissile : nearbyMissiles) {
 
-                    if (nearbyMissile[5] + 1 > power) {
-                        power = nearbyMissile[5] + 1;
+                    if (nearbyMissile[4] + 1 > power) {
+                        power = nearbyMissile[4] + 1;
                     }
                 }
 				
