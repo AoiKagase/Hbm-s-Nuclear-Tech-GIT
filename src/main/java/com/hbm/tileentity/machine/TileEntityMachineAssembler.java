@@ -161,11 +161,10 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 			isProgressing = false;
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 			ItemStack recipeOutput = AssemblerRecipes.getOutputFromTempate(inventory.getStackInSlot(4));
-			if (needsProcess && (!recipeOutput.isEmpty()
-					&& AssemblerRecipes.getRecipeFromTempate(inventory.getStackInSlot(4)) != null)) {
+			List<AStack> recipe = AssemblerRecipes.getRecipeFromTempate(inventory.getStackInSlot(4));
+			if (needsProcess && recipeOutput != null && !recipeOutput.isEmpty() && recipe != null) {
 				this.maxProgress = (ItemAssemblyTemplate.getProcessTime(inventory.getStackInSlot(4)) * speed) / 100;
-				if (removeItems(AssemblerRecipes.getRecipeFromTempate(inventory.getStackInSlot(4)),
-						cloneItemStackProper(inventory))) {
+				if (removeItems(recipe, cloneItemStackProper(inventory))) {
 					if (power >= consumption) {
 						if (canAcceptOutput(recipeOutput)) {
 							progress++;
