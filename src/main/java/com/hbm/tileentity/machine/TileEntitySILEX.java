@@ -174,11 +174,12 @@ public class TileEntitySILEX extends TileEntityMachineBase implements ITickable,
 				return;
 			
 			int load = recipe.fluidProduced;
+			int acidRequired = load * 3;
 			
-			if(load <= maxFill - this.currentFill && load <= tank.getFluidAmount()) {
+			if(load <= maxFill - this.currentFill && acidRequired <= tank.getFluidAmount()) {
 				this.currentFill += load;
 				this.current = new ComparableStack(inventory.getStackInSlot(0)).makeSingular();
-				tank.drain(load*3, true);
+				tank.drain(acidRequired, true);
 				inventory.getStackInSlot(0).shrink(1);
 			}
 		}
@@ -265,6 +266,7 @@ public class TileEntitySILEX extends TileEntityMachineBase implements ITickable,
 		super.readFromNBT(nbt);
 		this.tank.readFromNBT(nbt.getCompoundTag("tank"));
 		this.currentFill = nbt.getInteger("fill");
+		this.progress = nbt.getInteger("progress");
 		
 		if(this.currentFill > 0) {
 			this.current = new ComparableStack(Item.getItemById(nbt.getInteger("item")), 1, nbt.getInteger("meta"));
@@ -276,6 +278,7 @@ public class TileEntitySILEX extends TileEntityMachineBase implements ITickable,
 		super.writeToNBT(nbt);
 		nbt.setTag("tank", this.tank.writeToNBT(new NBTTagCompound()));
 		nbt.setInteger("fill", this.currentFill);
+		nbt.setInteger("progress", this.progress);
 		nbt.setString("mode", mode.toString());
 		
 		if(this.current != null) {
