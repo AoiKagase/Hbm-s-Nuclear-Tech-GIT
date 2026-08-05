@@ -47,7 +47,7 @@ public class ItemFoodSoup extends ItemSoup {
 
 			EntityBalefire bf = new EntityBalefire(worldIn);
 			bf.posX = player.posX;
-			bf.posY = player.posX;
+			bf.posY = player.posY;
 			bf.posZ = player.posZ;
 			bf.destructionRange = (int) 25;
 			worldIn.spawnEntity(bf);
@@ -62,7 +62,7 @@ public class ItemFoodSoup extends ItemSoup {
 
 			EntityBalefire bf = new EntityBalefire(worldIn);
 			bf.posX = player.posX;
-			bf.posY = player.posX;
+			bf.posY = player.posY;
 			bf.posZ = player.posZ;
 			bf.destructionRange = (int) 50;
 			worldIn.spawnEntity(bf);
