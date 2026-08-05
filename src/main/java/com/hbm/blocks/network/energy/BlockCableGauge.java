@@ -12,6 +12,8 @@ import com.hbm.tileentity.INBTPacketReceiver;
 import com.hbm.tileentity.network.energy.TileEntityCableBaseNT;
 import com.hbm.util.I18nUtil;
 
+import api.hbm.energy.IPowerNet;
+
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.BlockHorizontal;
@@ -128,7 +130,8 @@ public class BlockCableGauge extends BlockContainer implements ILookOverlay, ITo
 	@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
 	public static class TileEntityCableGauge extends TileEntityCableBaseNT implements INBTPacketReceiver, SimpleComponent {
 
-		private long lastMeasurement = 10;
+		private IPowerNet measuredNetwork;
+		private long lastMeasurement;
 		private long deltaSecond = 0;
 		public long deltaLastSecond = 0;
 		
@@ -137,24 +140,35 @@ public class BlockCableGauge extends BlockContainer implements ILookOverlay, ITo
 			super.update();
 
 			if(!world.isRemote) {
-				
-				if(network != null) {
-					long total = network.getTotalTransfer();
-					long deltaTick = total - this.lastMeasurement;
-					this.lastMeasurement = total;
-					
-					try {
-						if(world.getTotalWorldTime() % 20 == 0) {
-							this.deltaLastSecond = this.deltaSecond;
-							this.deltaSecond = 0;
-							NBTTagCompound data = new NBTTagCompound();
-							data.setLong("deltaS", this.deltaLastSecond);
-							INBTPacketReceiver.networkPack(this, data, 25);
-						}
-						this.deltaSecond += deltaTick;
-						
-					} catch(Exception ex) { }
+				if(network == null) {
+					measuredNetwork = null;
+					deltaSecond = 0;
+					return;
 				}
+				
+				long total = network.getTotalTransfer();
+
+				if(network != measuredNetwork) {
+					measuredNetwork = network;
+					lastMeasurement = total;
+					deltaSecond = 0;
+					return;
+				}
+
+				long deltaTick = total - this.lastMeasurement;
+				this.lastMeasurement = total;
+
+				try {
+					if(world.getTotalWorldTime() % 20 == 0) {
+						this.deltaLastSecond = this.deltaSecond;
+						this.deltaSecond = 0;
+						NBTTagCompound data = new NBTTagCompound();
+						data.setLong("deltaS", this.deltaLastSecond);
+						INBTPacketReceiver.networkPack(this, data, 25);
+					}
+					this.deltaSecond += deltaTick;
+
+				} catch(Exception ex) { }
 			}
 		}
 
