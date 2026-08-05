@@ -1,14 +1,14 @@
 package com.hbm.tileentity.machine;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.hbm.items.ModItems;
 import com.hbm.lib.HBMSoundHandler;
 import com.hbm.lib.Library;
 import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.TEFFPacket;
-import com.hbm.render.amlfrom1710.Vec3;
 import com.hbm.tileentity.TileEntityLoadedBase;
 
 import api.hbm.energy.IEnergyUser;
@@ -166,6 +166,8 @@ public class TileEntityForceField extends TileEntityLoadedBase implements ITicka
 		} else {
 			this.outside.clear();
 			this.inside.clear();
+			this.nextOutside.clear();
+			this.nextInside.clear();
 		}
 
 		if(!world.isRemote) {
@@ -197,61 +199,78 @@ public class TileEntityForceField extends TileEntityLoadedBase implements ITicka
 		}
 	}
 
-	List<Entity> outside = new ArrayList<Entity>();
-	List<Entity> inside = new ArrayList<Entity>();
+	Set<Entity> outside = new HashSet<Entity>();
+	Set<Entity> inside = new HashSet<Entity>();
+	Set<Entity> nextOutside = new HashSet<Entity>();
+	Set<Entity> nextInside = new HashSet<Entity>();
 	
 	private void doField(float rad) {
+		Set<Entity> previousOutside = outside;
+		Set<Entity> previousInside = inside;
+		Set<Entity> currentOutside = nextOutside;
+		Set<Entity> currentInside = nextInside;
 
-		List<Entity> oLegacy = new ArrayList<Entity>(outside);
-		List<Entity> iLegacy = new ArrayList<Entity>(inside);
+		currentOutside.clear();
+		currentInside.clear();
 
-		outside.clear();
-		inside.clear();
-		
-		List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(null, new AxisAlignedBB(pos.getX() + 0.5 - (rad + 25), pos.getY() + 0.5 - (rad + 25), pos.getZ() + 0.5 - (rad + 25), pos.getX() + 0.5 + (rad + 25), pos.getY() + 0.5 + (rad + 25), pos.getZ() + 0.5 + (rad + 25)));
+		double centerX = pos.getX() + 0.5D;
+		double centerY = pos.getY() + 0.5D;
+		double centerZ = pos.getZ() + 0.5D;
+		double radiusSquared = rad * rad;
+		List<Entity> list = world.getEntitiesWithinAABBExcludingEntity(null, new AxisAlignedBB(centerX - (rad + 25), centerY - (rad + 25), centerZ - (rad + 25), centerX + (rad + 25), centerY + (rad + 25), centerZ + (rad + 25)));
 		
 		for(Entity entity : list) {
 			
 			if(!(entity instanceof EntityPlayer) && !(entity instanceof EntityItem)) {
-				
-				double dist = Math.sqrt(Math.pow(pos.getX() + 0.5 - entity.posX, 2) + Math.pow(pos.getY() + 0.5 - entity.posY, 2) + Math.pow(pos.getZ() + 0.5 - entity.posZ, 2));
-				
-				boolean out = dist > rad;
+				double dx = centerX - entity.posX;
+				double dy = centerY - entity.posY;
+				double dz = centerZ - entity.posZ;
+				boolean out = dx * dx + dy * dy + dz * dz > radiusSquared;
+				boolean wasOutside = previousOutside.contains(entity);
+				boolean wasInside = previousInside.contains(entity);
 				
 				//if the entity has not been registered yet
-				if(!oLegacy.contains(entity) && !iLegacy.contains(entity)) {
+				if(!wasOutside && !wasInside) {
 					if(out) {
-						outside.add(entity);
+						currentOutside.add(entity);
 					} else {
-						inside.add(entity);
+						currentInside.add(entity);
 					}
 					
 				//if the entity has been detected before
 				} else {
 					
 					//if the entity has crossed inwards
-					if(oLegacy.contains(entity) && !out) {
-						Vec3 vec = Vec3.createVectorHelper(pos.getX() + 0.5 - entity.posX, pos.getY() + 0.5 - entity.posY, pos.getZ() + 0.5 - entity.posZ);
-						vec = vec.normalize();
+					if(wasOutside && !out) {
+						double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+						double nx = 0.0D;
+						double ny = 0.0D;
+						double nz = 0.0D;
+						if(distance >= 1.0E-4D) {
+							double inverseDistance = 1.0D / distance;
+							nx = dx * inverseDistance;
+							ny = dy * inverseDistance;
+							nz = dz * inverseDistance;
+						}
 						
-						double mx = -vec.xCoord * (rad + 1);
-						double my = -vec.yCoord * (rad + 1);
-						double mz = -vec.zCoord * (rad + 1);
+						double mx = -nx * (rad + 1);
+						double my = -ny * (rad + 1);
+						double mz = -nz * (rad + 1);
 						
-						entity.setLocationAndAngles(pos.getX() + 0.5 + mx, pos.getY() + 0.5 + my, pos.getZ() + 0.5 + mz, 0, 0);
+						entity.setLocationAndAngles(centerX + mx, centerY + my, centerZ + mz, 0, 0);
 						
-						double mo = Math.sqrt(Math.pow(entity.motionX, 2) + Math.pow(entity.motionY, 2) + Math.pow(entity.motionZ, 2));
+						double mo = Math.sqrt(entity.motionX * entity.motionX + entity.motionY * entity.motionY + entity.motionZ * entity.motionZ);
 
-						entity.motionX = vec.xCoord * -mo;
-						entity.motionY = vec.yCoord * -mo;
-						entity.motionZ = vec.zCoord * -mo;
+						entity.motionX = nx * -mo;
+						entity.motionY = ny * -mo;
+						entity.motionZ = nz * -mo;
 
 						entity.posX -= entity.motionX;
 						entity.posY -= entity.motionY;
 						entity.posZ -= entity.motionZ;
 
 			    		world.playSound(null, entity.posX, entity.posY, entity.posZ, HBMSoundHandler.sparkShoot, SoundCategory.BLOCKS, 2.5F, 1.0F);
-						outside.add(entity);
+						currentOutside.add(entity);
 						
 						if(!world.isRemote) {
 							this.damage(this.impact(entity));
@@ -260,28 +279,36 @@ public class TileEntityForceField extends TileEntityLoadedBase implements ITicka
 					} else
 					
 					//if the entity has crossed outwards
-					if(iLegacy.contains(entity) && out) {
-						Vec3 vec = Vec3.createVectorHelper(pos.getX() + 0.5 - entity.posX, pos.getY() + 0.5 - entity.posY, pos.getZ() + 0.5 - entity.posZ);
-						vec = vec.normalize();
+					if(wasInside && out) {
+						double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+						double nx = 0.0D;
+						double ny = 0.0D;
+						double nz = 0.0D;
+						if(distance >= 1.0E-4D) {
+							double inverseDistance = 1.0D / distance;
+							nx = dx * inverseDistance;
+							ny = dy * inverseDistance;
+							nz = dz * inverseDistance;
+						}
 						
-						double mx = -vec.xCoord * (rad - 1);
-						double my = -vec.yCoord * (rad - 1);
-						double mz = -vec.zCoord * (rad - 1);
+						double mx = -nx * (rad - 1);
+						double my = -ny * (rad - 1);
+						double mz = -nz * (rad - 1);
 
-						entity.setLocationAndAngles(pos.getX() + 0.5 + mx, pos.getY() + 0.5 + my, pos.getZ() + 0.5 + mz, 0, 0);
+						entity.setLocationAndAngles(centerX + mx, centerY + my, centerZ + mz, 0, 0);
 						
-						double mo = Math.sqrt(Math.pow(entity.motionX, 2) + Math.pow(entity.motionY, 2) + Math.pow(entity.motionZ, 2));
+						double mo = Math.sqrt(entity.motionX * entity.motionX + entity.motionY * entity.motionY + entity.motionZ * entity.motionZ);
 
-						entity.motionX = vec.xCoord * mo;
-						entity.motionY = vec.yCoord * mo;
-						entity.motionZ = vec.zCoord * mo;
+						entity.motionX = nx * mo;
+						entity.motionY = ny * mo;
+						entity.motionZ = nz * mo;
 
 						entity.posX -= entity.motionX;
 						entity.posY -= entity.motionY;
 						entity.posZ -= entity.motionZ;
 
 			    		world.playSound(null, entity.posX, entity.posY, entity.posZ, HBMSoundHandler.sparkShoot, SoundCategory.BLOCKS, 2.5F, 1.0F);
-						inside.add(entity);
+						currentInside.add(entity);
 						
 						if(!world.isRemote) {
 							this.damage(this.impact(entity));
@@ -290,23 +317,28 @@ public class TileEntityForceField extends TileEntityLoadedBase implements ITicka
 					} else {
 						
 						if(out) {
-							outside.add(entity);
+							currentOutside.add(entity);
 						} else {
-							inside.add(entity);
+							currentInside.add(entity);
 						}
 					}
 				}
 			}
 		}
+
+		outside = currentOutside;
+		inside = currentInside;
+		nextOutside = previousOutside;
+		nextInside = previousInside;
 	}
 	
 	private double getMotionWithFallback(Entity e) {
 
-		Vec3 v1 = Vec3.createVectorHelper(e.motionX, e.motionY, e.motionZ);
-		Vec3 v2 = Vec3.createVectorHelper(e.posX - e.prevPosY, e.posY - e.prevPosY, e.posZ - e.prevPosZ);
-
-		double s1 = v1.length();
-		double s2 = v2.length();
+		double s1 = Math.sqrt(e.motionX * e.motionX + e.motionY * e.motionY + e.motionZ * e.motionZ);
+		double dx = e.posX - e.prevPosY;
+		double dy = e.posY - e.prevPosY;
+		double dz = e.posZ - e.prevPosZ;
+		double s2 = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		
 		if(s1 == 0)
 			return s2;
