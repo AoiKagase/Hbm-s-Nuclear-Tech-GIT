@@ -46,7 +46,7 @@ public class TileEntityBroadcaster extends TileEntity implements ITickable {
 
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return TileEntity.INFINITE_EXTENT_AABB;
+		return new AxisAlignedBB(pos, pos.add(1, 2, 1));
 	}
 	
 	@Override

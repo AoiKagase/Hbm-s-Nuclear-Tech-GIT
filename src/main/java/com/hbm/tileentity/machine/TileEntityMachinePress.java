@@ -188,8 +188,7 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements ITi
 
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return INFINITE_EXTENT_AABB;
-		// return new AxisAlignedBB(pos, pos.add(1, 3, 1));
+		return new AxisAlignedBB(pos, pos.add(1, 3, 1));
 	}
 
 	@Override
