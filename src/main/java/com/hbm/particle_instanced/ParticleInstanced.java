@@ -10,6 +10,13 @@ public class ParticleInstanced extends Particle {
 	protected ParticleInstanced(World worldIn, double posXIn, double posYIn, double posZIn) {
 		super(worldIn, posXIn, posYIn, posZIn);
 	}
+
+	public double getDistanceSq(double x, double y, double z) {
+		double dx = posX - x;
+		double dy = posY - y;
+		double dz = posZ - z;
+		return dx * dx + dy * dy + dz * dz;
+	}
 	
 	public void addDataToBuffer(ByteBuffer buf, float partialTicks){
 		float x = (float) ((this.prevPosX + (this.posX - this.prevPosX) * (double) partialTicks - interpPosX));

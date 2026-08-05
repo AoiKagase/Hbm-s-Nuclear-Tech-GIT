@@ -78,6 +78,16 @@ public class InstancedParticleRenderer {
 	}
 	
 	public static void renderParticles(Entity entityIn, float partialTicks) {
+		double maxRenderDistance = Minecraft.getMinecraft().gameSettings.renderDistanceChunks * 16D + 32D;
+		double maxRenderDistanceSq = maxRenderDistance * maxRenderDistance;
+		int visibleFaceCount = 0;
+		for(ParticleInstanced p : particles){
+			if(p.getDistanceSq(entityIn.posX, entityIn.posY, entityIn.posZ) <= maxRenderDistanceSq)
+				visibleFaceCount += p.getFaceCount();
+		}
+		if(visibleFaceCount == 0)
+			return;
+
 		Particle.interpPosX = entityIn.lastTickPosX + (entityIn.posX - entityIn.lastTickPosX) * (double) partialTicks;
 		Particle.interpPosY = entityIn.lastTickPosY + (entityIn.posY - entityIn.lastTickPosY) * (double) partialTicks;
 		Particle.interpPosZ = entityIn.lastTickPosZ + (entityIn.posZ - entityIn.lastTickPosZ) * (double) partialTicks;
@@ -90,13 +100,14 @@ public class InstancedParticleRenderer {
 		GlStateManager.depthMask(false);
 		GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 		
-		int bufferSize = faceCount*BYTES_PER_PARTICLE;
+		int bufferSize = visibleFaceCount*BYTES_PER_PARTICLE;
 		if(particleBuffer.capacity() < bufferSize)
 			particleBuffer = GLAllocation.createDirectByteBuffer(bufferSize);
 		particleBuffer.limit(bufferSize);
 		
 		for(ParticleInstanced p : particles){
-			p.addDataToBuffer(particleBuffer, partialTicks);
+			if(p.getDistanceSq(entityIn.posX, entityIn.posY, entityIn.posZ) <= maxRenderDistanceSq)
+				p.addDataToBuffer(particleBuffer, partialTicks);
 		}
 		particleBuffer.rewind();
 		
@@ -105,7 +116,7 @@ public class InstancedParticleRenderer {
 		
 		GLCompat.bindVertexArray(vao);
 		ResourceManager.lit_particles.use();
-		GLCompat.drawArraysInstanced(GL11.GL_QUADS, 0, 4, faceCount);
+		GLCompat.drawArraysInstanced(GL11.GL_QUADS, 0, 4, visibleFaceCount);
 		HbmShaderManager2.releaseShader();
 		GLCompat.bindVertexArray(0);
 		GLCompat.bindBuffer(GLCompat.GL_ARRAY_BUFFER, 0);

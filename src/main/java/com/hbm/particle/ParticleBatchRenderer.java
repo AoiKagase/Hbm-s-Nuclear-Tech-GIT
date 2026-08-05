@@ -79,6 +79,8 @@ public class ParticleBatchRenderer {
 	}
 
 	public static void renderParticles(Entity entityIn, float partialTicks) {
+		double maxRenderDistance = Minecraft.getMinecraft().gameSettings.renderDistanceChunks * 16D + 32D;
+		double maxRenderDistanceSq = maxRenderDistance * maxRenderDistance;
 		float f = ActiveRenderInfo.getRotationX();
 		float f1 = ActiveRenderInfo.getRotationZ();
 		float f2 = ActiveRenderInfo.getRotationYZ();
@@ -100,7 +102,8 @@ public class ParticleBatchRenderer {
 				continue;
 			layer.preRender();
 			for(ParticleLayerBase particle : layer.particles){
-				particle.renderParticle(Tessellator.getInstance().getBuffer(), entityIn, partialTicks, f, f4, f1, f2, f3);
+				if(particle.getDistanceSq(entityIn.posX, entityIn.posY, entityIn.posZ) <= maxRenderDistanceSq)
+					particle.renderParticle(Tessellator.getInstance().getBuffer(), entityIn, partialTicks, f, f4, f1, f2, f3);
 			}
 			layer.postRender();
 		}

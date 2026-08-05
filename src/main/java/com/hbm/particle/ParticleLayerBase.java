@@ -10,4 +10,11 @@ public abstract class ParticleLayerBase extends Particle {
 	}
 
 	public abstract ParticleRenderLayer getRenderLayer();
+
+	public double getDistanceSq(double x, double y, double z) {
+		double dx = posX - x;
+		double dy = posY - y;
+		double dz = posZ - z;
+		return dx * dx + dy * dy + dz * dz;
+	}
 }
