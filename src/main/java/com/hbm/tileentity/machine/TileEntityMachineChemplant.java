@@ -944,7 +944,7 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 	private void detectAndSendChanges() {
 
 		if(isProgressing && (!detectIsProgressing || world.getTotalWorldTime() % 20 == 0))
-			PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
+			PacketDispatcher.wrapper.sendToAllAround(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), LoopedSoundPacket.AUDIO_RANGE));
 
 
 		boolean mark = false;

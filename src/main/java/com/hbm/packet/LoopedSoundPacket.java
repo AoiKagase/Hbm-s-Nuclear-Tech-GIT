@@ -30,6 +30,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class LoopedSoundPacket implements IMessage {
+	public static final double AUDIO_RANGE = 64.0D;
 
 	int x;
 	int y;

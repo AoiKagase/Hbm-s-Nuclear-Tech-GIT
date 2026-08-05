@@ -30,6 +30,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineGasCent extends TileEntityMachineBase implements ITickable, IEnergyUser, ITankPacketAcceptor, IFluidHandler {
@@ -211,8 +212,8 @@ public class TileEntityMachineGasCent extends TileEntityMachineBase implements I
                 if(this.progress >= this.processTime) {
 					process();
 				}
-                if(!wasProgressing || world.getTotalWorldTime() % 20 == 0)
-					PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
+				if(!wasProgressing || world.getTotalWorldTime() % 20 == 0)
+					PacketDispatcher.wrapper.sendToAllAround(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), LoopedSoundPacket.AUDIO_RANGE));
 
 			} else {
 				isProgressing = false;

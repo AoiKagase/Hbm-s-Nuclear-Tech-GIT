@@ -39,8 +39,8 @@ public class TileEntityBroadcaster extends TileEntity implements ITickable {
 			}
 		}
 
-		if(!world.isRemote) {
-			PacketDispatcher.wrapper.sendToAllAround(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 500));
+		if(!world.isRemote && world.getTotalWorldTime() % 20 == 0) {
+			PacketDispatcher.wrapper.sendToAllAround(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), LoopedSoundPacket.AUDIO_RANGE));
 		}
 	}
 

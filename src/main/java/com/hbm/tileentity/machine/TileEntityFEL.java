@@ -34,6 +34,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.AxisAlignedBB;
 import com.hbm.lib.ForgeDirection;
+import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +49,7 @@ public class TileEntityFEL extends TileEntityMachineBase implements ITickable, I
 	public boolean missingValidSilex = true	;
 	public int distance;
 	public List<EntityLivingBase> entities = new ArrayList();
+	private boolean soundWasOn;
 	
 	
 	public TileEntityFEL() {
@@ -222,7 +224,9 @@ public class TileEntityFEL extends TileEntityMachineBase implements ITickable, I
 				}
 			}
 			
-			PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
+			if(isOn && (!soundWasOn || world.getTotalWorldTime() % 20 == 0))
+				PacketDispatcher.wrapper.sendToAllAround(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), LoopedSoundPacket.AUDIO_RANGE));
+			soundWasOn = isOn;
 			NBTTagCompound data = new NBTTagCompound();
 			data.setLong("power", power);
 			data.setString("mode", mode.toString());

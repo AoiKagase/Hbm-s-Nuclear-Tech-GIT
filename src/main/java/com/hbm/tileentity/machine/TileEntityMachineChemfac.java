@@ -31,6 +31,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
+import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemStackHandler;
@@ -46,6 +47,7 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 	float rotSpeed;
 	public float rot;
 	public float prevRot;
+	private boolean soundWasProgressing;
 
 	public TypedFluidTank water;
 	public TypedFluidTank steam;
@@ -121,7 +123,9 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 			steam.writeToNBT(tankSteam);
 			data.setTag("steam", tankSteam);
 
-			PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
+			if(isProgressing && (!soundWasProgressing || world.getTotalWorldTime() % 20 == 0))
+				PacketDispatcher.wrapper.sendToAllAround(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), LoopedSoundPacket.AUDIO_RANGE));
+			soundWasProgressing = isProgressing;
 			this.networkPack(data, 150);
 		} else {
 			float maxSpeed = 30F;

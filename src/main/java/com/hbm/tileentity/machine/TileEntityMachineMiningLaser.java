@@ -70,6 +70,7 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 	public int lastTargetY;
 	public int lastTargetZ;
 	public boolean beam;
+	private boolean soundWasOn;
 	boolean lock = false;
 	double breakProgress;
 
@@ -189,7 +190,9 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 			this.tryFillContainer(pos.getX(), pos.getY(), pos.getZ() + 2);
 			this.tryFillContainer(pos.getX(), pos.getY(), pos.getZ() - 2);
 
-			PacketDispatcher.wrapper.sendToAll(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()));
+			if(isOn && (!soundWasOn || world.getTotalWorldTime() % 20 == 0))
+				PacketDispatcher.wrapper.sendToAllAround(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), LoopedSoundPacket.AUDIO_RANGE));
+			soundWasOn = isOn;
 			NBTTagCompound data = new NBTTagCompound();
 			data.setLong("power", power);
 			data.setInteger("lastX", lastTargetX);
