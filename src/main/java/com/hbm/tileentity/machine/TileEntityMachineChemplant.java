@@ -53,6 +53,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineChemplant extends TileEntityMachineBase implements IEnergyUser, ITankPacketAcceptor, ITickable {
+	private static final int LOOPED_SOUND_RESEND_INTERVAL = 100;
 
 	public static final long maxPower = 2000000;
 	public long power;
@@ -943,7 +944,7 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 
 	private void detectAndSendChanges() {
 
-		if(isProgressing && (!detectIsProgressing || world.getTotalWorldTime() % 20 == 0))
+		if(isProgressing && (!detectIsProgressing || world.getTotalWorldTime() % LOOPED_SOUND_RESEND_INTERVAL == 0))
 			PacketDispatcher.wrapper.sendToAllAround(new LoopedSoundPacket(pos.getX(), pos.getY(), pos.getZ()), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), LoopedSoundPacket.AUDIO_RANGE));
 
 
