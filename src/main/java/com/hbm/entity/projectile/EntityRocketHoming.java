@@ -1,8 +1,6 @@
 package com.hbm.entity.projectile;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.hbm.config.CompatibilityConfig;
 import com.hbm.entity.missile.EntityMissileBaseAdvanced;
@@ -468,10 +466,11 @@ public class EntityRocketHoming extends Entity implements IProjectile {
     
     private boolean steer() {
     	List<Entity> all = world.getEntitiesWithinAABBExcludingEntity(this, new AxisAlignedBB(posX - homingRadius, posY - homingRadius, posZ - homingRadius, posX + homingRadius, posY + homingRadius, posZ + homingRadius));
-    	HashMap<Entity, Double> targetable = new HashMap<Entity, Double>();
     	Vec3d path = new Vec3d(motionX, motionY, motionZ);
     	double startSpeed = path.length();
     	path.normalize();
+		double smallest = Double.POSITIVE_INFINITY;
+		Entity nearestE = null;
     	
     	if(all.isEmpty())
     		return false;
@@ -489,22 +488,11 @@ public class EntityRocketHoming extends Entity implements IProjectile {
 
             if(e.height * e.width * e.width >= 0.5D)
     				if(!Library.isObstructed(world, e.posX, e.posY, e.posZ, posX, posY, posZ))
-    					targetable.put(e, angle);
-    	}
-    	
-    	if(targetable.isEmpty())
-    		return false;
-    	
-    	double smallest = Double.POSITIVE_INFINITY;
-    	Entity nearestE = null;
-    	
-    	//Iterate through all entities and choose the one that has the smallest angle
-    	for(Map.Entry<Entity, Double> entry : targetable.entrySet()) {
-    		if(entry.getValue() < smallest) {
-    			smallest = entry.getValue();
-    			nearestE = entry.getKey();
-    		}
-    	}
+					if(angle < smallest) {
+						smallest = angle;
+						nearestE = e;
+					}
+		}
     	
     	if(nearestE == null)
     		return false;
