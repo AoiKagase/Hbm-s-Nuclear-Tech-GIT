@@ -47,8 +47,8 @@ public class ContainerFurnaceIron extends Container {
 			ItemStack originalStack = slot.getStack();
 			stack = originalStack.copy();
 
-			if(index <= 5) {
-				if(!this.mergeItemStack(originalStack, 6, this.inventorySlots.size(), true)) {
+			if(index < 5) {
+				if(!this.mergeItemStack(originalStack, 5, this.inventorySlots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
 				
