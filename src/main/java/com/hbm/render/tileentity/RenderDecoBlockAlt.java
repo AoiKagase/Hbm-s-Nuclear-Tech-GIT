@@ -12,11 +12,13 @@ import com.hbm.tileentity.deco.TileEntityDecoBlockAlt;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
 import net.minecraftforge.client.ForgeHooksClient;
 
 public class RenderDecoBlockAlt extends TileEntitySpecialRenderer<TileEntityDecoBlockAlt> {
@@ -26,10 +28,26 @@ public class RenderDecoBlockAlt extends TileEntitySpecialRenderer<TileEntityDeco
 
 	private ModelStatue model;
 	private ModelGun gun;
+	private ItemStack watchStack;
+	private IBakedModel watchModel;
+	private RenderItem watchRenderItem;
+	private World watchWorld;
 
 	public RenderDecoBlockAlt() {
 		this.model = new ModelStatue();
 		this.gun = new ModelGun();
+	}
+
+	private void updateWatchModel(World world) {
+		RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+		if (watchModel != null && watchRenderItem == renderItem && watchWorld == world)
+			return;
+
+		watchStack = new ItemStack(ModItems.watch);
+		watchRenderItem = renderItem;
+		watchWorld = world;
+		watchModel = renderItem.getItemModelWithOverrides(watchStack, world, null);
+		watchModel = ForgeHooksClient.handleCameraTransforms(watchModel, TransformType.FIXED, false);
 	}
 
 	@Override
@@ -69,12 +87,10 @@ public class RenderDecoBlockAlt extends TileEntitySpecialRenderer<TileEntityDeco
 			GL11.glPushMatrix();
 			GL11.glTranslated(0, 0.11, 0);
 			GL11.glScaled(0.5, 0.5, 0.5);
-			ItemStack stack = new ItemStack(ModItems.watch);
-			IBakedModel model = Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(stack, te.getWorld(), null);
-			model = ForgeHooksClient.handleCameraTransforms(model, TransformType.FIXED, false);
+			updateWatchModel(te.getWorld());
 			RenderHelper.bindBlockTexture();
 
-			Minecraft.getMinecraft().getRenderItem().renderItem(stack, model);
+			watchRenderItem.renderItem(watchStack, watchModel);
 			GL11.glPopMatrix();
 		}
 		GL11.glTranslatef(0.0F, 2 * g, -q);
