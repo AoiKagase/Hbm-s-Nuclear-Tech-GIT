@@ -1,6 +1,8 @@
 package com.hbm.render.tileentity;
 
 import java.io.IOException;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 
@@ -19,6 +21,10 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 
 public class RenderFluidTank extends TileEntitySpecialRenderer<TileEntityMachineFluidTank> {
+
+	private static final ResourceLocation GENERIC_TANK_TEXTURE = new ResourceLocation(RefStrings.MODID, "textures/models/tank/tank_generic.png");
+	private final Map<Fluid, ResourceLocation> fluidTextures = new IdentityHashMap<>();
+	private final Map<Fluid, Integer> fallbackColors = new IdentityHashMap<>();
 	
 	@Override
 	public void render(TileEntityMachineFluidTank te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
@@ -65,30 +71,14 @@ public class RenderFluidTank extends TileEntitySpecialRenderer<TileEntityMachine
 			GL11.glRotatef(180, 0F, 1F, 0F); break;
 		}
 
-		String s = "NONE";
 		Fluid type = null;
 		if(tileEntity instanceof TileEntityMachineFluidTank){
 			if(((TileEntityMachineFluidTank)tileEntity).tank.getFluid() != null){
 				type = ((TileEntityMachineFluidTank)tileEntity).tank.getFluid().getFluid();
-				s = FluidRegistry.getFluidName(type).toUpperCase();
-				if(s.substring(0, 3).equals("HBM")){
-					s = s.substring(3);
-				}
 			}
 		}
-		
-		ResourceLocation rotTexture = new ResourceLocation(RefStrings.MODID, "textures/models/tank/tank_" + s + ".png");
-		
-		try {
-			Minecraft.getMinecraft().getResourceManager().getResource(rotTexture);
-		} catch (IOException e) {
-			//Drillgon200: Set to my really ugly unknown texture
-			//Alcater: found a way to textract the color from the fluids texture
-			rotTexture = new ResourceLocation(RefStrings.MODID, "textures/models/tank/tank_generic.png");
-			if(type != null){
-				FFUtils.setRGBFromHex(ModForgeFluids.getFluidColor(type));
-			}
-		}
+
+		ResourceLocation rotTexture = getFluidTexture(type);
 
         GlStateManager.shadeModel(GL11.GL_SMOOTH);
 		bindTexture(rotTexture);
@@ -97,4 +87,32 @@ public class RenderFluidTank extends TileEntitySpecialRenderer<TileEntityMachine
 		GlStateManager.color(1, 1, 1, 1);
         GL11.glPopMatrix();
     }
+
+	private ResourceLocation getFluidTexture(Fluid type) {
+		if(type == null)
+			return GENERIC_TANK_TEXTURE;
+
+		ResourceLocation texture = fluidTextures.get(type);
+		if(texture == null) {
+			String name = FluidRegistry.getFluidName(type).toUpperCase();
+			if(name.substring(0, 3).equals("HBM"))
+				name = name.substring(3);
+
+			ResourceLocation candidate = new ResourceLocation(RefStrings.MODID, "textures/models/tank/tank_" + name + ".png");
+			try {
+				Minecraft.getMinecraft().getResourceManager().getResource(candidate);
+				texture = candidate;
+			} catch (IOException e) {
+				// Keep the resource lookup and fluid color calculation off the render hot path.
+				texture = GENERIC_TANK_TEXTURE;
+				fallbackColors.put(type, ModForgeFluids.getFluidColor(type));
+			}
+			fluidTextures.put(type, texture);
+		}
+
+		Integer fallbackColor = fallbackColors.get(type);
+		if(fallbackColor != null)
+			FFUtils.setRGBFromHex(fallbackColor);
+		return texture;
+	}
 }
