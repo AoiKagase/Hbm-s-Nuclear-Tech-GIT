@@ -38,11 +38,15 @@ public class TileEntityTesla extends TileEntityMachineBase implements ITickable,
 
 	public long power;
 	public static final long maxPower = 100000;
+	private static final int CONNECTION_UPDATE_INTERVAL = 20;
+	private static final int ZAP_INTERVAL = 2;
+	private static final int POWER_PER_ZAP_TICK = 5000;
 	
 	public static int range = 10;
 	public static double offset = 1.75;
 	
 	public List<double[]> targets = new ArrayList<double[]>();
+	private boolean hadTargets;
 	
 	public TileEntityTesla() {
 		super(0);
@@ -56,27 +60,38 @@ public class TileEntityTesla extends TileEntityMachineBase implements ITickable,
 	@Override
 	public void update() {
 		if(!world.isRemote) {
-			this.updateStandardConnections(world, pos);
-			this.targets.clear();
+			if(world.getTotalWorldTime() % CONNECTION_UPDATE_INTERVAL == 0)
+				this.updateStandardConnections(world, pos);
 			
 			if(world.getBlockState(pos.down()).getBlock() == ModBlocks.meteor_battery)
 				power = maxPower;
 			
-			if(power >= 5000) {
-				power -= 5000;
+			if(world.getTotalWorldTime() % ZAP_INTERVAL != 0)
+				return;
+
+			this.targets.clear();
+			int powerCost = POWER_PER_ZAP_TICK * ZAP_INTERVAL;
+			if(power >= powerCost) {
+				power -= powerCost;
 
 				double dx = pos.getX() + 0.5;
 				double dy = pos.getY() + offset;
 				double dz = pos.getZ() + 0.5;
 				
-				this.targets = zap(world, dx, dy, dz, range, null);
+				this.targets = zap(world, dx, dy, dz, range, null, ZAP_INTERVAL);
 			}
 			
-			PacketDispatcher.wrapper.sendToAllAround(new TETeslaPacket(pos, targets), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+			if(!targets.isEmpty() || hadTargets)
+				PacketDispatcher.wrapper.sendToAllAround(new TETeslaPacket(pos, targets), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+			hadTargets = !targets.isEmpty();
 		}
 	}
 
 	public static List<double[]> zap(World worldObj, double x, double y, double z, double radius, Entity source) {
+		return zap(worldObj, x, y, z, radius, source, 1);
+	}
+
+	public static List<double[]> zap(World worldObj, double x, double y, double z, double radius, Entity source, float damageMultiplier) {
 
 		List<double[]> ret = new ArrayList<double[]>();
 		
@@ -114,7 +129,7 @@ public class TileEntityTesla extends TileEntityMachineBase implements ITickable,
 			}
 			
 			if(!(e instanceof EntityPlayer && ArmorUtil.checkForFaraday((EntityPlayer)e)))
-				if(e.attackEntityFrom(ModDamageSource.electricity, MathHelper.clamp(0.5F * e.getMaxHealth() / (float)targets.size(), 3, 20)))
+				if(e.attackEntityFrom(ModDamageSource.electricity, MathHelper.clamp(0.5F * e.getMaxHealth() / (float)targets.size(), 3, 20) * damageMultiplier))
 					worldObj.playSound(null, e.posX, e.posY, e.posZ, HBMSoundHandler.tesla, SoundCategory.BLOCKS, 1.0F, 1.0F);
 			
 			if(e instanceof EntityCreeper) {
