@@ -85,6 +85,7 @@ public class TileEntityMachineShredder extends TileEntityMachineBase implements 
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		this.power = compound.getLong("powerTime");
+		this.progress = compound.getInteger("progress");
 		if(compound.hasKey("inventory"))
 			inventory.deserializeNBT(compound.getCompoundTag("inventory"));
 		super.readFromNBT(compound);
@@ -93,6 +94,7 @@ public class TileEntityMachineShredder extends TileEntityMachineBase implements 
 	@Override
 	public @NotNull NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setLong("powerTime", power);
+		compound.setInteger("progress", progress);
 		compound.setTag("inventory", inventory.serializeNBT());
 		return super.writeToNBT(compound);
 	}
