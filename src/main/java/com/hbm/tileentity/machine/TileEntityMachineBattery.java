@@ -37,6 +37,8 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 	public long[] log = new long[20];
 	public long power = 0;
 	public long powerDelta = 0;
+	private static final int NETWORK_UPDATE_INTERVAL = 5;
+	private int networkTimer;
 
 	//0: input only
 	//1: buffer
@@ -221,7 +223,12 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 			}
 			this.log[this.log.length-1] = avg;
 
-			this.networkPack(packNBT(), 20);
+			if(networkTimer <= 0) {
+				this.networkPack(packNBT(), 20);
+				networkTimer = NETWORK_UPDATE_INTERVAL - 1;
+			} else {
+				networkTimer--;
+			}
 		}
 	}
 
@@ -241,7 +248,7 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 		
 		//HasSets to we don't have any duplicates
 		Set<IPowerNet> nets = new HashSet();
-		Set<IEnergyConnector> consumers = new HashSet();
+		Set<IEnergyConnector> consumers = mode == mode_buffer || mode == mode_output ? new HashSet() : null;
 		
 		//iterate over all sides
 		for(ForgeDirection dir : getSendDirections()) {
@@ -251,10 +258,14 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 			//if it's a cable, buffer both the network and all subscribers of the net
 			if(te instanceof IEnergyConductor) {
 				IEnergyConductor con = (IEnergyConductor) te;
-				if(con.canConnect(dir.getOpposite()) && con.getPowerNet() != null) {
-					nets.add(con.getPowerNet());
-					con.getPowerNet().unsubscribe(this);
-					consumers.addAll(con.getPowerNet().getSubscribers());
+				if(con.canConnect(dir.getOpposite())) {
+					IPowerNet powerNet = con.getPowerNet();
+					if(powerNet != null) {
+						nets.add(powerNet);
+						powerNet.unsubscribe(this);
+						if(consumers != null)
+							consumers.addAll(powerNet.getSubscribers());
+					}
 				}
 				
 			//if it's just a consumer, buffer it as a subscriber
@@ -267,7 +278,7 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 		}
 
 		//send power to buffered consumers, independent of nets
-		if(this.power > 0 && (mode == mode_buffer || mode == mode_output)) {
+		if(this.power > 0 && consumers != null) {
             List<IEnergyConnector> con = new ArrayList<>(consumers);
 			
 			if(PowerNet.trackingInstances == null) {
