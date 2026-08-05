@@ -22,6 +22,8 @@ public class PowerNet implements IPowerNet {
 	private HashMap<Integer, IEnergyConductor> links = new HashMap<Integer, IEnergyConductor>();
 	private HashMap<Integer, Integer> proxies = new HashMap<Integer, Integer>();
 	private List<IEnergyConnector> subscribers = new ArrayList<IEnergyConnector>();
+	private static final ConnectionPriority[] PRIORITIES = new ConnectionPriority[] { ConnectionPriority.HIGH, ConnectionPriority.NORMAL,
+			ConnectionPriority.LOW };
 
 	public static List<PowerNet> trackingInstances = null;
 	protected long totalTransfer = 0;
@@ -166,12 +168,11 @@ public class PowerNet implements IPowerNet {
 
 		cleanup(subscribers);
 
-		ConnectionPriority[] priorities = new ConnectionPriority[] { ConnectionPriority.HIGH, ConnectionPriority.NORMAL,
-				ConnectionPriority.LOW };
+		long[] weights = new long[subscribers.size()];
 
 		long totalTransfer = 0;
 
-		for (ConnectionPriority p : priorities) {
+		for (ConnectionPriority p : PRIORITIES) {
 
 			List<IEnergyConnector> subList = new ArrayList<>();
 			subscribers.forEach(x -> {
@@ -183,12 +184,12 @@ public class PowerNet implements IPowerNet {
 			if (subList.isEmpty())
 				continue;
 
-			List<Long> weight = new ArrayList<>();
 			long totalReq = 0;
 
-			for (IEnergyConnector con : subList) {
+			for (int i = 0; i < subList.size(); i++) {
+				IEnergyConnector con = subList.get(i);
 				long req = con.getTransferWeight();
-				weight.add(req);
+				weights[i] = req;
 				totalReq += req;
 			}
 
@@ -199,7 +200,7 @@ public class PowerNet implements IPowerNet {
 
 			for (int i = 0; i < subList.size(); i++) {
 				IEnergyConnector con = subList.get(i);
-				long req = weight.get(i);
+				long req = weights[i];
 				double fraction = (double) req / (double) totalReq;
 
 				long given = (long) Math.floor(fraction * power);
@@ -238,12 +239,11 @@ public class PowerNet implements IPowerNet {
 
 		cleanup(subscribers);
 
-		ConnectionPriority[] priorities = new ConnectionPriority[] { ConnectionPriority.HIGH, ConnectionPriority.NORMAL,
-				ConnectionPriority.LOW };
+		long[] weights = new long[subscribers.size()];
 
 		long totalTransfer = 0;
 
-		for (ConnectionPriority p : priorities) {
+		for (ConnectionPriority p : PRIORITIES) {
 
 			List<IEnergyConnector> subList = new ArrayList();
 			subscribers.forEach(x -> {
@@ -255,12 +255,12 @@ public class PowerNet implements IPowerNet {
 			if (subList.isEmpty())
 				continue;
 
-			List<Long> weight = new ArrayList();
 			long totalReq = 0;
 
-			for (IEnergyConnector con : subList) {
+			for (int i = 0; i < subList.size(); i++) {
+				IEnergyConnector con = subList.get(i);
 				long req = con.getTransferWeight();
-				weight.add(req);
+				weights[i] = req;
 				totalReq += req;
 			}
 
@@ -271,7 +271,7 @@ public class PowerNet implements IPowerNet {
 
 			for (int i = 0; i < subList.size(); i++) {
 				IEnergyConnector con = subList.get(i);
-				long req = weight.get(i);
+				long req = weights[i];
 				double fraction = (double) req / (double) totalReq;
 
 				long given = (long) Math.floor(fraction * power);
