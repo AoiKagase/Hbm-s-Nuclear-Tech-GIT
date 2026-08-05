@@ -439,21 +439,22 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z).grow(range, range, range));
 		
 		Entity target = null;
-		double closest = range;
+		double rangeSquared = range * range;
+		double closestSquared = rangeSquared;
 		
 		for(Entity entity : entities) {
-
-			Vec3d ent = this.getEntityPos(entity);
-			Vec3d delta = new Vec3d(ent.x - pos.x, ent.y - pos.y, ent.z - pos.z);
-			
-			double dist = delta.length();
-			
-			//check if it's in range
-			if(dist > range)
-				continue;
-			
 			//check if we should even fire at this entity
 			if(!entityAcceptableTarget(entity))
+				continue;
+
+			Vec3d ent = this.getEntityPos(entity);
+			double deltaX = ent.x - pos.x;
+			double deltaY = ent.y - pos.y;
+			double deltaZ = ent.z - pos.z;
+			double distanceSquared = deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
+
+			//check if it's in range
+			if(distanceSquared > rangeSquared)
 				continue;
 			
 			//check for visibility
@@ -461,8 +462,8 @@ public abstract class TileEntityTurretBaseNT extends TileEntityMachineBase imple
 				continue;
 			
 			//replace current target if this one is closer
-			if(dist < closest) {
-				closest = dist;
+			if(distanceSquared < closestSquared) {
+				closestSquared = distanceSquared;
 				target = entity;
 			}
 		}
