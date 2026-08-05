@@ -8,6 +8,7 @@ import com.hbm.tileentity.machine.TileEntityMachineEPress;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -15,9 +16,51 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 import net.minecraftforge.client.ForgeHooksClient;
 
 public class RenderEPress extends TileEntitySpecialRenderer<TileEntityMachineEPress> {
+
+	private static final int ITEM_MODEL_CACHE_SIZE = 16;
+	private final CachedItemModel[] itemModelCache = new CachedItemModel[ITEM_MODEL_CACHE_SIZE];
+	private int nextItemModelCacheIndex;
+
+	private CachedItemModel getCachedItemModel(int itemId, int meta, World world) {
+		RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
+		for (CachedItemModel cached : itemModelCache) {
+			if (cached != null && cached.itemId == itemId && cached.meta == meta
+					&& cached.world == world && cached.renderItem == renderItem) {
+				return cached;
+			}
+		}
+
+		CachedItemModel cached = itemModelCache[nextItemModelCacheIndex];
+		itemModelCache[nextItemModelCacheIndex] = cached != null ? cached : new CachedItemModel();
+		cached = itemModelCache[nextItemModelCacheIndex];
+		nextItemModelCacheIndex = (nextItemModelCacheIndex + 1) % ITEM_MODEL_CACHE_SIZE;
+
+		cached.itemId = itemId;
+		cached.meta = meta;
+		cached.world = world;
+		cached.renderItem = renderItem;
+		Item item = Item.getItemById(itemId);
+		cached.stack = item == null ? ItemStack.EMPTY : new ItemStack(item, 1, meta);
+		cached.model = null;
+		if (!cached.stack.isEmpty() && !(item instanceof ItemBlock)) {
+			cached.model = renderItem.getItemModelWithOverrides(cached.stack, world, null);
+			cached.model = ForgeHooksClient.handleCameraTransforms(cached.model, TransformType.FIXED, false);
+		}
+		return cached;
+	}
+
+	private static final class CachedItemModel {
+		private int itemId;
+		private int meta;
+		private World world;
+		private RenderItem renderItem;
+		private ItemStack stack;
+		private IBakedModel model;
+	}
 
 	@Override
 	public boolean isGlobalRenderer(TileEntityMachineEPress te) {
@@ -78,18 +121,16 @@ public class RenderEPress extends TileEntitySpecialRenderer<TileEntityMachineEPr
             GlStateManager.enableLighting();
             GL11.glRotatef(180, 0F, 1F, 0F);
             GL11.glRotatef(-90, 1F, 0F, 0F);
-            ItemStack stack = new ItemStack(Item.getItemById(press.stampItem), 1, press.stampMeta);
+            CachedItemModel cached = getCachedItemModel(press.stampItem, press.stampMeta, press.getWorld());
 
-            if(!(stack.getItem() instanceof ItemBlock) && !stack.isEmpty()) {
-                IBakedModel model = Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(stack, press.getWorld(), null);
-                model = ForgeHooksClient.handleCameraTransforms(model, TransformType.FIXED, false);
+            if (cached.model != null) {
                 Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
                 GL11.glTranslatef(0.125F, 0F, 0F);
                 GL11.glRotatef(180, 0F, 1F, 0F);
                 GL11.glScalef(0.5F, 0.5F, 0.5F);
 
 
-                Minecraft.getMinecraft().getRenderItem().renderItem(stack, model);
+                cached.renderItem.renderItem(cached.stack, cached.model);
             }
 			
 		GL11.glPopMatrix();
@@ -119,16 +160,14 @@ public class RenderEPress extends TileEntitySpecialRenderer<TileEntityMachineEPr
 			GL11.glTranslatef(1.0F, 1.0F - 0.0625F * 165/100, 0.0F);
 			GL11.glTranslatef(-1, -1.15F, 0);
 
-			ItemStack stack = new ItemStack(Item.getItemById(press.item), 1, press.meta);
+			CachedItemModel cached = getCachedItemModel(press.item, press.meta, press.getWorld());
 			
-			if(!(stack.getItem() instanceof ItemBlock)) {
-				IBakedModel model = Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(stack, press.getWorld(), null);
-				model = ForgeHooksClient.handleCameraTransforms(model, TransformType.FIXED, false);
+			if (cached.model != null) {
 				Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 				GL11.glTranslatef(0.0F, 0.125F, 0.0F);
 				GL11.glRotatef(180, 0F, 1F, 0F);
 				GL11.glScalef(0.5F, 0.5F, 0.5F);
-				Minecraft.getMinecraft().getRenderItem().renderItem(stack, model);
+				cached.renderItem.renderItem(cached.stack, cached.model);
 			}
 			
 		GL11.glPopMatrix();
