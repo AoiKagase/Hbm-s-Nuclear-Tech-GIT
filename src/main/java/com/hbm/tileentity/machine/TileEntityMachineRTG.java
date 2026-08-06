@@ -15,6 +15,8 @@ import net.minecraft.util.ITickable;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 
 public class TileEntityMachineRTG extends TileEntityMachineBase implements ITickable, IEnergyGenerator {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 	
 	public int heat;
 	public final int heatMax = 6000;
@@ -98,6 +100,8 @@ public class TileEntityMachineRTG extends TileEntityMachineBase implements ITick
 	
 	private int detectHeat;
 	private long detectPower;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
 	
 	private void detectAndSendChanges() {
 		
@@ -110,7 +114,13 @@ public class TileEntityMachineRTG extends TileEntityMachineBase implements ITick
 			mark = true;
 			detectPower = power;
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		long time = world.getTotalWorldTime();
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(fullSync || power != lastSyncedPower && time - lastClientSyncTick >= CLIENT_SYNC_INTERVAL) {
+			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+			lastClientSyncTick = time;
+			lastSyncedPower = power;
+		}
 		if(mark)
 			markDirty();
 	}

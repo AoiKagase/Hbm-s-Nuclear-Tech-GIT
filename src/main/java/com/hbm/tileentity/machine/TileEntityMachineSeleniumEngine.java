@@ -37,6 +37,8 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 public class TileEntityMachineSeleniumEngine extends TileEntityLoadedBase implements ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 
 	public ItemStackHandler inventory;
 
@@ -48,6 +50,12 @@ public class TileEntityMachineSeleniumEngine extends TileEntityLoadedBase implem
 	public Fluid tankType;
 	public boolean needsUpdate = true;
 	public int pistonCount = 0;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private long lastSyncedPowerCap = Long.MIN_VALUE;
+	private int lastSyncedPistonCount = Integer.MIN_VALUE;
+	private int lastSyncedTankAmount = Integer.MIN_VALUE;
+	private Fluid lastSyncedTankType;
 
 	public static HashMap<FuelGrade, Double> fuelEfficiency = new HashMap();
 	static {
@@ -143,14 +151,30 @@ public class TileEntityMachineSeleniumEngine extends TileEntityLoadedBase implem
 			if(this.pistonCount > 2)
 				generate();
 
-			if(needsUpdate){
-				PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[]{tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
-				needsUpdate = false;
-			}
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), pistonCount, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), (int)powerCap, 1), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
+			syncClientState();
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		Fluid fluid = tank.getFluid() == null ? null : tank.getFluid().getFluid();
+		boolean changed = needsUpdate || power != lastSyncedPower || powerCap != lastSyncedPowerCap
+				|| pistonCount != lastSyncedPistonCount || tank.getFluidAmount() != lastSyncedTankAmount || fluid != lastSyncedTankType;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && (!changed || time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)) return;
+
+		PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[]{tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+		TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20);
+		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), point);
+		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), pistonCount, 0), point);
+		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), (int)powerCap, 1), point);
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedPowerCap = powerCap;
+		lastSyncedPistonCount = pistonCount;
+		lastSyncedTankAmount = tank.getFluidAmount();
+		lastSyncedTankType = fluid;
+		needsUpdate = false;
 	}
 	
 	public int countPistons() {

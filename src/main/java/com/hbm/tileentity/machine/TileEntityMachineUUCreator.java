@@ -26,6 +26,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineUUCreator extends TileEntityMachineBase implements IEnergyUser, IFluidHandler, ITickable, ITankPacketAcceptor {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 	
 	public int[] log = new int[20];
 	public static final long rfPerMbOfUU = 1_000_000L;
@@ -34,6 +36,11 @@ public class TileEntityMachineUUCreator extends TileEntityMachineBase implements
 	public static final long maxPower = 5_000_000_000_000_000L;
 	public double producedmb = 0;
 	public boolean isOn;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedTankAmount = Integer.MIN_VALUE;
+	private double lastSyncedProducedMb = Double.NaN;
+	private boolean lastSyncedIsOn;
 
 	public TileEntityMachineUUCreator() {
 		super(4);
@@ -75,14 +82,29 @@ public class TileEntityMachineUUCreator extends TileEntityMachineBase implements
 			this.log[this.log.length-1] = loggedProducedMB;
 
 			producedmb = getAvgUU();
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] { tank }), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
-
-			NBTTagCompound data = new NBTTagCompound();
-			data.setBoolean("isOn", isOn);
-			data.setLong("power", power);
-			data.setDouble("uuMB", producedmb);
-			this.networkPack(data, 250);
+			syncClientState();
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		boolean controlChanged = isOn != lastSyncedIsOn;
+		boolean changed = controlChanged || power != lastSyncedPower || tank.getFluidAmount() != lastSyncedTankAmount
+				|| Double.compare(producedmb, lastSyncedProducedMb) != 0;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && !controlChanged && (!changed || time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)) return;
+
+		PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] { tank }), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+		NBTTagCompound data = new NBTTagCompound();
+		data.setBoolean("isOn", isOn);
+		data.setLong("power", power);
+		data.setDouble("uuMB", producedmb);
+		this.networkPack(data, 250);
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedTankAmount = tank.getFluidAmount();
+		lastSyncedProducedMb = producedmb;
+		lastSyncedIsOn = isOn;
 	}
 
 	public double getAvgUU(){

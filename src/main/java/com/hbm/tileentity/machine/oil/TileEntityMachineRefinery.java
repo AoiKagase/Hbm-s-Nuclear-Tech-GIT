@@ -35,6 +35,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineRefinery extends TileEntityMachineBase implements ITickable, IEnergyUser, IFluidHandler, ITankPacketAcceptor {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 
 	public long power = 0;
 	public int itemOutputTimer = 0;
@@ -42,6 +44,8 @@ public class TileEntityMachineRefinery extends TileEntityMachineBase implements 
 	public static final long maxPower = 1000;
 	public int age = 0;
 	public boolean needsUpdate = false;
+	private long lastClientSyncTick = -1;
+	private boolean pendingClientSync;
 	public FluidTank[] tanks;
 	public Fluid[] tankTypes;
 
@@ -100,7 +104,6 @@ public class TileEntityMachineRefinery extends TileEntityMachineBase implements 
 				needsUpdate = false;
 			}
 			this.updateConnections();
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[] {tanks[0], tanks[1], tanks[2], tanks[3], tanks[4]}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 
 			age++;
@@ -233,7 +236,16 @@ public class TileEntityMachineRefinery extends TileEntityMachineBase implements 
 			needsUpdate = true;
 			detectTanks[4] = FFUtils.copyTank(tanks[4]);
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
+		long time = world.getTotalWorldTime();
+		if(mark) pendingClientSync = true;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(fullSync || pendingClientSync && time - lastClientSyncTick >= CLIENT_SYNC_INTERVAL) {
+			TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20);
+			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos.getX(), pos.getY(), pos.getZ(), new FluidTank[] {tanks[0], tanks[1], tanks[2], tanks[3], tanks[4]}), point);
+			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), point);
+			lastClientSyncTick = time;
+			pendingClientSync = false;
+		}
 		if(mark)
 			markDirty();
 	}

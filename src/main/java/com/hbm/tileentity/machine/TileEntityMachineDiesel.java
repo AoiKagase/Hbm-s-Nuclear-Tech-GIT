@@ -34,6 +34,8 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineDiesel extends TileEntityMachineBase implements ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 
 	public long power;
 	public int soundCycle = 0;
@@ -43,6 +45,11 @@ public class TileEntityMachineDiesel extends TileEntityMachineBase implements IT
 	public FluidTank tank;
 	public Fluid tankType;
 	public boolean needsUpdate;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private long lastSyncedPowerCap = Long.MIN_VALUE;
+	private int lastSyncedTankAmount = Integer.MIN_VALUE;
+	private Fluid lastSyncedTankType;
 
 	private static final int[] slots_top = new int[] { 0 };
 	private static final int[] slots_bottom = new int[] { 1, 2 };
@@ -125,13 +132,29 @@ public class TileEntityMachineDiesel extends TileEntityMachineBase implements IT
 
 			generate();
 
-			NBTTagCompound data = new NBTTagCompound();
-			data.setInteger("power", (int) power);
-			data.setInteger("powerCap", (int) powerCap);
-			this.networkPack(data, 50);
-			
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] {tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+			syncClientState();
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		Fluid fluid = tank.getFluid() == null ? null : tank.getFluid().getFluid();
+		boolean changed = needsUpdate || power != lastSyncedPower || powerCap != lastSyncedPowerCap
+				|| tank.getFluidAmount() != lastSyncedTankAmount || fluid != lastSyncedTankType;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && (!changed || time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)) return;
+
+		NBTTagCompound data = new NBTTagCompound();
+		data.setInteger("power", (int) power);
+		data.setInteger("powerCap", (int) powerCap);
+		this.networkPack(data, 50);
+		PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] {tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedPowerCap = powerCap;
+		lastSyncedTankAmount = tank.getFluidAmount();
+		lastSyncedTankType = fluid;
+		needsUpdate = false;
 	}
 	
 	@Override
