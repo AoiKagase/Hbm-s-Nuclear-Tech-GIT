@@ -99,7 +99,7 @@ public class Factory extends WorldGenerator
 			{
 				for(int k = 0; k < 29; k++)
 				{
-					world.setBlockState(pos.setPos(x + i, y + j, z + k), Blocks.AIR.getDefaultState(), 3);
+					world.setBlockState(pos.setPos(x + i, y + j, z + k), Blocks.AIR.getDefaultState(), 2);
 				}
 			}
 		}
@@ -110,7 +110,7 @@ public class Factory extends WorldGenerator
 			{
 				for(int k = 0; k < 29; k++)
 				{
-					world.setBlockState(pos.setPos(x + i, y + j - 6, z + k), Blocks.COBBLESTONE.getDefaultState(), 3);
+					world.setBlockState(pos.setPos(x + i, y + j - 6, z + k), Blocks.COBBLESTONE.getDefaultState(), 2);
 				}
 			}
 		}

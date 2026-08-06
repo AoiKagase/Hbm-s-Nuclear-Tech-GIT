@@ -102,7 +102,7 @@ public class Bunker extends WorldGenerator
 			{
 				for(int k = 0; k < 15; k++)
 				{
-					world.setBlockState(pos.setPos(x + i, y + j - 25, z + k), Blocks.AIR.getDefaultState(), 3);
+					world.setBlockState(pos.setPos(x + i, y + j - 25, z + k), Blocks.AIR.getDefaultState(), 2);
 				}
 			}
 		}
