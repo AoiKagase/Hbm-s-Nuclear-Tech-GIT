@@ -32,6 +32,8 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 public class TileEntityRailgun extends TileEntityLoadedBase implements ITickable, IEnergyUser {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int FULL_SYNC_INTERVAL = 20;
 
 	public ItemStackHandler inventory;
 	public ICapabilityProvider specialProvider;
@@ -60,6 +62,10 @@ public class TileEntityRailgun extends TileEntityLoadedBase implements ITickable
 	public int delay;
 	//countdown to firing
 	public int fireDelay;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private float lastSyncedPitch = Float.NaN;
+	private float lastSyncedYaw = Float.NaN;
 	
 	private String customName;
 	
@@ -144,12 +150,28 @@ public class TileEntityRailgun extends TileEntityLoadedBase implements ITickable
 				if(fireDelay == 0)
 					tryFire();
 			}
-			this.updateConnectionsExcept(world, pos, ForgeDirection.UP);
+			if(shouldRefreshConnections(20))
+				this.updateConnectionsExcept(world, pos, ForgeDirection.UP);
 			power = Library.chargeTEFromItems(inventory, 0, power, RadiationConfig.railgunBuffer);
-			
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
-			PacketDispatcher.wrapper.sendToAllAround(new RailgunRotationPacket(pos.getX(), pos.getY(), pos.getZ(), pitch, yaw), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100));
+			syncClientState();
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		boolean changed = power != lastSyncedPower || Float.compare(pitch, lastSyncedPitch) != 0 || Float.compare(yaw, lastSyncedYaw) != 0;
+		if(lastClientSyncTick >= 0 && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+			return;
+		if(!changed && lastClientSyncTick >= 0 && time - lastClientSyncTick < FULL_SYNC_INTERVAL)
+			return;
+
+		TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 100);
+		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), point);
+		PacketDispatcher.wrapper.sendToAllAround(new RailgunRotationPacket(pos.getX(), pos.getY(), pos.getZ(), pitch, yaw), point);
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedPitch = pitch;
+		lastSyncedYaw = yaw;
 	}
 	
 	public boolean setAngles(boolean miss) {

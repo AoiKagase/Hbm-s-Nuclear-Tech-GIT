@@ -10,6 +10,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 
 public class TileEntityStructureMarker extends TileEntity implements ITickable {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int FULL_SYNC_INTERVAL = 20;
 
 	// 0: Factory
 	// 1: Nuclear Reactor
@@ -17,6 +19,8 @@ public class TileEntityStructureMarker extends TileEntity implements ITickable {
 	// 3: Watz Power Plant
 	// 4: Singularity-Anti-Fusion-Experiment
 	public int type = 0;
+	private long lastClientSyncTick = -1;
+	private int lastSyncedType = Integer.MIN_VALUE;
 
 	@Override
 	public void update() {
@@ -24,7 +28,20 @@ public class TileEntityStructureMarker extends TileEntity implements ITickable {
 			type = 0;
 
 		if(!world.isRemote)
-			PacketDispatcher.wrapper.sendToAllAround(new TEStructurePacket(pos.getX(), pos.getY(), pos.getZ(), type), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 80));
+			syncClientState();
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		boolean changed = type != lastSyncedType;
+		if(lastClientSyncTick >= 0 && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+			return;
+		if(!changed && lastClientSyncTick >= 0 && time - lastClientSyncTick < FULL_SYNC_INTERVAL)
+			return;
+
+		PacketDispatcher.wrapper.sendToAllAround(new TEStructurePacket(pos.getX(), pos.getY(), pos.getZ(), type), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 80));
+		lastClientSyncTick = time;
+		lastSyncedType = type;
 	}
 	
 	@Override

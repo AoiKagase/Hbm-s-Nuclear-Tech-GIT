@@ -33,6 +33,8 @@ import li.cil.oc.api.network.SimpleComponent;
 
 @Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
 public class TileEntityLaunchPad extends TileEntityLoadedBase implements ITickable, IEnergyUser, SimpleComponent {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int FULL_SYNC_INTERVAL = 20;
 
 	public ItemStackHandler inventory;
 
@@ -47,6 +49,10 @@ public class TileEntityLaunchPad extends TileEntityLoadedBase implements ITickab
 	//Time missile needs to clear launchpad in ticks
 	public static final int clearingDuraction = 100;
 	public int clearingTimer = 0;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedClearingTimer = Integer.MIN_VALUE;
+	private ItemStack lastSyncedMissile = ItemStack.EMPTY;
 
 	private String customName;
 
@@ -102,7 +108,8 @@ public class TileEntityLaunchPad extends TileEntityLoadedBase implements ITickab
 		
 		if (!world.isRemote) {
 			if(clearingTimer > 0) clearingTimer--;
-			this.updateConnections();
+			if(shouldRefreshConnections(20))
+				this.updateConnections();
 			power = Library.chargeTEFromItems(inventory, 2, power, maxPower);
 			detectAndSendChanges();
 		}
@@ -129,11 +136,27 @@ public class TileEntityLaunchPad extends TileEntityLoadedBase implements ITickab
 			mark = true;
 			detectPower = power;
 		}
-		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, clearingTimer, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
-		PacketDispatcher.wrapper.sendToAllTracking(new TEMissilePacket(pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(0)), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 1000));
-		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		syncClientState();
 		if(mark)
 			markDirty();
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		ItemStack missile = inventory.getStackInSlot(0);
+		boolean changed = power != lastSyncedPower || clearingTimer != lastSyncedClearingTimer || !ItemStack.areItemStacksEqual(missile, lastSyncedMissile);
+		if(lastClientSyncTick >= 0 && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+			return;
+		if(!changed && lastClientSyncTick >= 0 && time - lastClientSyncTick < FULL_SYNC_INTERVAL)
+			return;
+
+		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos, clearingTimer, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 20));
+		PacketDispatcher.wrapper.sendToAllTracking(new TEMissilePacket(pos.getX(), pos.getY(), pos.getZ(), missile), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 1000));
+		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedClearingTimer = clearingTimer;
+		lastSyncedMissile = missile.copy();
 	}
 
 	@Override

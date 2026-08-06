@@ -20,6 +20,8 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 public class TileEntityReactorControl extends TileEntity implements ITickable {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int FULL_SYNC_INTERVAL = 20;
 
 	public ItemStackHandler inventory;
 
@@ -46,6 +48,8 @@ public class TileEntityReactorControl extends TileEntity implements ITickable {
 	public boolean isLinked;
 	public boolean redstoned;
 	private int lastRods = 100;
+	private long lastClientSyncTick = -1;
+	private int lastStateHash = Integer.MIN_VALUE;
 	
 	private String customName;
 	
@@ -239,8 +243,37 @@ public class TileEntityReactorControl extends TileEntity implements ITickable {
         		world.scheduleUpdate(pos.west(), world.getBlockState(pos.west()).getBlock(), 1);
         	}
         	
-        	PacketDispatcher.wrapper.sendToAllAround(new TEControlPacket(pos.getX(), pos.getY(), pos.getZ(), hullHeat, coreHeat, fuel, water, cool, steam, maxWater, maxCool, maxSteam, compression, rods, maxRods, isOn, auto, isLinked), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 30));
+			syncClientState();
 		}
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		int stateHash = 1;
+		stateHash = 31 * stateHash + hullHeat;
+		stateHash = 31 * stateHash + coreHeat;
+		stateHash = 31 * stateHash + fuel;
+		stateHash = 31 * stateHash + water;
+		stateHash = 31 * stateHash + cool;
+		stateHash = 31 * stateHash + steam;
+		stateHash = 31 * stateHash + maxWater;
+		stateHash = 31 * stateHash + maxCool;
+		stateHash = 31 * stateHash + maxSteam;
+		stateHash = 31 * stateHash + compression;
+		stateHash = 31 * stateHash + rods;
+		stateHash = 31 * stateHash + maxRods;
+		stateHash = 31 * stateHash + (isOn ? 1 : 0);
+		stateHash = 31 * stateHash + (auto ? 1 : 0);
+		stateHash = 31 * stateHash + (isLinked ? 1 : 0);
+		boolean changed = stateHash != lastStateHash;
+		if(lastClientSyncTick >= 0 && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+			return;
+		if(!changed && lastClientSyncTick >= 0 && time - lastClientSyncTick < FULL_SYNC_INTERVAL)
+			return;
+
+		PacketDispatcher.wrapper.sendToAllAround(new TEControlPacket(pos.getX(), pos.getY(), pos.getZ(), hullHeat, coreHeat, fuel, water, cool, steam, maxWater, maxCool, maxSteam, compression, rods, maxRods, isOn, auto, isLinked), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 30));
+		lastClientSyncTick = time;
+		lastStateHash = stateHash;
 	}
 	
 	@Override

@@ -20,11 +20,16 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import org.jetbrains.annotations.NotNull;
 
 public class TileEntityMachineArcFurnace extends TileEntityMachineBase implements ITickable, IEnergyUser {
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int FULL_SYNC_INTERVAL = 20;
 
 	public int dualCookTime;
 	public long power;
 	public static final long maxPower = 50000;
 	public static final int processingSpeed = 20;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedCookTime = Integer.MIN_VALUE;
 	
 	//0: i Input
 	//1: o Output
@@ -171,7 +176,8 @@ public class TileEntityMachineArcFurnace extends TileEntityMachineBase implement
 		
 		if(!world.isRemote){				
 
-			this.updateStandardConnections(world, pos);
+			if(shouldRefreshConnections(20))
+				this.updateStandardConnections(world, pos);
 
 			long prevPower = power;
 			
@@ -205,14 +211,29 @@ public class TileEntityMachineArcFurnace extends TileEntityMachineBase implement
 				flag1 = true;
 			power = Library.chargeTEFromItems(inventory, 5, power, maxPower);
 			
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
-			PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), dualCookTime, 0), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
+			syncClientState();
 			if(flag1 || prevPower != power)
 			{
 				this.markDirty();
 			}
 		}
 		
+	}
+
+	private void syncClientState() {
+		long time = world.getTotalWorldTime();
+		boolean changed = power != lastSyncedPower || dualCookTime != lastSyncedCookTime;
+		if(lastClientSyncTick >= 0 && time - lastClientSyncTick < CLIENT_SYNC_INTERVAL)
+			return;
+		if(!changed && lastClientSyncTick >= 0 && time - lastClientSyncTick < FULL_SYNC_INTERVAL)
+			return;
+
+		TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10);
+		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos.getX(), pos.getY(), pos.getZ(), power), point);
+		PacketDispatcher.wrapper.sendToAllAround(new AuxGaugePacket(pos.getX(), pos.getY(), pos.getZ(), dualCookTime, 0), point);
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedCookTime = dualCookTime;
 	}
 
 	public int[] getAccessibleSlotsFromSide(EnumFacing e) {

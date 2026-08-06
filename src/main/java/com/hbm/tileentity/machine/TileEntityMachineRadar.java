@@ -67,7 +67,8 @@ public class TileEntityMachineRadar extends TileEntityTickingBase implements ITi
 		
 		if(!world.isRemote) {
 
-			this.updateConnectionsExcept(world, pos, ForgeDirection.UP);
+			if(shouldRefreshConnections(20))
+				this.updateConnectionsExcept(world, pos, ForgeDirection.UP);
 
 			if(power > 0) {
 				if(scanTimer <= 0) {
