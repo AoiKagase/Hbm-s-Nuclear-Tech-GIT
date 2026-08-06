@@ -30,6 +30,8 @@ public class TileEntityMachineUUCreator extends TileEntityMachineBase implements
 	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
 	
 	public int[] log = new int[20];
+	private int logIndex;
+	private long producedMbSum;
 	public static final long rfPerMbOfUU = 1_000_000L;
 	public FluidTank tank;
 	public long power;
@@ -76,10 +78,10 @@ public class TileEntityMachineUUCreator extends TileEntityMachineBase implements
 				}
 			}
 			
-			for(int i = 1; i < this.log.length; i++) {
-				this.log[i - 1] = this.log[i];
-			}
-			this.log[this.log.length-1] = loggedProducedMB;
+			producedMbSum -= log[logIndex];
+			log[logIndex] = loggedProducedMB;
+			producedMbSum += loggedProducedMB;
+			logIndex = (logIndex + 1) % log.length;
 
 			producedmb = getAvgUU();
 			syncClientState();
@@ -108,11 +110,7 @@ public class TileEntityMachineUUCreator extends TileEntityMachineBase implements
 	}
 
 	public double getAvgUU(){
-		long sum = 0;
-		for(int i = 0; i < this.log.length; i++) {
-			sum += this.log[i];
-		}
-		return (double)(sum / (double)this.log.length);
+		return producedMbSum / (double)log.length;
 	}
 
 	@Override

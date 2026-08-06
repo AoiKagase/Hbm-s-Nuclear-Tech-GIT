@@ -17,6 +17,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 public class TileEntityMachineRTG extends TileEntityMachineBase implements ITickable, IEnergyGenerator {
 	private static final int CLIENT_SYNC_INTERVAL = 5;
 	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
+	private static final int[] RTG_SLOTS = new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
 	
 	public int heat;
 	public final int heatMax = 6000;
@@ -33,11 +34,7 @@ public class TileEntityMachineRTG extends TileEntityMachineBase implements ITick
 		if(!world.isRemote)
 		{
 			this.sendPower(world, pos);
-			int[] slots = new int[inventory.getSlots()];
-			for(int i = 0; i < inventory.getSlots();i++){
-				slots[i] = i;
-			}
-			heat = RTGUtil.updateRTGs(inventory, slots);
+			heat = RTGUtil.updateRTGs(inventory, RTG_SLOTS);
 			
 			if(heat > heatMax)
 				heat = heatMax;
