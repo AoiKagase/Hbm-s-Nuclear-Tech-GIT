@@ -62,8 +62,7 @@ public class TileEntityMachinePlasmaHeater extends TileEntityMachineBase impleme
 		updateType();
 		if(!world.isRemote) {
 
-			if(this.world.getTotalWorldTime() % 20 == 0)
-				this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 
 			/// START Managing all the internal stuff ///
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);

@@ -112,8 +112,7 @@ public class TileEntityMachineAssembler extends TileEntityMachineBase implements
 	public void update() {
 		if (!world.isRemote) {
 
-			if((world.getTotalWorldTime() + pos.toLong()) % 20 == 0)
-				this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 
 			this.consumption = 100;
 			this.speed = 100;

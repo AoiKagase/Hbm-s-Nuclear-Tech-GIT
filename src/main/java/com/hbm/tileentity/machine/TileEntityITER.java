@@ -94,7 +94,7 @@ public class TileEntityITER extends TileEntityMachineBase implements ITickable, 
 			if(age == 9 || age == 19)
 				fillFluidInit(tanks[1]);
 
-			this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 
 			/// START Processing part ///

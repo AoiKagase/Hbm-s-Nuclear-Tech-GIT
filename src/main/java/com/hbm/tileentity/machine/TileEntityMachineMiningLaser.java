@@ -113,7 +113,7 @@ public class TileEntityMachineMiningLaser extends TileEntityMachineBase implemen
 			if (age == 9 || age == 19)
 				fillFluidInit();
 			
-			this.trySubscribe(world, pos.add(0, 2, 0), ForgeDirection.UP);
+			if(shouldRefreshConnections(20)) this.trySubscribe(world, pos.add(0, 2, 0), ForgeDirection.UP);
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[]{tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 10));
 

@@ -68,7 +68,7 @@ public class TileEntityMachinePumpjack extends TileEntityOilDrillBase {
 		if(age2 >= 20)
 			age2 -= 20;
 		if(!world.isRemote) {
-			this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 			int tank0Amount = tanks[0].getFluidAmount();
 			int tank1Amount = tanks[1].getFluidAmount();
 			if(age2 == 9 || age2 == 19) {

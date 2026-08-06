@@ -28,7 +28,7 @@ public class TileEntityHeaterElectric extends TileEntityLoadedBase implements IH
 		
 		if(!world.isRemote) {
 			
-			if(world.getTotalWorldTime() % 20 == 0) { //doesn't have to happen constantly
+			if(shouldRefreshConnections(20)) {
 				ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
 				this.trySubscribe(world, pos.add(dir.offsetX * 3, 0, dir.offsetZ * 3), dir);
 			}

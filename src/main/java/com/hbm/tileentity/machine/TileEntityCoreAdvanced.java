@@ -166,8 +166,10 @@ public class TileEntityCoreAdvanced extends TileEntityMachineBase implements ITi
 	@Override
 	public void update() {
 		if(!world.isRemote && isStructureValid(world)) {
-			this.trySubscribe(world, pos.add(0, 2, 0), ForgeDirection.UP);
-			this.trySubscribe(world, pos.add(0, -2, 0), ForgeDirection.DOWN);
+			if(shouldRefreshConnections(20)) {
+				this.trySubscribe(world, pos.add(0, 2, 0), ForgeDirection.UP);
+				this.trySubscribe(world, pos.add(0, -2, 0), ForgeDirection.DOWN);
+			}
 			hasCluster = inventory.getStackInSlot(22).getItem() == ModItems.factory_core_advanced;
 			
 			moveToSlotIfProcessable(9);

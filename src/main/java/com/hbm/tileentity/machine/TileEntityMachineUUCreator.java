@@ -58,7 +58,7 @@ public class TileEntityMachineUUCreator extends TileEntityMachineBase implements
 			if(world.getTotalWorldTime() % 10 == 0) {
 				fillFluidInit(tank);
 			}
-			this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 			FFUtils.fillFluidContainer(inventory, tank, 2, 3);

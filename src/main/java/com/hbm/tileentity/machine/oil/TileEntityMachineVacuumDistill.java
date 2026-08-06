@@ -70,7 +70,7 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
 
             this.isOn = false;
 
-            this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
             power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
             tryMoveBattery();
 

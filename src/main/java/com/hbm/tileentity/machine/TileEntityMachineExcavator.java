@@ -132,7 +132,7 @@ public class TileEntityMachineExcavator extends TileEntityMachineBase implements
 			
 			updateTankType();
 			
-			if(world.getTotalWorldTime() % 20 == 0) {
+			if(shouldRefreshConnections(20)) {
 				tryEjectBuffer();
 				
 				for(DirPos posDir : getConPos()) {

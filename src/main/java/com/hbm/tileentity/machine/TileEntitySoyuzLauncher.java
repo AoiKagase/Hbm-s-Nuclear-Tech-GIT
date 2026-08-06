@@ -78,9 +78,7 @@ public class TileEntitySoyuzLauncher extends TileEntityMachineBase implements IT
 	@Override
 	public void update() {
 		if (!world.isRemote) {
-			if(world.getTotalWorldTime() % 20 == 0) {
-				this.updateConnections();
-			}
+			if(shouldRefreshConnections(20)) this.updateConnections();
 
 			if(isValidFluidForTank(4, 0))
 				FFUtils.fillFromFluidContainer(inventory, tanks[0], 4, 5);

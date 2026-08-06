@@ -256,8 +256,7 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 				fillFluidInit(tanks[3]);
 			}
 
-			if((world.getTotalWorldTime() + pos.toLong()) % 20 == 0)
-				this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 

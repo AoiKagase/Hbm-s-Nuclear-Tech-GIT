@@ -102,8 +102,8 @@ public class TileEntityMachineMixer extends TileEntityMachineBase implements ITi
 			this.consumption *= (overLevel * 3 + 1);
 			this.consumption /= (powerLevel+1);
 
-			for(DirPos pos : getConPos()) {
-				this.trySubscribe(world, pos.getPos(), pos.getDir());
+			if(shouldRefreshConnections(20)) {
+				for(DirPos pos : getConPos()) this.trySubscribe(world, pos.getPos(), pos.getDir());
 			}
 			
 			this.wasOn = this.canProcess();

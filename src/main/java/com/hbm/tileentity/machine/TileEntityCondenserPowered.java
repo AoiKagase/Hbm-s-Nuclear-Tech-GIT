@@ -34,7 +34,7 @@ public class TileEntityCondenserPowered extends TileEntityCondenser implements I
     @Override
     public void update() {
         if(!world.isRemote) {
-            updateConnections();
+			if(Math.floorMod(world.getTotalWorldTime() + pos.toLong(), 20) == 0) updateConnections();
         }
 
         super.update();

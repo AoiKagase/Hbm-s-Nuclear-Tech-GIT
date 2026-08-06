@@ -80,7 +80,7 @@ public class TileEntityMachineFrackingTower extends TileEntityOilDrillBase {
             if(age2 >= 20)
                 age2 -= 20;
 
-            this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
             int tank0Amount = tanks[0].getFluidAmount();
             int tank1Amount = tanks[1].getFluidAmount();
             int tank2Amount = tanks[2].getFluidAmount();

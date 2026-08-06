@@ -68,7 +68,7 @@ public class TileEntityMachineSolidifier extends TileEntityMachineBase implement
             manager.eval(inventory, 2, 3);
             this.power = Library.chargeTEFromItems(inventory, 1, power, maxPower);
 
-            this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
             int speed = Math.min(manager.getLevel(ItemMachineUpgrade.UpgradeType.SPEED), 3);
             int power = Math.min(manager.getLevel(ItemMachineUpgrade.UpgradeType.POWER), 3);
 

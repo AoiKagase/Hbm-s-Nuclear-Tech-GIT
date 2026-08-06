@@ -103,7 +103,7 @@ public class TileEntityMachineRefinery extends TileEntityMachineBase implements 
 			if(needsUpdate){
 				needsUpdate = false;
 			}
-			this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 			power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 
 			age++;

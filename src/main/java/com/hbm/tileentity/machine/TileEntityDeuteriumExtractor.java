@@ -35,7 +35,7 @@ public class TileEntityDeuteriumExtractor extends TileEntityLoadedBase implement
 		
 		if(!world.isRemote) {
 			
-			updateConnections();
+			if(shouldRefreshConnections(20)) updateConnections();
 
 			age++;
 			if(age >= 20) {

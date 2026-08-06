@@ -66,7 +66,7 @@ public class TileEntityMachineLiquefactor extends TileEntityMachineBase implemen
         if(!world.isRemote) {
             this.power = Library.chargeTEFromItems(inventory, 1, power, maxPower);
 
-            this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 
             upgradeManager.eval(inventory, 2, 3);
             int speed = Math.min(upgradeManager.getLevel(ItemMachineUpgrade.UpgradeType.SPEED), 3);

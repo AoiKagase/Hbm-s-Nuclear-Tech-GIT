@@ -13,6 +13,7 @@ public class TileEntityLoadedBase extends TileEntity implements ILoadedTile {
 	private NBTTagCompound lastNetworkPack;
 	private int lastNetworkPackRange;
 	private long lastNetworkPackTick = Long.MIN_VALUE;
+	private boolean connectionRefreshPending = true;
 	
 	@Override
 	public boolean isLoaded() {
@@ -29,7 +30,18 @@ public class TileEntityLoadedBase extends TileEntity implements ILoadedTile {
     public void onLoad() {
         super.onLoad();
         this.isLoaded = true;
+		this.connectionRefreshPending = true;
     }
+
+	protected boolean shouldRefreshConnections(int interval) {
+		if(world == null || world.isRemote || interval <= 0)
+			return false;
+		if(connectionRefreshPending) {
+			connectionRefreshPending = false;
+			return true;
+		}
+		return Math.floorMod(world.getTotalWorldTime() + pos.toLong(), interval) == 0;
+	}
 
 	protected boolean shouldSendNetworkPack(NBTTagCompound nbt, int range) {
 		if(world == null || world.isRemote)

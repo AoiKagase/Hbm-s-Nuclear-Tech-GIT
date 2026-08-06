@@ -67,7 +67,7 @@ public class TileEntityFEL extends TileEntityMachineBase implements ITickable, I
 		if(!world.isRemote) {
 			
 			ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
-			this.trySubscribe(world, pos.add(dir.offsetX * -5, 1, dir.offsetZ  * -5), dir);
+			if(shouldRefreshConnections(20)) this.trySubscribe(world, pos.add(dir.offsetX * -5, 1, dir.offsetZ  * -5), dir);
 			this.power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
 			
 			if(this.isOn && !(inventory.getStackInSlot(1).getCount() == 0)) {

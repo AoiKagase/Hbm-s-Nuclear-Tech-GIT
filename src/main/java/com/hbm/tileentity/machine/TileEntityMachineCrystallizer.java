@@ -93,7 +93,7 @@ public class TileEntityMachineCrystallizer extends TileEntityMachineBase
 	public void update() {
 		if (!world.isRemote) {
 
-			this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 
 			power = Library.chargeTEFromItems(inventory, 1, power, maxPower);
 			if (inputValidForTank(3) && tank.getFluidAmount() < tank.getCapacity()) {

@@ -333,7 +333,7 @@ public class TileEntityMachineCyclotron extends TileEntityMachineBase
 			if (age >= 20) {
 				age = 0;
 			}
-			this.updateConnections();
+			if(shouldRefreshConnections(20)) this.updateConnections();
 			if (age == 9 || age == 19)
 				fillFluidInit(amat);
 

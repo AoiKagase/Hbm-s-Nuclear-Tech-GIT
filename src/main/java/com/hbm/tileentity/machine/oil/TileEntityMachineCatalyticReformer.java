@@ -63,7 +63,7 @@ public class TileEntityMachineCatalyticReformer extends TileEntityMachineBase im
 
         if(!world.isRemote) {
 
-            if(this.world.getTotalWorldTime() % 20 == 0) this.updateConnections();
+            if(shouldRefreshConnections(20)) this.updateConnections();
             power = Library.chargeTEFromItems(inventory, 0, power, maxPower);
             tryMoveBattery();
 

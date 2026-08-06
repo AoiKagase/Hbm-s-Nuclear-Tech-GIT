@@ -83,9 +83,7 @@ public class TileEntityMachineChemfac extends TileEntityMachineChemplantBase imp
 		super.update();
 
 		if(!world.isRemote) {
-			if(world.getTotalWorldTime() % 60 == 0) {
-				this.updateConnections();
-			}
+			if(shouldRefreshConnections(60)) this.updateConnections();
 
 			this.sendFluids();
 

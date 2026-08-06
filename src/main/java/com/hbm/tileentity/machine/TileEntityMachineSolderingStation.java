@@ -84,7 +84,7 @@ public class TileEntityMachineSolderingStation extends TileEntityMachineBase imp
 			this.wasOn = false;
 			this.power = Library.chargeTEFromItems(inventory, 7, this.getPower(), this.getMaxPower());
 
-			if(world.getTotalWorldTime() % 20 == 0) {
+			if(shouldRefreshConnections(20)) {
 				for(DirPos pos : getConPos()) {
 					this.trySubscribe(world, pos.getPos(), pos.getDir());
 					if(tank.getFluidAmount() > 0) FFUtils.fillFluid(this, tank, world, pos.getPos(), tank.getCapacity() >> 1);
