@@ -3,6 +3,7 @@ package com.hbm.tileentity.machine.oil;
 import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyUser;
 import com.hbm.forgefluid.FFUtils;
+import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.inventory.HydrotreatingRecipes;
 import com.hbm.inventory.container.ContainerMachineHydrotreater;
@@ -110,6 +111,33 @@ public class TileEntityMachineHydrotreater extends TileEntityMachineBase impleme
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean isItemValidForSlot(int slot, ItemStack stack) {
+        if(stack.isEmpty()) return false;
+        if(slot == 0) return stack.getItem() instanceof IBatteryItem
+                || stack.getItem() == ModItems.battery_creative;
+        if(slot == 2) {
+            FluidStack fluid = FluidUtil.getFluidContained(stack);
+            return fluid != null && HydrotreatingRecipes.getOutput(fluid.getFluid()) != null;
+        }
+        if(slot == 4) {
+            FluidStack fluid = FluidUtil.getFluidContained(stack);
+            return fluid != null && fluid.getFluid() == ModForgeFluids.HYDROGEN;
+        }
+        if(slot == 6 || slot == 8) return FFUtils.isEmtpyFluidTank(stack);
+        return slot == 10 && stack.getItem() == ModItems.catalytic_converter;
+    }
+
+    @Override
+    public boolean canExtractItem(int slot, ItemStack stack, int amount) {
+        return slot == 1 || slot == 3 || slot == 5 || slot == 7 || slot == 9;
+    }
+
+    @Override
+    public int[] getAccessibleSlotsFromSide(EnumFacing facing) {
+        return new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
     }
 
     public void tryMoveBattery() {

@@ -7,6 +7,7 @@ import com.hbm.interfaces.ITankPacketAcceptor;
 import com.hbm.inventory.VacuumDistillRecipes;
 import com.hbm.inventory.container.ContainerMachineVacuumDistill;
 import com.hbm.inventory.gui.GUIMachineVacuumDistill;
+import com.hbm.items.ModItems;
 import com.hbm.lib.DirPos;
 import com.hbm.lib.ForgeDirection;
 import com.hbm.lib.Library;
@@ -167,6 +168,29 @@ public class TileEntityMachineVacuumDistill extends TileEntityMachineBase implem
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean isItemValidForSlot(int slot, ItemStack stack) {
+        if(stack.isEmpty()) return false;
+        if(slot == 0) return stack.getItem() instanceof IBatteryItem
+                || stack.getItem() == ModItems.battery_creative;
+        if(slot == 2) {
+            FluidStack fluid = FluidUtil.getFluidContained(stack);
+            return fluid != null && VacuumDistillRecipes.getVacuum(fluid.getFluid()) != null;
+        }
+        return (slot == 4 || slot == 6 || slot == 8 || slot == 10)
+                && FFUtils.isEmtpyFluidTank(stack);
+    }
+
+    @Override
+    public boolean canExtractItem(int slot, ItemStack stack, int amount) {
+        return slot == 1 || slot == 3 || slot == 5 || slot == 7 || slot == 9 || slot == 11;
+    }
+
+    @Override
+    public int[] getAccessibleSlotsFromSide(EnumFacing facing) {
+        return new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
     }
 
     private void refine() {

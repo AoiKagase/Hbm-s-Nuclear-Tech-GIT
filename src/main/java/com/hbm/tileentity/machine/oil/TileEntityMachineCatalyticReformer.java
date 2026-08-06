@@ -114,6 +114,29 @@ public class TileEntityMachineCatalyticReformer extends TileEntityMachineBase im
     }
 
     @Override
+    public boolean isItemValidForSlot(int slot, ItemStack stack) {
+        if(stack.isEmpty()) return false;
+        if(slot == 0) return stack.getItem() instanceof IBatteryItem
+                || stack.getItem() == ModItems.battery_creative;
+        if(slot == 1) {
+            FluidStack fluid = FluidUtil.getFluidContained(stack);
+            return fluid != null && ReformingRecipes.getOutput(fluid.getFluid()) != null;
+        }
+        if(slot == 3 || slot == 5 || slot == 7) return FFUtils.isEmtpyFluidTank(stack);
+        return slot == 10 && stack.getItem() == ModItems.catalytic_converter;
+    }
+
+    @Override
+    public boolean canExtractItem(int slot, ItemStack stack, int amount) {
+        return slot == 2 || slot == 4 || slot == 6 || slot == 8 || slot == 9;
+    }
+
+    @Override
+    public int[] getAccessibleSlotsFromSide(EnumFacing facing) {
+        return new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    }
+
+    @Override
     public void networkUnpack(NBTTagCompound nbt) {
         super.networkUnpack(nbt);
 

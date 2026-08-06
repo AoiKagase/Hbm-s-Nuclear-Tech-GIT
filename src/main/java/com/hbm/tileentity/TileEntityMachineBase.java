@@ -100,7 +100,7 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	}
 	
 	public boolean isItemValidForSlot(int i, ItemStack stack) {
-		return true;
+		return false;
 	}
 	
 	public boolean canInsertItem(int slot, ItemStack itemStack, int amount) {

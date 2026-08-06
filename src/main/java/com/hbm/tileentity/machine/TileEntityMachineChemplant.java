@@ -12,6 +12,7 @@ import com.hbm.inventory.ChemplantRecipes;
 import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemChemistryTemplate;
+import com.hbm.items.machine.ItemMachineUpgrade;
 import com.hbm.lib.Library;
 import com.hbm.packet.AuxElectricityPacket;
 import com.hbm.packet.AuxParticlePacket;
@@ -21,6 +22,7 @@ import com.hbm.packet.PacketDispatcher;
 import com.hbm.packet.TEChemplantPacket;
 import com.hbm.tileentity.TileEntityMachineBase;
 
+import api.hbm.energy.IBatteryItem;
 import api.hbm.energy.IEnergyUser;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
@@ -508,6 +510,35 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 		}
 
 		return false;
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int slot, ItemStack stack) {
+		if(stack.isEmpty()) return false;
+		if(slot == 0) return stack.getItem() instanceof IBatteryItem
+				|| stack.getItem() == ModItems.battery_creative;
+		if(slot >= 1 && slot <= 3) return stack.getItem() instanceof ItemMachineUpgrade;
+		if(slot == 4) return stack.getItem() instanceof ItemChemistryTemplate;
+		if(slot == 9 || slot == 10) return FFUtils.isEmtpyFluidTank(stack);
+		if(slot >= 13 && slot <= 16) return true;
+		if(slot == 17 || slot == 18) {
+			int tank = slot - 17;
+			return tankTypes[tank] != null
+					&& FFUtils.checkRestrictions(stack, fluid -> fluid.getFluid() == tankTypes[tank]);
+		}
+		return false;
+	}
+
+	@Override
+	public boolean canExtractItem(int slot, ItemStack stack, int amount) {
+		return (slot >= 5 && slot <= 8)
+				|| slot == 11 || slot == 12 || slot == 19 || slot == 20;
+	}
+
+	@Override
+	public int[] getAccessibleSlotsFromSide(EnumFacing facing) {
+		return new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+				11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
 	}
 
 	public boolean hasFluidsStored(FluidStack[] fluids) {
