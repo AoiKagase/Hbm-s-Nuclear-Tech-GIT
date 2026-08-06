@@ -60,6 +60,7 @@ public class EntityBullet extends Entity implements IProjectile {
 	private static final DataParameter<Boolean> TAU = EntityDataManager.createKey(EntityBullet.class, DataSerializers.BOOLEAN);
 	private static final DataParameter<Boolean> CHOPPER = EntityDataManager.createKey(EntityBullet.class, DataSerializers.BOOLEAN);
 	private static final DataParameter<Boolean> CRITICAL = EntityDataManager.createKey(EntityBullet.class, DataSerializers.BOOLEAN);
+	private static final Field LAST_DAMAGE_FIELD = findLastDamageField();
 
 	private double prevMotionX;
 	private double prevMotionY;
@@ -88,6 +89,15 @@ public class EntityBullet extends Entity implements IProjectile {
 	public boolean antidote = false;
 	public boolean pip = false;
 	public boolean fire = false;
+
+	@SuppressWarnings("deprecation")
+	private static Field findLastDamageField() {
+		try {
+			return ReflectionHelper.findField(EntityLivingBase.class, "lastDamage", "field_110153_bc");
+		} catch(Exception ignored) {
+			return null;
+		}
+	}
 
 	public EntityBullet(World worldIn) {
 		super(worldIn);
@@ -335,24 +345,18 @@ public class EntityBullet extends Entity implements IProjectile {
 			this.setDead();
 
 		} else {
-			Vec3d vec31 = new Vec3d(this.posX, this.posY, this.posZ);
-			Vec3d vec3 = new Vec3d(this.posX + this.motionX, this.posY + this.motionY, this.posZ + this.motionZ);
+			Vec3d blockTraceStart = new Vec3d(this.posX, this.posY, this.posZ);
+			Vec3d blockTraceEnd = new Vec3d(this.posX + this.motionX, this.posY + this.motionY, this.posZ + this.motionZ);
 			//Drillgon200: Yeah I don't know if this is the best way, but at least bullets can hit entities that are closer than three blocks now.
 			//vec31 = new Vec3d(this.posX - this.motionX, this.posY - this.motionY, this.posZ - this.motionZ);
 			//Drillgon200: Ok that was retarded and completely breaks turrets.
 			
-			RayTraceResult movingobjectposition = this.world.rayTraceBlocks(vec31, vec3, false, true, false);
-			vec31 = new Vec3d(this.posX, this.posY, this.posZ);
-			vec3 = new Vec3d(this.posX + this.motionX, this.posY + this.motionY, this.posZ + this.motionZ);
-
-			vec31 = new Vec3d(this.posX - this.motionX, this.posY - this.motionY, this.posZ - this.motionZ);
-			
-			if (movingobjectposition != null) {
-				vec3 = new Vec3d(movingobjectposition.hitVec.x, movingobjectposition.hitVec.y, movingobjectposition.hitVec.z);
-			}
+			RayTraceResult movingobjectposition = this.world.rayTraceBlocks(blockTraceStart, blockTraceEnd, false, true, false);
+			Vec3d vec31 = new Vec3d(this.posX - this.motionX, this.posY - this.motionY, this.posZ - this.motionZ);
+			Vec3d vec3 = movingobjectposition == null ? blockTraceEnd : movingobjectposition.hitVec;
 
 			Entity entity = null;
-			List<Entity> list = this.world.getEntitiesWithinAABBExcludingEntity(this, this.getEntityBoundingBox().grow(Math.abs(this.motionX), Math.abs(this.motionY), Math.abs(this.motionZ)).grow(1.0D));
+			List<Entity> list = this.world.getEntitiesWithinAABBExcludingEntity(this, this.getEntityBoundingBox().grow(Math.abs(this.motionX) + 1.0D, Math.abs(this.motionY) + 1.0D, Math.abs(this.motionZ) + 1.0D));
 			double d0 = 0.0D;
 			int i;
 			float f1;
@@ -525,12 +529,10 @@ public class EntityBullet extends Entity implements IProjectile {
 							if (movingobjectposition.entityHit instanceof EntityLivingBase) {
 
 								try {
-									@SuppressWarnings("deprecation")
-									Field lastDamage = ReflectionHelper.findField(EntityLivingBase.class, "lastDamage", "field_110153_bc");
-
-									float dmg = (float) damage + lastDamage.getFloat(movingobjectposition.entityHit);
-
-									movingobjectposition.entityHit.attackEntityFrom(damagesource, dmg);
+									if(LAST_DAMAGE_FIELD != null) {
+										float dmg = (float) damage + LAST_DAMAGE_FIELD.getFloat(movingobjectposition.entityHit);
+										movingobjectposition.entityHit.attackEntityFrom(damagesource, dmg);
+									}
 								} catch (Exception x) {
 								}
 							}
