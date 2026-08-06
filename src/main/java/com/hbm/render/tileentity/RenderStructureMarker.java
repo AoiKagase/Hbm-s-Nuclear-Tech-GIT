@@ -108,11 +108,12 @@ public class RenderStructureMarker extends TileEntitySpecialRenderer<TileEntityS
 					for(int c = 0; c < 3; c++) {
 
 						int texture = -1;
-						if(FactoryTitanium.array[b][a].substring(c, c + 1).equals("H")) {
+						char marker = FactoryTitanium.array[b][a].charAt(c);
+						if(marker == 'H') {
 							texture = 0;
-						} else if(FactoryTitanium.array[b][a].substring(c, c + 1).equals("F")) {
+						} else if(marker == 'F') {
 							texture = 1;
-						} else if(FactoryTitanium.array[b][a].substring(c, c + 1).equals("C")) {
+						} else if(marker == 'C') {
 							texture = 2;
 						}
 						if(texture >= 0) {
@@ -146,15 +147,16 @@ public class RenderStructureMarker extends TileEntitySpecialRenderer<TileEntityS
 					for(int c = 0; c < 5; c++) {
 				
 						int texture = -1;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("R"))
+						char marker = NuclearReactor.array2[b][a].charAt(c);
+						if(marker == 'R')
 							texture = 0;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("#"))
+						if(marker == '#')
 							texture = 1;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("C"))
+						if(marker == 'C')
 							texture = 2;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("A"))
+						if(marker == 'A')
 							texture = 3;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("I"))
+						if(marker == 'I')
 							texture = 4;
 						if(texture >= 0) {
 							renderSmolBlockAt(reactor[texture][0], reactor[texture][1], a, b, c);
@@ -188,17 +190,18 @@ public class RenderStructureMarker extends TileEntitySpecialRenderer<TileEntityS
 					for(int c = 0; c < 5; c++) {
 				
 						int texture = -1;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("R"))
+						char marker = NuclearReactor.array2[b][a].charAt(c);
+						if(marker == 'R')
 							texture = 0;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("#"))
+						if(marker == '#')
 							texture = 1;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("C"))
+						if(marker == 'C')
 							texture = 2;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("A"))
+						if(marker == 'A')
 							texture = 3;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("I"))
+						if(marker == 'I')
 							texture = 4;
-						if(NuclearReactor.array2[b][a].substring(c, c + 1).equals("B"))
+						if(marker == 'B')
 							texture = 5;
 						if(texture >= 0) {
 							renderSmolBlockAt(reactor[texture][0], reactor[texture][1], a, b, c);
@@ -231,19 +234,20 @@ public class RenderStructureMarker extends TileEntitySpecialRenderer<TileEntityS
 					for(int c = 0; c < 19; c++) {
 				
 						int texture = -1;
-						if(FWatz.fwatz[b][a].substring(c, c + 1).equals("X"))
+						char marker = FWatz.fwatz[b][a].charAt(c);
+						if(marker == 'X')
 							texture = 0;
-						if(FWatz.fwatz[b][a].substring(c, c + 1).equals("H"))
+						if(marker == 'H')
 							texture = 1;
-						if(FWatz.fwatz[b][a].substring(c, c + 1).equals("S"))
+						if(marker == 'S')
 							texture = 2;
-						if(FWatz.fwatz[b][a].substring(c, c + 1).equals("T"))
+						if(marker == 'T')
 							texture = 3;
-						if(FWatz.fwatz[b][a].substring(c, c + 1).equals("M"))
+						if(marker == 'M')
 							texture = 4;
-						if(FWatz.fwatz[b][a].substring(c, c + 1).equals("C"))
+						if(marker == 'C')
 							texture = 5;
-						if(FWatz.fwatz[b][a].substring(c, c + 1).equals("#"))
+						if(marker == '#')
 							texture = 6;
 						if(texture >= 0) {
 							renderSmolBlockAt(fwatz[texture][0], fwatz[texture][1], a, b, c);
