@@ -53,6 +53,7 @@ public class RenderHeatingOven extends TileEntitySpecialRenderer<TileEntityHeate
             ResourceManager.heater_oven.renderPart("Inner");
         }
 
+        GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glPopMatrix();
     }
 }

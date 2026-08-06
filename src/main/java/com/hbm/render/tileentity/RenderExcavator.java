@@ -129,6 +129,7 @@ public class RenderExcavator extends TileEntitySpecialRenderer<TileEntityMachine
 			RenderHelper.draw();
 		}
 		
+		GlStateManager.enableCull();
 		GL11.glPopMatrix();
 	}
 }

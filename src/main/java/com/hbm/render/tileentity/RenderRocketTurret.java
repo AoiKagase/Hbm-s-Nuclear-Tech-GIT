@@ -69,6 +69,7 @@ public class RenderRocketTurret extends TileEntitySpecialRenderer<TileEntityTurr
         ResourceManager.turret_rocket_launcher.renderPart("gun");
 
         GlStateManager.shadeModel(GL11.GL_FLAT);
+		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glPopMatrix();
     }
 }

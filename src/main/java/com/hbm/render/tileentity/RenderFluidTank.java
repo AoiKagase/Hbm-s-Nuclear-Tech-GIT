@@ -85,6 +85,7 @@ public class RenderFluidTank extends TileEntitySpecialRenderer<TileEntityMachine
         ResourceManager.fluidtank.renderPart("Tank");
         GlStateManager.shadeModel(GL11.GL_FLAT);
 		GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.enableCull();
         GL11.glPopMatrix();
     }
 

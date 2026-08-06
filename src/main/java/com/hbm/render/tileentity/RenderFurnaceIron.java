@@ -46,6 +46,7 @@ public class RenderFurnaceIron extends TileEntitySpecialRenderer<TileEntityFurna
 			ResourceManager.furnace_iron.renderPart("Off");
 		}
 		
+		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glPopMatrix();
 	}
 }

@@ -57,6 +57,7 @@ public class RenderFirebox extends TileEntitySpecialRenderer<TileEntityHeaterFir
 			ResourceManager.heater_firebox.renderPart("InnerEmpty");
 		}
 		
+		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glPopMatrix();
 	}
 }

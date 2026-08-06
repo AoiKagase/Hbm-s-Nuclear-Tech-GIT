@@ -111,7 +111,7 @@ public class RenderCore extends TileEntitySpecialRenderer<TileEntityCore> {
 		GlStateManager.disableBlend();
 		GlStateManager.enableLighting();
 		GlStateManager.enableTexture2D();
-        GlStateManager.disableCull();
+        GlStateManager.enableCull();
         GL11.glPopMatrix();
     }
 }

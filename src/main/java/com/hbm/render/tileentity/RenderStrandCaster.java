@@ -90,6 +90,7 @@ public class RenderStrandCaster extends TileEntitySpecialRenderer<TileEntityMach
 
         GlStateManager.shadeModel(GL11.GL_FLAT);
 
+        GlStateManager.enableCull();
         GlStateManager.popMatrix();
     }
 }

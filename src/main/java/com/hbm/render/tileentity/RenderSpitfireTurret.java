@@ -63,6 +63,7 @@ public class RenderSpitfireTurret extends TileEntitySpecialRenderer<TileEntityTu
 		this.bindTexture(ResourceManager.universal);
         ResourceManager.turret_spitfire_gun.renderAll();
 
+        GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glPopMatrix();
     }
 }

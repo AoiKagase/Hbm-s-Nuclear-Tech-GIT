@@ -57,6 +57,7 @@ public class RenderFEL extends TileEntitySpecialRenderer<TileEntityFEL> {
 			BeamPronter.prontBeam(Vec3.createVectorHelper(0, 0, -length - 1), EnumWaveType.STRAIGHT, EnumBeamType.SOLID, color, 0xFFFFFF, 0, 1, 0, 3, 0.0625F);
 		}
 
+		GlStateManager.enableCull();
 		GL11.glPopMatrix();
 	}
 }

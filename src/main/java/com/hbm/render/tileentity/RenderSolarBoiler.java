@@ -34,6 +34,7 @@ public class RenderSolarBoiler extends TileEntitySpecialRenderer<TileEntitySolar
         ResourceManager.solar_boiler.renderPart("Base");
         GlStateManager.shadeModel(GL11.GL_FLAT);
 
+        GlStateManager.enableCull();
         GL11.glPopMatrix();
 	}
 }

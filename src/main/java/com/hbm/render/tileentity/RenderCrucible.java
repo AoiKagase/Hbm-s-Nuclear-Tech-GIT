@@ -69,6 +69,7 @@ public class RenderCrucible extends TileEntitySpecialRenderer<TileEntityCrucible
             GL11.glPopMatrix();
         }
         
+        GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glPopMatrix();
     }
 }

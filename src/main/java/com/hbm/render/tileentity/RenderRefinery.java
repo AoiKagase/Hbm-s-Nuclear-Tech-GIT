@@ -29,6 +29,7 @@ public class RenderRefinery extends TileEntitySpecialRenderer<TileEntityMachineR
         ResourceManager.refinery.renderAll();
         GL11.glShadeModel(GL11.GL_FLAT);
 
+        GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glPopMatrix();
 	}
 }

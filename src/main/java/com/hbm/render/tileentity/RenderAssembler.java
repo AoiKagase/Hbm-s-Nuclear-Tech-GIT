@@ -219,6 +219,7 @@ public class RenderAssembler extends TileEntitySpecialRenderer<TileEntityMachine
 		ResourceManager.assembler_cog.renderAll();
         GL11.glPopMatrix();
 
+        GlStateManager.enableCull();
         GL11.glPopMatrix();
 	}
 }

@@ -46,6 +46,7 @@ public class RenderRTG extends TileEntitySpecialRenderer<TileEntityMachineMiniRT
     		GL11.glRotatef(90, 0F, 1F, 0F);
         }
 
+        GlStateManager.enableCull();
         GL11.glPopMatrix();
 	}
 }

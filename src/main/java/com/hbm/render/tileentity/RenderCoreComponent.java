@@ -111,6 +111,7 @@ public class RenderCoreComponent extends TileEntitySpecialRenderer<TileEntityMac
         }
         
         GlStateManager.enableLighting();
+        GlStateManager.enableCull();
         GL11.glPopMatrix();
 	}
 }

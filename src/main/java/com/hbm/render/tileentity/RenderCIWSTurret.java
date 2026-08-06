@@ -91,6 +91,7 @@ public class RenderCIWSTurret extends TileEntitySpecialRenderer<TileEntityTurret
         ResourceManager.turret_cwis_gun.renderAll();
 
         GlStateManager.shadeModel(GL11.GL_FLAT);
+		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glPopMatrix();
     }
 }

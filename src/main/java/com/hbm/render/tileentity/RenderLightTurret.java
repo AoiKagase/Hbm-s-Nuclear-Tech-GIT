@@ -92,6 +92,7 @@ public class RenderLightTurret extends TileEntitySpecialRenderer<TileEntityTurre
         ResourceManager.turret_mg.renderPart("barrels");
 
         GlStateManager.shadeModel(GL11.GL_FLAT);
+        GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glPopMatrix();
     }
 }

@@ -62,6 +62,7 @@ public class RenderNukeFstbmb extends TileEntitySpecialRenderer<TileEntityNukeBa
 
         GlStateManager.shadeModel(GL11.GL_FLAT);
 
+        GlStateManager.enableCull();
         GL11.glPopMatrix();
 	}
 }

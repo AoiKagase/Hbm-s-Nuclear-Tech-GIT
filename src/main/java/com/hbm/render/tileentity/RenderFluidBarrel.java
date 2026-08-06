@@ -33,6 +33,7 @@ public class RenderFluidBarrel extends TileEntitySpecialRenderer<TileEntityBarre
 			}
 		}
 
+		GlStateManager.enableLighting();
 		GL11.glPopMatrix();
 	}
 }

@@ -43,7 +43,7 @@ public class RenderCondenser extends TileEntitySpecialRenderer<TileEntityCondens
 
         GL11.glShadeModel(GL11.GL_FLAT);
 
-        GL11.glEnable(GL11.GL_CULL_FACE);
+        GlStateManager.enableCull();
         GL11.glPopMatrix();
     }
 }

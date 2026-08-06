@@ -96,6 +96,7 @@ public class RenderSolarMirror extends TileEntitySpecialRenderer<TileEntitySolar
 	        GlStateManager.enableTexture2D();
         }
 
+        GlStateManager.enableCull();
         GL11.glPopMatrix();
 	}
 }

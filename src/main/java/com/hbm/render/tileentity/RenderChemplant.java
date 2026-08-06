@@ -190,6 +190,7 @@ public class RenderChemplant extends TileEntitySpecialRenderer<TileEntityMachine
         
         HmfController.resetMod();
 
+        GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glPopMatrix();
 	}
 }

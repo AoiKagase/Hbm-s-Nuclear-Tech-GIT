@@ -121,6 +121,7 @@ public class RenderBAT9000 extends TileEntitySpecialRenderer<TileEntityMachineBA
 			
 			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, lbx, lby);
 		}
+		GlStateManager.enableCull();
 		GL11.glPopMatrix();
 	}
 }

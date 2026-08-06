@@ -25,6 +25,7 @@ public class RenderFractionTower extends TileEntitySpecialRenderer<TileEntityMac
 		bindTexture(ResourceManager.fraction_tower_tex);
 		ResourceManager.fraction_tower.renderAll();
 		
+		GlStateManager.enableCull();
 		GL11.glPopMatrix();
 	}
 }
