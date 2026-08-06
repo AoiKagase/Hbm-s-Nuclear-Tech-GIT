@@ -1,5 +1,8 @@
 package com.hbm.render.tileentity;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 import org.lwjgl.opengl.GL11;
 
 import com.hbm.lib.RefStrings;
@@ -11,9 +14,27 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 
 public class RenderChemplant extends TileEntitySpecialRenderer<TileEntityMachineChemplant> {
+	private static final ResourceLocation WATER_OVERLAY = new ResourceLocation("minecraft", "textures/blocks/water_overlay.png");
+	private static final ResourceLocation WATER_STILL = new ResourceLocation("minecraft", "textures/blocks/water_still.png");
+	private static final ResourceLocation LAVA_STILL = new ResourceLocation("minecraft", "textures/blocks/lava_still.png");
+	private static final Map<Fluid, ResourceLocation> FLUID_TEXTURES = new IdentityHashMap<>();
+
+	private static ResourceLocation getFluidTexture(Fluid fluid, ResourceLocation waterTexture) {
+		if(fluid == FluidRegistry.WATER) return waterTexture;
+		if(fluid == FluidRegistry.LAVA) return LAVA_STILL;
+
+		ResourceLocation texture = FLUID_TEXTURES.get(fluid);
+		if(texture == null) {
+			ResourceLocation still = fluid.getStill();
+			texture = new ResourceLocation(still.getNamespace(), "textures/" + still.getPath() + ".png");
+			FLUID_TEXTURES.put(fluid, texture);
+		}
+		return texture;
+	}
 
 	@Override
 	public void render(TileEntityMachineChemplant te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
@@ -114,19 +135,7 @@ public class RenderChemplant extends TileEntitySpecialRenderer<TileEntityMachine
 
         GlStateManager.disableLighting();
         if(chem.tanks[0].getFluid() != null) {
-        	ResourceLocation test;
-        	if(chem.tanks[0].getFluid().getFluid() == FluidRegistry.WATER) {
-                test = new ResourceLocation("minecraft", "textures/blocks/water_overlay.png");
-            } else if(chem.tanks[0].getFluid().getFluid() == FluidRegistry.LAVA){
-                test = new ResourceLocation("minecraft", "textures/blocks/lava_still.png");
-            } else {
-                String s = chem.tanks[0].getFluid().getFluid().getStill().toString();
-                String textureBase = "textures/";
-                String[] test1 = s.split(":");
-                String location = test1[0] + ":" + textureBase + test1[1] + ".png";
-                test = new ResourceLocation(location);
-        	}
-        	bindTexture(test);
+			bindTexture(getFluidTexture(chem.tanks[0].getFluid().getFluid(), WATER_OVERLAY));
             GL11.glPushMatrix();
 	        
 	        if(chem.isProgressing)
@@ -151,19 +160,7 @@ public class RenderChemplant extends TileEntitySpecialRenderer<TileEntityMachine
         }
 
         if(chem.tanks[1].getFluid() != null) {
-           	ResourceLocation test;
-            if(chem.tanks[1].getFluid().getFluid() == FluidRegistry.WATER) {
-                test = new ResourceLocation("minecraft:textures/blocks/water_still.png");
-            } else if(chem.tanks[1].getFluid().getFluid() == FluidRegistry.LAVA){
-                test = new ResourceLocation("minecraft:textures/blocks/lava_still.png");
-            } else {
-                String s = chem.tanks[1].getFluid().getFluid().getStill().toString();
-                String textureBase = "textures/";
-                String[] test1 = s.split(":");
-                String location = test1[0] + ":" + textureBase + test1[1] + ".png";
-                test = new ResourceLocation(location);
-        	}
-        	bindTexture(test);
+			bindTexture(getFluidTexture(chem.tanks[1].getFluid().getFluid(), WATER_STILL));
 	        GL11.glPushMatrix();
 	        
 	        if(chem.isProgressing)
