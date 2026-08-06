@@ -51,6 +51,11 @@ import org.jetbrains.annotations.NotNull;
 
 
 public class TileEntityMachineGasFlare extends TileEntityMachineBase implements ITickable, IEnergyGenerator, IFluidHandler, ITankPacketAcceptor, IGUIProvider, IControlReceiver {
+	private static final int EFFECT_SPAWN_INTERVAL = 4;
+	private static final int ENTITY_IGNITION_INTERVAL = 10;
+	private static final int CLIENT_SYNC_INTERVAL = 5;
+	private static final int CLIENT_FULL_SYNC_INTERVAL = 20;
+
 	public long power;
 	public static final long maxPower = 1000000;
 	public Fluid tankType;
@@ -59,6 +64,12 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 	public boolean doesBurn = false;
 	public long cacheEnergy = 0;
 	public boolean needsUpdate;
+	private long lastClientSyncTick = -1;
+	private long lastSyncedPower = Long.MIN_VALUE;
+	private int lastSyncedTankAmount = Integer.MIN_VALUE;
+	private boolean lastSyncedIsOn;
+	private boolean lastSyncedDoesBurn;
+	private Fluid lastSyncedTankType;
 
 	private final UpgradeManager upgradeManager = new UpgradeManager();
 
@@ -107,6 +118,7 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 	public void update() {
 		
 		if(!world.isRemote) {
+			long time = world.getTotalWorldTime();
 
 			this.sendPower(world, pos.add(2, 0, 0), Library.POS_X);
 			this.sendPower(world, pos.add(-2, 0, 0), Library.NEG_X);
@@ -151,10 +163,12 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 						this.power = maxPower;
 					}
 
-					world.spawnEntity(new EntityGasFlameFX(world, pos.getX() + 0.5F, pos.getY() + 11F, pos.getZ() + 0.5F, 0.0, 0.0, 0.0));
-					ExplosionThermo.setEntitiesOnFire(world, pos.getX(), pos.getY() + 11, pos.getZ(), 5);
+					if(time % EFFECT_SPAWN_INTERVAL == 0)
+						world.spawnEntity(new EntityGasFlameFX(world, pos.getX() + 0.5F, pos.getY() + 11F, pos.getZ() + 0.5F, 0.0, 0.0, 0.0));
+					if(time % ENTITY_IGNITION_INTERVAL == 0)
+						ExplosionThermo.setEntitiesOnFire(world, pos.getX(), pos.getY() + 11, pos.getZ(), 5);
 
-					if(this.world.getTotalWorldTime() % 5 == 0)
+					if(time % 5 == 0)
 						this.world.playSound(null, pos.getX(), pos.getY() + 11, pos.getZ(), HBMSoundHandler.flamethrowerShoot, SoundCategory.BLOCKS, 1.5F, 1F);
 				} else {
 					tank.drain(maxVent, true);
@@ -164,18 +178,35 @@ public class TileEntityMachineGasFlare extends TileEntityMachineBase implements 
 			
 			power = Library.chargeItemsFromTE(inventory, 0, power, maxPower);
 
-			NBTTagCompound data = new NBTTagCompound();
-			data.setBoolean("isOn", isOn);
-			data.setBoolean("doesBurn", doesBurn);
-			data.setString("tankType", tankType.getName());
-			this.networkPack(data, 25);
-
-			PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
-			PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] {tank}), new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15));
+			syncClientState(time);
 			if(prevPower != power || prevAmount != tank.getFluidAmount() || needsUpdate){
 				markDirty();
 			}
 		}
+	}
+
+	private void syncClientState(long time) {
+		boolean controlChanged = isOn != lastSyncedIsOn || doesBurn != lastSyncedDoesBurn || tankType != lastSyncedTankType;
+		boolean meterChanged = power != lastSyncedPower || tank.getFluidAmount() != lastSyncedTankAmount;
+		boolean fullSync = lastClientSyncTick < 0 || time - lastClientSyncTick >= CLIENT_FULL_SYNC_INTERVAL;
+		if(!fullSync && !controlChanged && (!meterChanged || time - lastClientSyncTick < CLIENT_SYNC_INTERVAL))
+			return;
+
+		NBTTagCompound data = new NBTTagCompound();
+		data.setBoolean("isOn", isOn);
+		data.setBoolean("doesBurn", doesBurn);
+		data.setString("tankType", tankType.getName());
+		this.networkPack(data, 25);
+
+		TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 15);
+		PacketDispatcher.wrapper.sendToAllAround(new AuxElectricityPacket(pos, power), point);
+		PacketDispatcher.wrapper.sendToAllAround(new FluidTankPacket(pos, new FluidTank[] {tank}), point);
+		lastClientSyncTick = time;
+		lastSyncedPower = power;
+		lastSyncedTankAmount = tank.getFluidAmount();
+		lastSyncedIsOn = isOn;
+		lastSyncedDoesBurn = doesBurn;
+		lastSyncedTankType = tankType;
 	}
 
 	@Override
