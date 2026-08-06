@@ -67,6 +67,11 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 	private long lastSyncedPower = Long.MIN_VALUE;
 	private int lastSyncedFluidAmount = Integer.MIN_VALUE;
 	private boolean lastSyncedRunning;
+	private int cachedEntityBoundsMetadata = Integer.MIN_VALUE;
+	private AxisAlignedBB intakeBounds;
+	private AxisAlignedBB intakeKillBounds;
+	private AxisAlignedBB exhaustBounds;
+	private AxisAlignedBB allEffectBounds;
 
 	//private static final int[] slots_top = new int[] { 0 };
 	//private static final int[] slots_bottom = new int[] { 0, 0 };
@@ -228,31 +233,14 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 				ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - 10).getRotation(ForgeDirection.UP);
 				ForgeDirection rot = dir.getRotation(ForgeDirection.UP);
 				
-				double minX = pos.getX() + 0.5 + dir.offsetX * 3.5 - rot.offsetX * 1.5;
-				double maxX = pos.getX() + 0.5 + dir.offsetX * 12.5 + rot.offsetX * 1.5;
-				double minZ = pos.getZ() + 0.5 + dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
-				double maxZ = pos.getZ() + 0.5 + dir.offsetZ * 12.5 + rot.offsetZ * 1.5;
-				
-				List<EntityPlayer> listIntake = world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
-				
-				for(EntityPlayer e : listIntake) {
-					if(e == MainRegistry.proxy.me()) {
-						e.addVelocity(-dir.offsetX * 0.3 * (afterburner+1), 0, -dir.offsetZ * 0.3 * (afterburner+1));
-					}
-				}
-
-				//Exhaust push
-				minX = pos.getX() + 0.5 - dir.offsetX * 3.5 - rot.offsetX * 1.5;
-				maxX = pos.getX() + 0.5 - dir.offsetX * 19.5 + rot.offsetX * 1.5;
-				minZ = pos.getZ() + 0.5 - dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
-				maxZ = pos.getZ() + 0.5 - dir.offsetZ * 19.5 + rot.offsetZ * 1.5;
-				
-				List<EntityPlayer> listExhaust = world.getEntitiesWithinAABB(EntityPlayer.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
-				
-				for(EntityPlayer e : listExhaust) {
-					if(e == MainRegistry.proxy.me()) {
-						e.addVelocity(-dir.offsetX * 0.5 * (afterburner+1), 0, -dir.offsetZ * 0.5 * (afterburner+1));
-					}
+				ensureEntityEffectBounds(dir, rot);
+				EntityPlayer player = MainRegistry.proxy.me();
+				if(player != null) {
+					AxisAlignedBB playerBounds = player.getEntityBoundingBox();
+					if(playerBounds.intersects(intakeBounds))
+						player.addVelocity(-dir.offsetX * 0.3 * (afterburner+1), 0, -dir.offsetZ * 0.3 * (afterburner+1));
+					if(playerBounds.intersects(exhaustBounds))
+						player.addVelocity(-dir.offsetX * 0.5 * (afterburner+1), 0, -dir.offsetZ * 0.5 * (afterburner+1));
 				}
 
 			} else {
@@ -291,56 +279,54 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 	}
 
 	private void applyTurbofanEntityEffects(ForgeDirection dir, ForgeDirection rot) {
-		//Intake pull
-		double minX = pos.getX() + 0.5 + dir.offsetX * 3.5 - rot.offsetX * 1.5;
-		double maxX = pos.getX() + 0.5 + dir.offsetX * 12.5 + rot.offsetX * 1.5;
-		double minZ = pos.getZ() + 0.5 + dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
-		double maxZ = pos.getZ() + 0.5 + dir.offsetZ * 12.5 + rot.offsetZ * 1.5;
-		
-		List<Entity> listIntake = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
-		
-		for(Entity e : listIntake) {
-			e.addVelocity(-dir.offsetX * 0.6 * (afterburner+1), 0, -dir.offsetZ * 0.6 * (afterburner+1));
-		}
-		
-		//Intake kill
-		minX = pos.getX() + 0.5 + dir.offsetX * 3.5 - rot.offsetX * 1.5;
-		maxX = pos.getX() + 0.5 + dir.offsetX * 3.75 + rot.offsetX * 1.5;
-		minZ = pos.getZ() + 0.5 + dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
-		maxZ = pos.getZ() + 0.5 + dir.offsetZ * 3.75 + rot.offsetZ * 1.5;
-		
-		List<Entity> listKill = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
-	
-		for(Entity e : listKill) {
-			e.attackEntityFrom(ModDamageSource.turbofan, 1000);
-			e.setInWeb();
-			if(!e.isEntityAlive() && e instanceof EntityLivingBase) {
-				NBTTagCompound vdat = new NBTTagCompound();
-				vdat.setString("type", "giblets");
-				vdat.setInteger("ent", e.getEntityId());
-				PacketDispatcher.wrapper.sendToAllAround(new AuxParticlePacketNT(vdat, e.posX, e.posY + e.height * 0.5, e.posZ), new TargetPoint(e.dimension, e.posX, e.posY + e.height * 0.5, e.posZ, 150));
-				
-				world.playSound(null, e.posX, e.posY, e.posZ, SoundEvents.ENTITY_ZOMBIE_BREAK_DOOR_WOOD, SoundCategory.HOSTILE, 2.0F, 0.95F + world.rand.nextFloat() * 0.2F);
-				
-			}
-		}
+		ensureEntityEffectBounds(dir, rot);
+		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, allEffectBounds);
+		for(Entity e : entities) {
+			AxisAlignedBB entityBounds = e.getEntityBoundingBox();
+			if(entityBounds.intersects(intakeBounds))
+				e.addVelocity(-dir.offsetX * 0.6 * (afterburner+1), 0, -dir.offsetZ * 0.6 * (afterburner+1));
 
-		//Exhaust push
-		minX = pos.getX() + 0.5 - dir.offsetX * 3.5 - rot.offsetX * 1.5;
-		maxX = pos.getX() + 0.5 - dir.offsetX * 19.5 + rot.offsetX * 1.5;
-		minZ = pos.getZ() + 0.5 - dir.offsetZ * 3.5 - rot.offsetZ * 1.5;
-		maxZ = pos.getZ() + 0.5 - dir.offsetZ * 19.5 + rot.offsetZ * 1.5;
-		
-		List<Entity> listExhaust = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ)));
-		
-		for(Entity e : listExhaust) {
-			
-			if(this.afterburner > 0) {
-				e.setFire(5);
-				e.attackEntityFrom(DamageSource.IN_FIRE, 6F*afterburner);
+			if(entityBounds.intersects(intakeKillBounds)) {
+				e.attackEntityFrom(ModDamageSource.turbofan, 1000);
+				e.setInWeb();
+				if(!e.isEntityAlive() && e instanceof EntityLivingBase) {
+					NBTTagCompound vdat = new NBTTagCompound();
+					vdat.setString("type", "giblets");
+					vdat.setInteger("ent", e.getEntityId());
+					PacketDispatcher.wrapper.sendToAllAround(new AuxParticlePacketNT(vdat, e.posX, e.posY + e.height * 0.5, e.posZ), new TargetPoint(e.dimension, e.posX, e.posY + e.height * 0.5, e.posZ, 150));
+					world.playSound(null, e.posX, e.posY, e.posZ, SoundEvents.ENTITY_ZOMBIE_BREAK_DOOR_WOOD, SoundCategory.HOSTILE, 2.0F, 0.95F + world.rand.nextFloat() * 0.2F);
+				}
 			}
-			e.addVelocity(-dir.offsetX * (afterburner+1), 0, -dir.offsetZ * (afterburner+1));
+
+			if(entityBounds.intersects(exhaustBounds)) {
+				if(this.afterburner > 0) {
+					e.setFire(5);
+					e.attackEntityFrom(DamageSource.IN_FIRE, 6F*afterburner);
+				}
+				e.addVelocity(-dir.offsetX * (afterburner+1), 0, -dir.offsetZ * (afterburner+1));
+			}
 		}
+	}
+
+	private void ensureEntityEffectBounds(ForgeDirection dir, ForgeDirection rot) {
+		int metadata = getBlockMetadata();
+		if(metadata == cachedEntityBoundsMetadata) return;
+
+		intakeBounds = createEntityEffectBounds(dir, rot, 3.5, 12.5);
+		intakeKillBounds = createEntityEffectBounds(dir, rot, 3.5, 3.75);
+		exhaustBounds = createEntityEffectBounds(dir, rot, -3.5, -19.5);
+		allEffectBounds = new AxisAlignedBB(
+				Math.min(intakeBounds.minX, exhaustBounds.minX), pos.getY(), Math.min(intakeBounds.minZ, exhaustBounds.minZ),
+				Math.max(intakeBounds.maxX, exhaustBounds.maxX), pos.getY() + 3, Math.max(intakeBounds.maxZ, exhaustBounds.maxZ));
+		cachedEntityBoundsMetadata = metadata;
+	}
+
+	private AxisAlignedBB createEntityEffectBounds(ForgeDirection dir, ForgeDirection rot, double near, double far) {
+		double minX = pos.getX() + 0.5 + dir.offsetX * near - rot.offsetX * 1.5;
+		double maxX = pos.getX() + 0.5 + dir.offsetX * far + rot.offsetX * 1.5;
+		double minZ = pos.getZ() + 0.5 + dir.offsetZ * near - rot.offsetZ * 1.5;
+		double maxZ = pos.getZ() + 0.5 + dir.offsetZ * far + rot.offsetZ * 1.5;
+		return new AxisAlignedBB(Math.min(minX, maxX), pos.getY(), Math.min(minZ, maxZ), Math.max(minX, maxX), pos.getY() + 3, Math.max(minZ, maxZ));
 	}
 
 	private void syncClientState() {
