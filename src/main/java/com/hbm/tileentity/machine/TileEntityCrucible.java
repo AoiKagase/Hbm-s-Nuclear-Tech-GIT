@@ -48,8 +48,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class TileEntityCrucible extends TileEntityMachineBase implements ITickable, IGUIProvider, ICrucibleAcceptor, IConfigurableMachine {
 
+	private static final int ENTITY_SCAN_INTERVAL = 5;
 	public int heat;
 	public int progress;
+	private AxisAlignedBB itemCollectionBounds;
 	
 	public List<MaterialStack> recipeStack = new ArrayList<>();
 	public List<MaterialStack> wasteStack = new ArrayList<>();
@@ -77,10 +79,13 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 		
 		if(!world.isRemote) {
 			tryPullHeat();
+			boolean entityScanTick = (world.getTotalWorldTime() + pos.toLong()) % ENTITY_SCAN_INTERVAL == 0;
 			
 			/* collect items */
-			if(world.getTotalWorldTime() % 5 == 0) {
-				List<EntityItem> list = world.getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(pos.getX() - 0.5, pos.getY() + 0.5, pos.getZ() - 0.5, pos.getX() + 1.5, pos.getY() + 1, pos.getZ() + 1.5));
+			if(entityScanTick) {
+				if(itemCollectionBounds == null)
+					itemCollectionBounds = new AxisAlignedBB(pos.getX() - 0.5, pos.getY() + 0.5, pos.getZ() - 0.5, pos.getX() + 1.5, pos.getY() + 1, pos.getZ() + 1.5);
+				List<EntityItem> list = world.getEntitiesWithinAABB(EntityItem.class, itemCollectionBounds);
 				EntityItem itemE = null;
 				for(int i = 1; i < 10; i++) {
 					if(itemE == null){
@@ -112,18 +117,18 @@ public class TileEntityCrucible extends TileEntityMachineBase implements ITickab
 				}
 			}
 
-			int totalCap = recipeZCapacity + wasteZCapacity;
-			int totalMass = 0;
+			if(entityScanTick) {
+				int totalCap = recipeZCapacity + wasteZCapacity;
+				int totalMass = 0;
+				for(MaterialStack stack : recipeStack) totalMass += stack.amount;
+				for(MaterialStack stack : wasteStack) totalMass += stack.amount;
+				double level = ((double) totalMass / (double) totalCap) * 0.875D;
 
-			for(MaterialStack stack : recipeStack) totalMass += stack.amount;
-			for(MaterialStack stack : wasteStack) totalMass += stack.amount;
-			
-			double level = ((double) totalMass / (double) totalCap) * 0.875D;
-			
-			List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos.getX() - 0.5, pos.getY() + 0.5, pos.getZ() - 0.5, pos.getX() + 1.5, pos.getY() + 0.5 + level, pos.getZ() + 1.5));
-			for(EntityLivingBase entity : living) {
-				entity.attackEntityFrom(DamageSource.LAVA, 5F);
-				entity.setFire(5);
+				List<EntityLivingBase> living = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(pos.getX() - 0.5, pos.getY() + 0.5, pos.getZ() - 0.5, pos.getX() + 1.5, pos.getY() + 0.5 + level, pos.getZ() + 1.5));
+				for(EntityLivingBase entity : living) {
+					entity.attackEntityFrom(DamageSource.LAVA, 5F);
+					entity.setFire(5);
+				}
 			}
 			
 			/* smelt items from buffer */
