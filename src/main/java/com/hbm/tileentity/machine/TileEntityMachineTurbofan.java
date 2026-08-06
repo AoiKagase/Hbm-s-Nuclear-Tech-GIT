@@ -409,7 +409,7 @@ public class TileEntityMachineTurbofan extends TileEntityLoadedBase implements I
 	
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return TileEntity.INFINITE_EXTENT_AABB;
+		return new AxisAlignedBB(pos).grow(8, 5, 8);
 	}
 	
 	@Override

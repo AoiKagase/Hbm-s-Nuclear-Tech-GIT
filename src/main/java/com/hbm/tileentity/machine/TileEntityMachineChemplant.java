@@ -854,7 +854,7 @@ public class TileEntityMachineChemplant extends TileEntityMachineBase implements
 
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		return TileEntity.INFINITE_EXTENT_AABB;
+		return new AxisAlignedBB(pos).grow(5, 5, 5);
 	}
 
 	@Override
