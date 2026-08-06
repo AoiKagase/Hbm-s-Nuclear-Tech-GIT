@@ -1,5 +1,7 @@
 package com.hbm.tileentity;
 
+import java.util.Arrays;
+
 import com.hbm.blocks.ModBlocks;
 import com.hbm.interfaces.Spaghetti;
 import com.hbm.lib.ItemStackHandlerWrapper;
@@ -25,6 +27,9 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	public ItemStackHandler inventory;
 
 	private String customName;
+	private final ItemStackHandlerWrapper[] cachedItemHandlers = new ItemStackHandlerWrapper[7];
+	private ItemStackHandler cachedHandlerInventory;
+	private int cachedHandlerMetadata = Integer.MIN_VALUE;
 
 	public TileEntityMachineBase(int scount) {
 		this(scount, 64);
@@ -131,8 +136,23 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 	@Override
 	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
 		if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY && inventory != null){
-			int[] accessibleSlots = facing == null ? getAllSlots() : getAccessibleSlotsFromSide(facing);
-			return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(new ItemStackHandlerWrapper(inventory, accessibleSlots){
+			int metadata = world == null ? Integer.MIN_VALUE : getBlockMetadata();
+			if(cachedHandlerInventory != inventory || cachedHandlerMetadata != metadata) {
+				Arrays.fill(cachedItemHandlers, null);
+				cachedHandlerInventory = inventory;
+				cachedHandlerMetadata = metadata;
+			}
+			int handlerIndex = facing == null ? 6 : facing.getIndex();
+			if(cachedItemHandlers[handlerIndex] == null)
+				cachedItemHandlers[handlerIndex] = createItemHandler(facing);
+			return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(cachedItemHandlers[handlerIndex]);
+		}
+		return super.getCapability(capability, facing);
+	}
+
+	private ItemStackHandlerWrapper createItemHandler(EnumFacing facing) {
+		int[] accessibleSlots = facing == null ? getAllSlots() : getAccessibleSlotsFromSide(facing);
+		return new ItemStackHandlerWrapper(inventory, accessibleSlots){
 				@Override
 				public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
 					if(!isSlotAccessible(slot)) return ItemStack.EMPTY;
@@ -159,9 +179,7 @@ public abstract class TileEntityMachineBase extends TileEntityLoadedBase impleme
 						return;
 					super.setStackInSlot(slot, stack);
 				}
-			});
-		}
-		return super.getCapability(capability, facing);
+			};
 	}
 
 	private int[] getAllSlots() {
