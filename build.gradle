@@ -1,4 +1,4 @@
-//version: 1777224609
+//version: 1784768619
 /*
  * DO NOT CHANGE THIS FILE!
  * Also, you may replace this file at any time if there is an update available.
@@ -97,6 +97,8 @@ propertyDefaultIfUnset("modrinthRelations", "")
 propertyDefaultIfUnsetWithEnvVar("curseForgeProjectId", "", "CURSEFORGE_PROJECT_ID")
 propertyDefaultIfUnset("curseForgeRelations", "")
 propertyDefaultIfUnsetWithEnvVar("releaseType", "release", "RELEASE_TYPE")
+propertyDefaultIfUnset("clientEnvironment", true)
+propertyDefaultIfUnset("serverEnvironment", true)
 propertyDefaultIfUnset("generateDefaultChangelog", false)
 propertyDefaultIfUnset("customMavenPublishUrl", "")
 propertyDefaultIfUnset("mavenArtifactGroup", getDefaultArtifactGroup())
@@ -281,6 +283,15 @@ if (usesShadowedDependencies.toBoolean()) {
 // Configure Java
 
 java {
+    toolchain {
+        if (enableModernJavaSyntax.toBoolean()) {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        } else {
+            languageVersion.set(JavaLanguageVersion.of(8))
+        }
+        // Azul covers the most platforms for Java 8+ toolchains, crucially including MacOS arm64
+        vendor.set(JvmVendorSpec.AZUL)
+    }
     if (!noPublishedSources.toBoolean()) {
         withSourcesJar()
     }
@@ -294,8 +305,13 @@ tasks.withType(JavaCompile).configureEach {
             return
         }
 
-        sourceCompatibility = 21
+        sourceCompatibility = 17
         options.release.set(8)
+
+        javaCompiler.set(javaToolchains.compilerFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+            vendor.set(JvmVendorSpec.AZUL)
+        })
     }
 }
 
@@ -1193,6 +1209,12 @@ if (cfApiKey.isPresent() || deploymentDebug.toBoolean()) {
             mainFile.addModLoader 'Forge'
             mainFile.addJavaVersion "Java 8"
             mainFile.addGameVersion minecraftVersion
+            if (serverEnvironment.toBoolean()) {
+                mainFile.addEnvironment "Server"
+            }
+            if (clientEnvironment.toBoolean()) {
+                mainFile.addEnvironment "Client"
+            }
 
             if (curseForgeRelations.size() != 0) {
                 String[] deps = curseForgeRelations.split(';')
