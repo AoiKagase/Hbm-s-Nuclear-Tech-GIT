@@ -1,17 +1,18 @@
 package com.hbm.inventory.container;
 
 import com.hbm.inventory.SlotMachineOutput;
+import com.hbm.inventory.SlotUpgrade;
 import com.hbm.tileentity.machine.TileEntityMachineChemplant;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerMachineChemplant extends Container {
+public class ContainerMachineChemplant extends ContainerNTM {
 
 	private TileEntityMachineChemplant nukeBoy;
 
@@ -25,9 +26,9 @@ public class ContainerMachineChemplant extends Container {
 		//Battery
 		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 0, 80, 18));
 		//Upgrades
-		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 1, 116, 18));
-		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 2, 116, 36));
-		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 3, 116, 54));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 1, 116, 18));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 2, 116, 36));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 3, 116, 54));
 		//Schematic
 		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 4, 80, 54));
 		//Outputs

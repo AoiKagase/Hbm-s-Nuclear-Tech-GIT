@@ -1,17 +1,18 @@
 package com.hbm.inventory.container;
 
 import com.hbm.inventory.SlotMachineOutput;
+import com.hbm.inventory.SlotUpgrade;
 import com.hbm.items.machine.ItemAssemblyTemplate;
 import com.hbm.tileentity.machine.TileEntityMachineAssembler;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerMachineAssembler extends Container {
+public class ContainerMachineAssembler extends ContainerNTM {
 
 	private TileEntityMachineAssembler assembler;
 	
@@ -21,9 +22,9 @@ public class ContainerMachineAssembler extends Container {
 		//Battery
 		this.addSlotToContainer(new SlotItemHandler(te.inventory, 0, 80, 18));
 		//Upgrades
-		this.addSlotToContainer(new SlotItemHandler(te.inventory, 1, 152, 18));
-		this.addSlotToContainer(new SlotItemHandler(te.inventory, 2, 152, 36));
-		this.addSlotToContainer(new SlotItemHandler(te.inventory, 3, 152, 54));
+		this.addSlotToContainer(new SlotUpgrade(te.inventory, 1, 152, 18));
+		this.addSlotToContainer(new SlotUpgrade(te.inventory, 2, 152, 36));
+		this.addSlotToContainer(new SlotUpgrade(te.inventory, 3, 152, 54));
 		//Schematic
 		this.addSlotToContainer(new SlotItemHandler(te.inventory, 4, 80, 54){
 			@Override

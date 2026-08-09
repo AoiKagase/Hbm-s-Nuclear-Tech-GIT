@@ -931,7 +931,11 @@ public class FFUtils {
 	}
 
 	public static int getColorFromFluid(Fluid f){
-		return Library.getColorFromResourceLocation(new ResourceLocation(f.getStill().getNamespace(), "textures/"+f.getStill().getPath()+".png"));
+		return getColorFromTexture(f.getStill());
+	}
+
+	public static int getColorFromTexture(ResourceLocation texture){
+		return Library.getColorFromResourceLocation(new ResourceLocation(texture.getNamespace(), "textures/"+texture.getPath()+".png"));
 	}
 
 	public static void setColorFromFluid(Fluid f){

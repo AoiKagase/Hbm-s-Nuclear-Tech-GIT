@@ -1,16 +1,17 @@
 package com.hbm.inventory.container;
 
+import com.hbm.inventory.ContainerNTM;
 import com.hbm.inventory.SlotMachineOutput;
+import com.hbm.inventory.SlotUpgrade;
 import com.hbm.tileentity.machine.TileEntityMachineGasCent;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerMachineGasCent extends Container {
+public class ContainerMachineGasCent extends ContainerNTM {
 
 	private TileEntityMachineGasCent diFurnace;
 	
@@ -21,8 +22,8 @@ public class ContainerMachineGasCent extends Container {
 		//Battery
 		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 0, 152, 71));
 
-        this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 1, 87, 15));
-        this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 2, 109, 15));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 1, 87, 15));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 2, 109, 15));
         //Fluid IO
 		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 3, 10, 16));
 		this.addSlotToContainer(new SlotMachineOutput(tedf.inventory, 4, 10, 65));

@@ -7,6 +7,7 @@
 		"meta=3": { "model": "hbm:waste_sandstone_3" },
 		"meta=4": { "model": "hbm:waste_sandstone_4" },
 		"meta=5": { "model": "hbm:waste_sandstone_5" },
-		"meta=6": { "model": "hbm:waste_sandstone_6" }
+		"meta=6": { "model": "hbm:waste_sandstone_6" },
+		"meta=7": { "model": "hbm:waste_sandstone_6" }
 	}
 }

@@ -42,9 +42,6 @@ public class TextureAtlasSpriteMutatable extends TextureAtlasSprite {
             MainRegistry.logger.warn("Failed to load texture " + this.getIconName() + " from " + resource.getResourceLocation());
         }
         AnimationMetadataSection animationMetadataSection = resource.getMetadata("animation");
-        if(animationMetadataSection == null) {
-            MainRegistry.logger.warn("No animation metadata found for " + this.getIconName());
-        }
         int[][] frameData = new int[mipmapLevels][];
         frameData[0] = new int[bufferedImage.getWidth() * bufferedImage.getHeight()];
         bufferedImage.getRGB(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), frameData[0], 0, bufferedImage.getWidth());
@@ -112,8 +109,7 @@ public class TextureAtlasSpriteMutatable extends TextureAtlasSprite {
 
         String pathName = resourcelocation.getPath();
         String undashedPath = pathName.substring(0, pathName.indexOf('-')); // remove the dash and everything trailing it
-        String truncatedPath = undashedPath.substring(undashedPath.indexOf('/') + 1); // remove the slash and everything before it
-        resourcelocation = new ResourceLocation(resourcelocation.getNamespace(), truncatedPath);
+        resourcelocation = new ResourceLocation(resourcelocation.getNamespace(), undashedPath);
         ResourceLocation resourcelocation1 = this.completeResourceLocation(resourcelocation);
         MainRegistry.logger.info("Loading texture " + resourcelocation1);
 

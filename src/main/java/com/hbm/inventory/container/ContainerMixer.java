@@ -5,12 +5,12 @@ import com.hbm.tileentity.machine.TileEntityMachineMixer;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerMixer extends Container {
+public class ContainerMixer extends ContainerNTM {
 	
 	private TileEntityMachineMixer mixer;
 	

@@ -269,7 +269,7 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 				}
 				
 			//if it's just a consumer, buffer it as a subscriber
-			} else if(te instanceof IEnergyConnector) {
+			} else if(consumers != null && te instanceof IEnergyConnector) {
 				IEnergyConnector con = (IEnergyConnector) te;
 				if(con.canConnect(dir.getOpposite())) {
 					consumers.add((IEnergyConnector) te);

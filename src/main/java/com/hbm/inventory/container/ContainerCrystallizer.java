@@ -6,12 +6,12 @@ import com.hbm.tileentity.machine.TileEntityMachineCrystallizer;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerCrystallizer extends Container {
+public class ContainerCrystallizer extends ContainerNTM {
 
 	private TileEntityMachineCrystallizer diFurnace;
 

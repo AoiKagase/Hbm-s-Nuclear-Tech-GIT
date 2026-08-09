@@ -7,11 +7,11 @@ import com.hbm.tileentity.network.TileEntityCraneGrabber;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ClickType;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
-public class ContainerCraneGrabber extends Container {
+public class ContainerCraneGrabber extends ContainerNTM {
     protected TileEntityCraneGrabber grabber;
 
     public ContainerCraneGrabber(InventoryPlayer invPlayer, TileEntityCraneGrabber grabber) {

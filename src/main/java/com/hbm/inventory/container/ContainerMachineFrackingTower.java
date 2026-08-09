@@ -6,13 +6,13 @@ import com.hbm.tileentity.machine.oil.TileEntityMachineFrackingTower;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerMachineFrackingTower extends Container {
+public class ContainerMachineFrackingTower extends ContainerNTM {
 
 	private TileEntityMachineFrackingTower testNuke;
 	private int warning;

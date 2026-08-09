@@ -10,12 +10,12 @@ import com.hbm.tileentity.machine.TileEntityMachineSolderingStation;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerMachineSolderingStation extends Container {
+public class ContainerMachineSolderingStation extends ContainerNTM {
 	
 	private TileEntityMachineSolderingStation solderer;
 

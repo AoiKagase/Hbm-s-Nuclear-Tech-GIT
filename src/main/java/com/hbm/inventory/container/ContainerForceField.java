@@ -1,15 +1,16 @@
 package com.hbm.inventory.container;
 
+import com.hbm.inventory.ContainerNTM;
+import com.hbm.inventory.SlotUpgrade;
 import com.hbm.tileentity.machine.TileEntityForceField;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerForceField extends Container {
+public class ContainerForceField extends ContainerNTM {
 	
 	private TileEntityForceField diFurnace;
 	
@@ -20,9 +21,9 @@ public class ContainerForceField extends Container {
 		//Battery
 		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 0, 26, 53));
 		//Range up
-		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 1, 89, 35));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 1, 89, 35));
 		//Health up
-		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 2, 107, 35));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 2, 107, 35));
 		
 		for(int i = 0; i < 3; i++)
 		{

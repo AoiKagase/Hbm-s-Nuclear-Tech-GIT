@@ -1,16 +1,17 @@
 package com.hbm.inventory.container;
 
 import com.hbm.inventory.SlotMachineOutput;
+import com.hbm.inventory.SlotUpgrade;
 import com.hbm.tileentity.machine.TileEntityFurnaceIron;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerFurnaceIron extends Container {
+public class ContainerFurnaceIron extends ContainerNTM {
 	
 	protected TileEntityFurnaceIron furnace;
 	
@@ -25,7 +26,7 @@ public class ContainerFurnaceIron extends Container {
 		//output
 		this.addSlotToContainer(new SlotMachineOutput(furnace.inventory, 3, 125, 35));
 		//upgrade
-		this.addSlotToContainer(new SlotItemHandler(furnace.inventory, 4, 17, 35));
+		this.addSlotToContainer(new SlotUpgrade(furnace.inventory, 4, 17, 35));
 		
 		for(int i = 0; i < 3; i++) {
 			for(int j = 0; j < 9; j++) {

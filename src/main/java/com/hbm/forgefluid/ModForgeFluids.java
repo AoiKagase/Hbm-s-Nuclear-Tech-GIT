@@ -32,6 +32,7 @@ public class ModForgeFluids {
 
 	public static List<String> noBlockFluidNames = new ArrayList<String>();
 	public static HashMap<Fluid, Integer> fluidColors = new HashMap<Fluid, Integer>();
+	private static HashMap<String, ResourceLocation> fluidColorTextures = new HashMap<String, ResourceLocation>();
 	
 	public static Fluid SPENTSTEAM = 			createFluid("spentsteam").setTemperature(40 + 273);
 	public static Fluid STEAM = 				createFluid("steam").setTemperature(100 + 273);
@@ -136,7 +137,7 @@ public class ModForgeFluids {
 	public static Fluid NITROGLYCERIN = 		createFluid("nitroglycerin");
 	
 	public static Fluid LIQUID_OSMIRIDIUM = 	createFluid("liquid_osmiridium").setTemperature(573);
-	public static Fluid WATZ = 					createFluidFlowing("watz").setDensity(2500).setViscosity(3000).setLuminosity(5).setTemperature(2773);
+	public static Fluid WATZ = 					createFluidFlowing("watz", "corium").setDensity(2500).setViscosity(3000).setLuminosity(5).setTemperature(2773);
 	public static Fluid CRYOGEL = 				createFluid("cryogel").setTemperature(50);
 
 	public static Fluid HYDROGEN = 				createFluid("hydrogen");
@@ -478,13 +479,27 @@ public class ModForgeFluids {
 
 	public static Fluid createFluid(String name){
 		noBlockFluidNames.add(name);
-		return new Fluid(name, new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+name), new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+name));
+		ResourceLocation texture = new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+name);
+		fluidColorTextures.put(name, texture);
+		return new Fluid(name, texture, texture);
 	}
 
 	public static Fluid createFluidFlowing(String name){
 		noBlockFluidNames.add(name+"_still");
 		noBlockFluidNames.add(name+"_flowing");
-		return new Fluid(name, new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+name+"_still"), new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+name+"_flowing"));
+		ResourceLocation still = new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+name+"_still");
+		ResourceLocation flowing = new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+name+"_flowing");
+		fluidColorTextures.put(name, still);
+		return new Fluid(name, still, flowing);
+	}
+
+	public static Fluid createFluidFlowing(String name, String textureName){
+		noBlockFluidNames.add(name+"_still");
+		noBlockFluidNames.add(name+"_flowing");
+		ResourceLocation still = new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+textureName+"_still");
+		ResourceLocation flowing = new ResourceLocation(RefStrings.MODID, "blocks/forgefluid/"+textureName+"_flowing");
+		fluidColorTextures.put(name, still);
+		return new Fluid(name, still, flowing);
 	}
 
 	public static Fluid loadFluid(String name){
@@ -507,14 +522,22 @@ public class ModForgeFluids {
 		for(Fluid f : FluidRegistry.getRegisteredFluids().values()){
 			fluidColors.put(f, FFUtils.getColorFromFluid(f));
 		}
+		for(java.util.Map.Entry<String, ResourceLocation> entry : fluidColorTextures.entrySet()){
+			Fluid fluid = FluidRegistry.getFluid(entry.getKey());
+			if(fluid != null){
+				fluidColors.put(fluid, FFUtils.getColorFromTexture(entry.getValue()));
+			}
+		}
 	}
 
 	public static int getFluidColor(Fluid f){
 		if(f == null)
 			return 0;
 		Integer color = fluidColors.get(f);
-		if(color == null)
-			return 0xFFFFFF;
+		if(color == null){
+			color = FFUtils.getColorFromFluid(f);
+			fluidColors.put(f, color);
+		}
 		return color;
 	}
 }

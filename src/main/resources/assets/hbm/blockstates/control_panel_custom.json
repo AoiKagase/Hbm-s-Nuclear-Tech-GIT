@@ -1,8 +1,22 @@
 {
+	"forge_marker": 1,
+	"defaults": {
+		"model": "hbm:control_panel_custom"
+	},
 	"variants": {
-		"facing=north": { "model": "hbm:control_panel_custom" },
-		"facing=south": { "model": "hbm:control_panel_custom" },
-		"facing=east": { "model": "hbm:control_panel_custom" },
-		"facing=west": { "model": "hbm:control_panel_custom" }
+		"facing": {
+			"north": {},
+			"south": {},
+			"east": {},
+			"west": {}
+		},
+		"down": {
+			"false": {},
+			"true": {}
+		},
+		"up": {
+			"false": {},
+			"true": {}
+		}
 	}
 }

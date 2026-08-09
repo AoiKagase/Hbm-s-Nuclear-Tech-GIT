@@ -1,17 +1,18 @@
 package com.hbm.inventory.container;
 
+import com.hbm.inventory.ContainerNTM;
 import com.hbm.inventory.SlotMachineOutput;
+import com.hbm.inventory.SlotUpgrade;
 import com.hbm.tileentity.machine.TileEntityMachineTurbofan;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerMachineTurbofan extends Container {
+public class ContainerMachineTurbofan extends ContainerNTM {
 	
 	private TileEntityMachineTurbofan diFurnace;
 	private int afterburner;
@@ -23,7 +24,7 @@ public class ContainerMachineTurbofan extends Container {
 		
 		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 0, 17, 17));
 		this.addSlotToContainer(new SlotMachineOutput(tedf.inventory, 1, 17, 53));
-		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 2, 98, 71));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 2, 98, 71));
 		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 3, 143, 71));
 		
 		for(int i = 0; i < 3; i++) {

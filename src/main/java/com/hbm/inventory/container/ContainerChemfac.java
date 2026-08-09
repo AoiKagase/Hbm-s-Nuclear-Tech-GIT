@@ -5,14 +5,14 @@ import com.hbm.tileentity.machine.TileEntityMachineChemfac;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
 
-public class ContainerChemfac extends Container {
+public class ContainerChemfac extends ContainerNTM {
 	private final TileEntityMachineChemfac chemfac;
 
 	public ContainerChemfac(InventoryPlayer playerInv, TileEntityMachineChemfac tile) {

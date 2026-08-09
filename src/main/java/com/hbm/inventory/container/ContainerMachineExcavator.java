@@ -1,16 +1,17 @@
 package com.hbm.inventory.container;
 
 import com.hbm.inventory.SlotMachineOutput;
+import com.hbm.inventory.SlotUpgrade;
 import com.hbm.tileentity.machine.TileEntityMachineExcavator;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
-public class ContainerMachineExcavator extends Container {
+public class ContainerMachineExcavator extends ContainerNTM {
 	
 	TileEntityMachineExcavator excavator;
 
@@ -23,7 +24,7 @@ public class ContainerMachineExcavator extends Container {
 		this.addSlotToContainer(new SlotItemHandler(tile.inventory, 1, 202, 72));
 		//Upgrades: 2-4
 		for(int i = 0; i < 3; i++) {
-			this.addSlotToContainer(new SlotItemHandler(tile.inventory, 2 + i, 136 + i * 18, 75));
+			this.addSlotToContainer(new SlotUpgrade(tile.inventory, 2 + i, 136 + i * 18, 75));
 		}
 		//Buffer: 5-13
 		for(int i = 0; i < 3; i++) {

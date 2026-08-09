@@ -1,18 +1,19 @@
 package com.hbm.inventory.container;
 
 import com.hbm.inventory.SlotMachineOutput;
+import com.hbm.inventory.SlotUpgrade;
 import com.hbm.tileentity.machine.oil.TileEntityMachineGasFlare;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import com.hbm.inventory.ContainerNTM;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
 
-public class ContainerMachineGasFlare extends Container {
+public class ContainerMachineGasFlare extends ContainerNTM {
 
 	private TileEntityMachineGasFlare testNuke;
 	
@@ -29,8 +30,8 @@ public class ContainerMachineGasFlare extends Container {
 		//Fluid ID
 		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 3, 35, 71));
 		//Upgrades
-		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 4, 80, 71));
-		this.addSlotToContainer(new SlotItemHandler(tedf.inventory, 5, 98, 71));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 4, 80, 71));
+		this.addSlotToContainer(new SlotUpgrade(tedf.inventory, 5, 98, 71));
 
 		int offset = 37;
 		for(int i = 0; i < 3; i++)

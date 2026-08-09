@@ -14,8 +14,8 @@ public class SlotUpgrade extends SlotItemHandler {
 
 	@Override
 	public boolean isItemValid(ItemStack stack) {
-        return stack != null && stack.getItem() instanceof ItemMachineUpgrade;
-    }
+		return stack != null && stack.getItem() instanceof ItemMachineUpgrade && super.isItemValid(stack);
+	}
 
 	@Override
     public void onSlotChange(ItemStack sta1, ItemStack sta2) {

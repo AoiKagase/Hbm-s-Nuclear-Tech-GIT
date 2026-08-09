@@ -2,6 +2,7 @@ package com.hbm.render.item;
 
 import org.lwjgl.opengl.GL11;
 
+import com.hbm.forgefluid.ModForgeFluids;
 import com.hbm.items.machine.ItemFFFluidDuct;
 import com.hbm.render.RenderHelper;
 
@@ -13,7 +14,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 
 public class ItemRenderFFFluidDuct extends TEISRBase {
 
@@ -38,7 +38,7 @@ public class ItemRenderFFFluidDuct extends TEISRBase {
 			lava = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(f.getStill().toString());
 
 		if (lava != null) {
-			RenderHelper.setColor(f.getColor(new FluidStack(f, 1000)));
+			RenderHelper.setColor(ModForgeFluids.getFluidColor(f));
 			GlStateManager.disableLighting();
 			float maxU = lava.getInterpolatedU(13);
 			float minU = lava.getInterpolatedU(3);
